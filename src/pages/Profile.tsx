@@ -106,7 +106,9 @@ const Profile = () => {
           <h2 className="font-display text-xl text-foreground">{profile.username}</h2>
           <p className="text-sm text-muted-foreground">{profile.email}</p>
           <div className="mt-2 px-3 py-1 bg-primary/20 rounded-full">
-            <span className="text-sm font-medium text-primary">VIP {profile.vip_level}</span>
+            <span className="text-sm font-medium text-primary">
+              {profile.vip_level === 0.5 ? 'VIP تجريبي' : `VIP ${profile.vip_level}`}
+            </span>
           </div>
         </motion.div>
       </section>

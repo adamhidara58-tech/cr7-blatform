@@ -85,7 +85,7 @@ const VIP = () => {
               </div>
               <div>
                 <p className="text-primary-foreground font-bold text-lg">
-                  VIP {currentVipLevel}
+                  {currentVipLevel === 0.5 ? 'VIP تجريبي' : `VIP ${currentVipLevel}`}
                 </p>
                 <p className="text-primary-foreground/80 text-sm">
                   {currentLevel.nameAr}

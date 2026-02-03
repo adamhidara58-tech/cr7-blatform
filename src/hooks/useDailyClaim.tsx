@@ -59,10 +59,11 @@ export const useDailyClaim = () => {
       return false;
     }
 
+    // VIP level 0 has no daily profit
     if (profile.vip_level === 0) {
       toast({
         title: 'ترقية مطلوبة',
-        description: 'قم بالترقية إلى VIP1 للحصول على أرباح يومية',
+        description: 'قم بالترقية للحصول على أرباح يومية',
         variant: 'destructive',
       });
       return false;

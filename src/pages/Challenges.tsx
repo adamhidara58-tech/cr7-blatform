@@ -102,6 +102,7 @@ const Challenges = () => {
   const getLevelColor = (level: number) => {
     const colors: Record<number, string> = {
       0: 'from-gray-500 to-gray-600',
+      0.5: 'from-purple-500 to-purple-600', // Test tier
       1: 'from-amber-700 to-amber-800',
       2: 'from-gray-300 to-gray-400',
       3: 'from-yellow-500 to-yellow-600',
@@ -292,16 +293,16 @@ const Challenges = () => {
               <Crown className="w-6 h-6 text-primary-foreground" />
               <div>
                 <p className="text-primary-foreground font-bold">
-                  VIP {userVipLevel}
+                  VIP {userVipLevel === 0.5 ? 'تجريبي' : userVipLevel}
                 </p>
                 <p className="text-primary-foreground/80 text-xs">
-                  {vipLevels[userVipLevel]?.nameAr}
+                  {vipLevels.find(v => v.level === userVipLevel)?.nameAr || 'مبتدئ'}
                 </p>
               </div>
             </div>
             <div className="text-left">
               <p className="text-primary-foreground text-xl font-bold">
-                ${vipLevels[userVipLevel]?.dailyProfit.toFixed(2) || '0.00'}
+                ${vipLevels.find(v => v.level === userVipLevel)?.dailyProfit.toFixed(2) || '0.00'}
               </p>
               <p className="text-primary-foreground/80 text-xs">ربحك اليومي</p>
             </div>
