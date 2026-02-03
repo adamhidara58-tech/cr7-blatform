@@ -211,10 +211,10 @@ serve(async (req) => {
       const creditAmount = outcome_amount || deposit.amount_usd;
       console.log(`Crediting $${creditAmount} to user ${deposit.user_id}`);
 
-      // Get current balance
+      // Get current balance and VIP level
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('balance')
+        .select('balance, vip_level, referral_discount')
         .eq('id', deposit.user_id)
         .single();
 
@@ -224,18 +224,58 @@ serve(async (req) => {
         const newBalance = Number(profile.balance) + Number(creditAmount);
         console.log(`Current balance: ${profile.balance}, New balance: ${newBalance}`);
 
+        // VIP levels with prices (matching mockData.ts)
+        const vipLevels = [
+          { level: 0, price: 0 },
+          { level: 0.5, price: 0.01 },  // Test tier
+          { level: 1, price: 24.10 },
+          { level: 2, price: 30.80 },
+          { level: 3, price: 58.80 },
+          { level: 4, price: 908.00 },
+          { level: 5, price: 1820.00 },
+        ];
+
+        // Check if deposit amount matches a VIP level price (with discount applied)
+        const depositAmount = Number(creditAmount);
+        const currentVipLevel = Number(profile.vip_level) || 0;
+        const referralDiscount = Number(profile.referral_discount) || 0;
+
+        // Find the VIP level that matches this deposit amount
+        let upgradedToLevel: number | null = null;
+        for (const vip of vipLevels) {
+          if (vip.level > currentVipLevel && vip.price > 0) {
+            const discountedPrice = Math.max(0, vip.price - referralDiscount);
+            // Check if deposit matches the discounted price (with small tolerance)
+            if (Math.abs(depositAmount - discountedPrice) < 0.10 || depositAmount >= discountedPrice) {
+              upgradedToLevel = vip.level;
+              console.log(`VIP upgrade: User qualifies for VIP ${vip.level} (price: ${discountedPrice}, deposit: ${depositAmount})`);
+              break;
+            }
+          }
+        }
+
+        // Update profile with new balance and potentially new VIP level
+        const updateData: Record<string, unknown> = { 
+          balance: newBalance, 
+          updated_at: new Date().toISOString() 
+        };
+
+        if (upgradedToLevel !== null) {
+          updateData.vip_level = upgradedToLevel;
+          // Clear referral discount after first purchase
+          updateData.referral_discount = 0;
+          console.log(`Upgrading user to VIP ${upgradedToLevel}`);
+        }
+
         const { error: balanceError } = await supabase
           .from('profiles')
-          .update({ 
-            balance: newBalance, 
-            updated_at: new Date().toISOString() 
-          })
+          .update(updateData)
           .eq('id', deposit.user_id);
 
         if (balanceError) {
           console.error('Error updating balance:', balanceError);
         } else {
-          console.log('Balance updated successfully');
+          console.log('Balance and VIP level updated successfully');
         }
       }
 
