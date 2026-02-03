@@ -42,6 +42,13 @@ const SUPPORTED_CURRENCIES = [
     minAmount: 1,
     isPopular: true,
   },
+  {
+    currency: 'maticmainnet',
+    name: 'Polygon',
+    network: 'Polygon POS',
+    minAmount: 0.1,
+    isPopular: true,
+  },
 ];
 
 serve(async (req) => {
