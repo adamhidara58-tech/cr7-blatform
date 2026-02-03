@@ -61,9 +61,9 @@ const VIP = () => {
             </div>
             <div className="text-left">
               <p className="text-primary-foreground text-2xl font-bold">
-                x{currentLevel.rewardMultiplier}
+                {currentLevel.dailyProfit.toFixed(2)}
               </p>
-              <p className="text-primary-foreground/80 text-xs">مضاعف</p>
+              <p className="text-primary-foreground/80 text-xs">USDT يومياً</p>
             </div>
           </div>
         </motion.div>

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, Crown, Zap } from 'lucide-react';
+import { Check, Crown, Zap, Calendar, TrendingUp, DollarSign, Coins } from 'lucide-react';
 import { VIPLevel } from '@/data/mockData';
 import { GoldButton } from '../ui/GoldButton';
 
@@ -49,6 +49,10 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
     3: 'shadow-[0_0_30px_rgba(212,175,55,0.5)]',
     4: 'shadow-[0_0_30px_rgba(200,200,220,0.5)]',
     5: 'shadow-[0_0_40px_rgba(100,200,255,0.5)]',
+  };
+
+  const formatNumber = (num: number) => {
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   return (
@@ -101,7 +105,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       )}
 
       {/* Card Content - positioned on the right */}
-      <div className="relative z-[3] p-5 mr-0 ml-auto w-[65%]">
+      <div className="relative z-[3] p-5 mr-0 ml-auto w-[70%]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -117,52 +121,58 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
               </p>
             </div>
           </div>
-          
-          {vipLevel.price > 0 && (
-            <div className="text-left">
-              <p className="text-2xl font-bold text-foreground">${vipLevel.price}</p>
-              <p className="text-xs text-muted-foreground">USDT</p>
-            </div>
-          )}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-secondary/70 backdrop-blur-sm rounded-xl p-3 text-center">
+        {/* Stats Grid - 2x2 layout */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {/* Daily Challenges */}
+          <div className="bg-secondary/70 backdrop-blur-sm rounded-xl p-3 text-center border border-border/30">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Calendar className="w-4 h-4 text-primary" />
+            </div>
             <p className="text-lg font-bold text-foreground">{vipLevel.dailyChallengeLimit}</p>
-            <p className="text-xs text-muted-foreground">تحدي يومي</p>
+            <p className="text-[10px] text-muted-foreground">مهمات يومية</p>
           </div>
-          <div className="bg-secondary/70 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-lg font-bold text-primary">x{vipLevel.rewardMultiplier}</p>
-            <p className="text-xs text-muted-foreground">مضاعف المكافأة</p>
-          </div>
-        </div>
 
-        {/* Benefits */}
-        <div className="space-y-2 mb-4">
-          {vipLevel.benefitsAr.map((benefit, i) => (
-            <div key={i} className="flex items-center gap-2 text-right">
-              <Check className="w-4 h-4 text-primary flex-shrink-0" />
-              <span className="text-sm text-muted-foreground">{benefit}</span>
+          {/* Simple Interest */}
+          <div className="bg-secondary/70 backdrop-blur-sm rounded-xl p-3 text-center border border-border/30">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <TrendingUp className="w-4 h-4 text-green-400" />
             </div>
-          ))}
+            <p className="text-lg font-bold text-foreground">{formatNumber(vipLevel.simpleInterest)}</p>
+            <p className="text-[10px] text-muted-foreground">مصلحة بسيطة</p>
+          </div>
+
+          {/* Daily Profit */}
+          <div className="bg-secondary/70 backdrop-blur-sm rounded-xl p-3 text-center border border-border/30">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <DollarSign className="w-4 h-4 text-primary" />
+            </div>
+            <p className="text-lg font-bold text-primary">{formatNumber(vipLevel.dailyProfit)}</p>
+            <p className="text-[10px] text-muted-foreground">الربح اليومي</p>
+          </div>
+
+          {/* Total Profit */}
+          <div className="bg-secondary/70 backdrop-blur-sm rounded-xl p-3 text-center border border-border/30">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Coins className="w-4 h-4 text-yellow-400" />
+            </div>
+            <p className="text-lg font-bold text-foreground">{formatNumber(vipLevel.totalProfit)}</p>
+            <p className="text-[10px] text-muted-foreground">إجمالي الربح</p>
+          </div>
         </div>
 
         {/* Action Button */}
-        {!isUnlocked && (
+        {!isUnlocked && vipLevel.price > 0 && (
           <GoldButton
             variant={isNextLevel ? 'primary' : 'secondary'}
             size="md"
             className="w-full"
           >
-            {isNextLevel ? (
-              <span className="flex items-center justify-center gap-2">
-                <Zap className="w-4 h-4" />
-                ترقية الآن
-              </span>
-            ) : (
-              'ترقية'
-            )}
+            <span className="flex items-center justify-center gap-2">
+              <Zap className="w-4 h-4" />
+              فتح بـ {formatNumber(vipLevel.price)} USDT
+            </span>
           </GoldButton>
         )}
       </div>
