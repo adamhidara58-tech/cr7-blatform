@@ -10,7 +10,7 @@ import bg2 from '@/assets/vip/bg-2-silver.jpg';
 import bg3 from '@/assets/vip/bg-3-gold.jpg';
 import bg4 from '@/assets/vip/bg-4-platinum.jpg';
 import bg5 from '@/assets/vip/bg-5-diamond.jpg';
-import ronaldoCutout from '@/assets/vip/ronaldo-cutout.png';
+import ronaldoCutout from '@/assets/vip/ronaldo-transparent.png';
 
 interface VIPCardProps {
   vipLevel: VIPLevel;
