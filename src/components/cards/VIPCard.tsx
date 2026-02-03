@@ -22,6 +22,7 @@ interface VIPCardProps {
 
 const vipBackgrounds: Record<number, string> = {
   0: bg0,
+  0.5: bg0, // Test tier uses same bg as Rookie
   1: bg1,
   2: bg2,
   3: bg3,
@@ -42,6 +43,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
 
   const levelColors: Record<number, string> = {
     0: 'from-gray-500 to-gray-600',
+    0.5: 'from-purple-500 to-purple-600', // Test tier
     1: 'from-amber-700 to-amber-800',
     2: 'from-gray-300 to-gray-400',
     3: 'from-yellow-500 to-yellow-600',
@@ -49,9 +51,9 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
     5: 'from-cyan-300 to-cyan-500',
   };
 
-  // Level-specific glow colors
   const glowColors: Record<number, string> = {
     0: 'shadow-[0_0_30px_rgba(100,100,100,0.3)]',
+    0.5: 'shadow-[0_0_30px_rgba(147,51,234,0.4)]', // Test tier - purple glow
     1: 'shadow-[0_0_30px_rgba(180,100,50,0.4)]',
     2: 'shadow-[0_0_30px_rgba(192,192,192,0.4)]',
     3: 'shadow-[0_0_30px_rgba(212,175,55,0.5)]',

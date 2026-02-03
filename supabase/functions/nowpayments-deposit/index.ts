@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const NOWPAYMENTS_API_URL = 'https://api.nowpayments.io/v1';
-const MINIMUM_DEPOSIT_USD = 4;
+const MINIMUM_DEPOSIT_USD = 0;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

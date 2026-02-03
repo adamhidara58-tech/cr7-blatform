@@ -172,6 +172,18 @@ export const vipLevels: VIPLevel[] = [
     descriptionAr: 'ابدأ رحلتك',
   },
   {
+    level: 0.5,
+    name: 'Test',
+    nameAr: 'تجريبي',
+    price: 0.01,
+    dailyChallengeLimit: 1,
+    simpleInterest: 0.001,
+    dailyProfit: 0.001,
+    totalProfit: 0.18,
+    description: 'Test tier',
+    descriptionAr: 'للاختبار فقط',
+  },
+  {
     level: 1,
     name: 'Bronze',
     nameAr: 'برونزي',

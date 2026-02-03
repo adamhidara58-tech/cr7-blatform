@@ -55,7 +55,7 @@ export const useCryptoPayments = () => {
   const [loading, setLoading] = useState(false);
   const [canWithdraw, setCanWithdraw] = useState(true);
   const [nextWithdrawalAt, setNextWithdrawalAt] = useState<string | null>(null);
-  const [minimumDepositUsd] = useState(4);
+  const [minimumDepositUsd] = useState(0);
 
   const fetchCurrencies = useCallback(async () => {
     try {

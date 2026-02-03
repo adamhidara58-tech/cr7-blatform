@@ -58,7 +58,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         currencies: SUPPORTED_CURRENCIES,
-        minimumDepositUsd: 4,
+        minimumDepositUsd: 0,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
