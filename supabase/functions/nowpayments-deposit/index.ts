@@ -18,12 +18,13 @@ serve(async (req) => {
     const apiKey = Deno.env.get('NOWPAYMENTS_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 
     if (!apiKey) {
       console.error('NOWPAYMENTS_API_KEY is not configured');
       throw new Error('NOWPAYMENTS_API_KEY is not configured');
     }
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       console.error('Supabase configuration missing');
       throw new Error('Supabase configuration missing');
     }
@@ -38,23 +39,38 @@ serve(async (req) => {
       );
     }
 
-    // Create supabase clients
+    // Extract the token from the Authorization header
+    const token = authHeader.replace('Bearer ', '');
+    console.log('Token received, length:', token.length);
+
+    // Create supabase client with the user's token
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const userClient = createClient(supabaseUrl, supabaseServiceKey, {
-      global: { headers: { Authorization: authHeader } }
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: `Bearer ${token}` }
+      }
     });
 
-    // Verify user
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
-    if (authError || !user) {
-      console.log('Auth error:', authError?.message || 'No user found');
+    // Verify user using the token
+    const { data: { user }, error: authError } = await userClient.auth.getUser(token);
+    
+    if (authError) {
+      console.log('Auth error:', authError.message);
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid authorization' }),
+        JSON.stringify({ success: false, error: 'Invalid authorization: ' + authError.message }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`User ${user.id} requesting deposit`);
+    if (!user) {
+      console.log('No user found for token');
+      return new Response(
+        JSON.stringify({ success: false, error: 'User not found' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`User ${user.id} (${user.email}) requesting deposit`);
 
     // Parse request body
     let body;
@@ -96,7 +112,7 @@ serve(async (req) => {
     const orderId = `DEP-${user.id.slice(0, 8)}-${Date.now()}`;
     console.log(`Generated order ID: ${orderId}`);
 
-    // Create payment directly via NOWPayments (skip invoice for faster response)
+    // Create payment directly via NOWPayments
     console.log('Creating payment with NOWPayments...');
     const paymentResponse = await fetch(`${NOWPAYMENTS_API_URL}/payment`, {
       method: 'POST',
