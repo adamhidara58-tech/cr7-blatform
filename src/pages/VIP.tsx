@@ -43,15 +43,15 @@ const VIP = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-gold rounded-2xl p-4 mb-6 shadow-gold"
+          className="bg-gradient-gold rounded-2xl p-5 mb-6 shadow-gold"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="bg-primary-foreground/20 rounded-full p-2">
-                <Crown className="w-6 h-6 text-primary-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="bg-primary-foreground/20 rounded-full p-3">
+                <Crown className="w-7 h-7 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-primary-foreground font-bold text-lg">
+                <p className="text-primary-foreground font-bold text-xl">
                   VIP {currentVipLevel}
                 </p>
                 <p className="text-primary-foreground/80 text-sm">
@@ -61,9 +61,9 @@ const VIP = () => {
             </div>
             <div className="text-left">
               <p className="text-primary-foreground text-2xl font-bold">
-                x{currentLevel.rewardMultiplier}
+                {currentLevel.dailyProfit.toFixed(2)}
               </p>
-              <p className="text-primary-foreground/80 text-xs">مضاعف</p>
+              <p className="text-primary-foreground/80 text-xs">USDT يومياً</p>
             </div>
           </div>
         </motion.div>
