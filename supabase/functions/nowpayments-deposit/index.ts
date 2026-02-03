@@ -19,19 +19,26 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!apiKey) throw new Error('NOWPAYMENTS_API_KEY is not configured');
-    if (!supabaseUrl || !supabaseServiceKey) throw new Error('Supabase configuration missing');
+    if (!apiKey) {
+      console.error('NOWPAYMENTS_API_KEY is not configured');
+      throw new Error('NOWPAYMENTS_API_KEY is not configured');
+    }
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase configuration missing');
+      throw new Error('Supabase configuration missing');
+    }
 
     // Get auth token from request
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.log('Authorization header missing');
       return new Response(
         JSON.stringify({ success: false, error: 'Authorization required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create supabase client with user's token
+    // Create supabase clients
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const userClient = createClient(supabaseUrl, supabaseServiceKey, {
       global: { headers: { Authorization: authHeader } }
@@ -40,16 +47,33 @@ serve(async (req) => {
     // Verify user
     const { data: { user }, error: authError } = await userClient.auth.getUser();
     if (authError || !user) {
+      console.log('Auth error:', authError?.message || 'No user found');
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid authorization' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { amount, currency } = await req.json();
+    console.log(`User ${user.id} requesting deposit`);
+
+    // Parse request body
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error('Failed to parse request body:', e);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { amount, currency } = body;
+    console.log(`Deposit request: amount=${amount}, currency=${currency}`);
 
     // Validate minimum deposit
     if (!amount || amount < MINIMUM_DEPOSIT_USD) {
+      console.log(`Invalid amount: ${amount}, minimum is ${MINIMUM_DEPOSIT_USD}`);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -61,6 +85,7 @@ serve(async (req) => {
     }
 
     if (!currency) {
+      console.log('Currency is missing');
       return new Response(
         JSON.stringify({ success: false, error: 'Currency is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -69,9 +94,11 @@ serve(async (req) => {
 
     // Generate unique order ID
     const orderId = `DEP-${user.id.slice(0, 8)}-${Date.now()}`;
+    console.log(`Generated order ID: ${orderId}`);
 
-    // Create payment invoice via NOWPayments
-    const invoiceResponse = await fetch(`${NOWPAYMENTS_API_URL}/invoice`, {
+    // Create payment directly via NOWPayments (skip invoice for faster response)
+    console.log('Creating payment with NOWPayments...');
+    const paymentResponse = await fetch(`${NOWPAYMENTS_API_URL}/payment`, {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
@@ -84,82 +111,74 @@ serve(async (req) => {
         order_id: orderId,
         order_description: `Deposit $${amount} to CR7 Platform`,
         ipn_callback_url: `${supabaseUrl}/functions/v1/nowpayments-webhook`,
-        success_url: `${supabaseUrl.replace('.supabase.co', '')}/profile`,
-        cancel_url: `${supabaseUrl.replace('.supabase.co', '')}/profile`,
       }),
     });
 
-    if (!invoiceResponse.ok) {
-      const errorText = await invoiceResponse.text();
-      console.error('NOWPayments invoice error:', errorText);
-      throw new Error(`Failed to create invoice: ${invoiceResponse.status}`);
+    const paymentResponseText = await paymentResponse.text();
+    console.log(`NOWPayments response status: ${paymentResponse.status}`);
+    console.log(`NOWPayments response: ${paymentResponseText}`);
+
+    if (!paymentResponse.ok) {
+      console.error('NOWPayments API error:', paymentResponseText);
+      throw new Error(`NOWPayments API error: ${paymentResponse.status} - ${paymentResponseText}`);
     }
 
-    const invoiceData = await invoiceResponse.json();
-    console.log('Invoice created:', invoiceData);
-
-    // Get payment details with wallet address
-    let paymentDetails = null;
-    if (invoiceData.id) {
-      // Create a payment from the invoice to get wallet address
-      const paymentResponse = await fetch(`${NOWPAYMENTS_API_URL}/payment`, {
-        method: 'POST',
-        headers: {
-          'x-api-key': apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          price_amount: amount,
-          price_currency: 'usd',
-          pay_currency: currency.toLowerCase(),
-          order_id: orderId,
-          order_description: `Deposit $${amount} to CR7 Platform`,
-          ipn_callback_url: `${supabaseUrl}/functions/v1/nowpayments-webhook`,
-        }),
-      });
-
-      if (paymentResponse.ok) {
-        paymentDetails = await paymentResponse.json();
-        console.log('Payment created:', paymentDetails);
-      }
+    let paymentData;
+    try {
+      paymentData = JSON.parse(paymentResponseText);
+    } catch (e) {
+      console.error('Failed to parse NOWPayments response:', e);
+      throw new Error('Invalid response from payment provider');
     }
+
+    console.log('Payment created successfully:', JSON.stringify(paymentData));
 
     // Save deposit record to database
+    const depositRecord = {
+      user_id: user.id,
+      invoice_id: paymentData.payment_id?.toString() || orderId,
+      order_id: orderId,
+      payment_id: paymentData.payment_id?.toString(),
+      amount_usd: amount,
+      amount_crypto: paymentData.pay_amount,
+      currency: currency.toUpperCase(),
+      network: paymentData.network || currency.toUpperCase(),
+      wallet_address: paymentData.pay_address,
+      payment_status: paymentData.payment_status || 'waiting',
+      expires_at: paymentData.expiration_estimate_date || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    };
+
+    console.log('Saving deposit record:', JSON.stringify(depositRecord));
+
     const { error: insertError } = await supabase
       .from('crypto_deposits')
-      .insert({
-        user_id: user.id,
-        invoice_id: invoiceData.id?.toString() || orderId,
-        order_id: orderId,
-        payment_id: paymentDetails?.payment_id?.toString(),
-        amount_usd: amount,
-        amount_crypto: paymentDetails?.pay_amount,
-        currency: currency.toUpperCase(),
-        network: paymentDetails?.network || currency.toUpperCase(),
-        wallet_address: paymentDetails?.pay_address,
-        payment_status: 'waiting',
-        expires_at: paymentDetails?.expiration_estimate_date || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      });
+      .insert(depositRecord);
 
     if (insertError) {
       console.error('Database insert error:', insertError);
-      throw new Error('Failed to save deposit record');
+      throw new Error(`Failed to save deposit record: ${insertError.message}`);
     }
+
+    console.log('Deposit record saved successfully');
+
+    // Generate QR code URL
+    const qrCode = paymentData.pay_address 
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(paymentData.pay_address)}`
+      : null;
 
     return new Response(
       JSON.stringify({
         success: true,
         deposit: {
           orderId,
-          invoiceId: invoiceData.id,
-          invoiceUrl: invoiceData.invoice_url,
-          payAddress: paymentDetails?.pay_address,
-          payAmount: paymentDetails?.pay_amount,
-          payCurrency: paymentDetails?.pay_currency?.toUpperCase(),
-          network: paymentDetails?.network,
-          expiresAt: paymentDetails?.expiration_estimate_date,
-          qrCode: paymentDetails?.pay_address ? 
-            `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${paymentDetails.pay_address}` : null,
+          invoiceId: paymentData.payment_id,
+          invoiceUrl: paymentData.invoice_url || null,
+          payAddress: paymentData.pay_address,
+          payAmount: paymentData.pay_amount,
+          payCurrency: paymentData.pay_currency?.toUpperCase() || currency.toUpperCase(),
+          network: paymentData.network,
+          expiresAt: paymentData.expiration_estimate_date,
+          qrCode,
         },
         message: 'يرجى إرسال المبلغ المطلوب بالإضافة إلى رسوم الشبكة لإتمام المعاملة',
       }),
@@ -169,10 +188,13 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Deposit error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error details:', errorMessage);
+    
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
       }),
       {
         status: 500,
