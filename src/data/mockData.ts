@@ -28,18 +28,7 @@ export interface Challenge {
   category: string;
 }
 
-export interface VIPLevel {
-  level: number;
-  name: string;
-  nameAr: string;
-  price: number;
-  dailyChallengeLimit: number;
-  rewardMultiplier: number;
-  description: string;
-  descriptionAr: string;
-  benefits: string[];
-  benefitsAr: string[];
-}
+// VIPLevel interface moved to vipLevels definition below
 
 export interface Transaction {
   id: string;
@@ -158,78 +147,119 @@ export const mockChallenges: Challenge[] = [
   },
 ];
 
+export interface VIPLevel {
+  level: number;
+  name: string;
+  nameAr: string;
+  price: number;
+  dailyTasks: number;
+  simpleInterest: number;
+  dailyProfit: number;
+  totalProfit: number;
+  dailyChallengeLimit: number;
+  rewardMultiplier: number;
+  description: string;
+  descriptionAr: string;
+  benefits: string[];
+  benefitsAr: string[];
+}
+
 export const vipLevels: VIPLevel[] = [
   {
     level: 0,
     name: 'Rookie',
     nameAr: 'مبتدئ',
     price: 0,
-    dailyChallengeLimit: 3,
-    rewardMultiplier: 1,
+    dailyTasks: 0,
+    simpleInterest: 0,
+    dailyProfit: 0,
+    totalProfit: 0,
+    dailyChallengeLimit: 0,
+    rewardMultiplier: 0,
     description: 'Start your journey',
     descriptionAr: 'ابدأ رحلتك',
-    benefits: ['3 daily challenges', 'Basic support'],
-    benefitsAr: ['3 تحديات يومية', 'دعم أساسي'],
+    benefits: ['مستوى تجريبي'],
+    benefitsAr: ['مستوى تجريبي'],
   },
   {
     level: 1,
     name: 'Bronze',
     nameAr: 'برونزي',
-    price: 50,
-    dailyChallengeLimit: 5,
-    rewardMultiplier: 1.1,
+    price: 24.10,
+    dailyTasks: 1,
+    simpleInterest: 1.64,
+    dailyProfit: 1.64,
+    totalProfit: 295.20,
+    dailyChallengeLimit: 1,
+    rewardMultiplier: 1.64,
     description: 'Begin your ascent',
     descriptionAr: 'ابدأ صعودك',
-    benefits: ['5 daily challenges', '10% bonus rewards', 'Priority support'],
-    benefitsAr: ['5 تحديات يومية', '10% مكافآت إضافية', 'دعم أولوي'],
+    benefits: ['1 مهمة يومية', 'ربح 1.64 USDT يومياً'],
+    benefitsAr: ['1 مهمة يومية', 'ربح 1.64 USDT يومياً'],
   },
   {
     level: 2,
     name: 'Silver',
     nameAr: 'فضي',
-    price: 150,
-    dailyChallengeLimit: 8,
-    rewardMultiplier: 1.25,
+    price: 30.80,
+    dailyTasks: 1,
+    simpleInterest: 4.32,
+    dailyProfit: 4.32,
+    totalProfit: 777.60,
+    dailyChallengeLimit: 1,
+    rewardMultiplier: 4.32,
     description: 'Rise above the rest',
     descriptionAr: 'ارتقِ فوق الجميع',
-    benefits: ['8 daily challenges', '25% bonus rewards', 'Exclusive challenges'],
-    benefitsAr: ['8 تحديات يومية', '25% مكافآت إضافية', 'تحديات حصرية'],
+    benefits: ['1 مهمة يومية', 'ربح 4.32 USDT يومياً'],
+    benefitsAr: ['1 مهمة يومية', 'ربح 4.32 USDT يومياً'],
   },
   {
     level: 3,
     name: 'Gold',
     nameAr: 'ذهبي',
-    price: 350,
-    dailyChallengeLimit: 12,
-    rewardMultiplier: 1.5,
+    price: 58.80,
+    dailyTasks: 1,
+    simpleInterest: 15.52,
+    dailyProfit: 15.52,
+    totalProfit: 2793.60,
+    dailyChallengeLimit: 1,
+    rewardMultiplier: 15.52,
     description: 'Shine like a champion',
     descriptionAr: 'تألق كالبطل',
-    benefits: ['12 daily challenges', '50% bonus rewards', 'VIP support', 'Weekly bonuses'],
-    benefitsAr: ['12 تحدي يومي', '50% مكافآت إضافية', 'دعم VIP', 'مكافآت أسبوعية'],
+    benefits: ['1 مهمة يومية', 'ربح 15.52 USDT يومياً'],
+    benefitsAr: ['1 مهمة يومية', 'ربح 15.52 USDT يومياً'],
   },
   {
     level: 4,
     name: 'Platinum',
     nameAr: 'بلاتيني',
-    price: 750,
-    dailyChallengeLimit: 18,
-    rewardMultiplier: 1.75,
+    price: 908.00,
+    dailyTasks: 1,
+    simpleInterest: 399.60,
+    dailyProfit: 399.60,
+    totalProfit: 71928.00,
+    dailyChallengeLimit: 1,
+    rewardMultiplier: 399.60,
     description: 'Elite performance',
     descriptionAr: 'أداء النخبة',
-    benefits: ['18 daily challenges', '75% bonus rewards', '24/7 VIP support', 'Exclusive events'],
-    benefitsAr: ['18 تحدي يومي', '75% مكافآت إضافية', 'دعم VIP على مدار الساعة', 'فعاليات حصرية'],
+    benefits: ['1 مهمة يومية', 'ربح 399.60 USDT يومياً'],
+    benefitsAr: ['1 مهمة يومية', 'ربح 399.60 USDT يومياً'],
   },
   {
     level: 5,
     name: 'Diamond',
     nameAr: 'ماسي',
-    price: 1500,
-    dailyChallengeLimit: 25,
-    rewardMultiplier: 2,
+    price: 1820.00,
+    dailyTasks: 1,
+    simpleInterest: 900.00,
+    dailyProfit: 900.00,
+    totalProfit: 162000.00,
+    dailyChallengeLimit: 1,
+    rewardMultiplier: 900.00,
     description: 'Unbreakable excellence',
     descriptionAr: 'تميز لا يُكسر',
-    benefits: ['25 daily challenges', '100% bonus rewards', 'Personal manager', 'Elite challenges'],
-    benefitsAr: ['25 تحدي يومي', '100% مكافآت إضافية', 'مدير شخصي', 'تحديات النخبة'],
+    benefits: ['1 مهمة يومية', 'ربح 900 USDT يومياً'],
+    benefitsAr: ['1 مهمة يومية', 'ربح 900 USDT يومياً'],
   },
 ];
 
