@@ -1,22 +1,24 @@
 import { motion } from 'framer-motion';
-import { Crown, Trophy, Wallet, TrendingUp, Target, Users, Star, ChevronLeft, Copy, Share2 } from 'lucide-react';
+import { Crown, Trophy, Wallet, TrendingUp, Target, Users, ChevronLeft, Copy, Share2 } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { ChallengeCard } from '@/components/cards/ChallengeCard';
 import { GoldButton } from '@/components/ui/GoldButton';
+import { FakeWithdrawals } from '@/components/home/FakeWithdrawals';
+import { PlatformStatsCard } from '@/components/home/PlatformStatsCard';
 import { mockChallenges } from '@/data/mockData';
 import { useAuth } from '@/hooks/useAuth';
-import { usePlatformStats } from '@/hooks/usePlatformStats';
 import { useReferrals } from '@/hooks/useReferrals';
 import { useToast } from '@/hooks/use-toast';
 import { vipLevels } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
 import heroBg from '@/assets/hero-bg.jpg';
 
 const Index = () => {
   const { profile, loading } = useAuth();
-  const { stats } = usePlatformStats();
   const { count: referralCount } = useReferrals();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const featuredChallenges = mockChallenges.slice(0, 3);
 
   const copyReferralCode = () => {
@@ -38,6 +40,14 @@ const Index = () => {
         description: 'رابط الإحالة تم نسخه',
       });
     }
+  };
+
+  const handleStartChallenge = () => {
+    navigate('/challenges');
+  };
+
+  const handleViewAllChallenges = () => {
+    navigate('/challenges');
   };
 
   if (loading || !profile) {
@@ -184,10 +194,27 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Platform Stats - Fake Data */}
+      <section className="px-4 mb-8">
+        <motion.h3
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="font-display text-lg text-foreground mb-4 text-right"
+        >
+          إحصائيات المنصة
+        </motion.h3>
+        <PlatformStatsCard />
+      </section>
+
+      {/* Live Withdrawals - Fake Data */}
+      <section className="px-4 mb-8">
+        <FakeWithdrawals />
+      </section>
+
       {/* Featured Challenges */}
       <section className="px-4 mb-8">
         <div className="flex items-center justify-between mb-4">
-          <GoldButton variant="outline" size="sm">
+          <GoldButton variant="outline" size="sm" onClick={handleViewAllChallenges}>
             <span className="flex items-center gap-1">
               عرض الكل
               <ChevronLeft className="w-4 h-4" />
@@ -211,39 +238,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Quick Stats Banner */}
-      <section className="px-4 mb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-gradient-card border border-border rounded-2xl p-5"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <Star className="w-6 h-6 text-primary" />
-            <h3 className="font-display text-lg text-foreground">إحصائيات المنصة</h3>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gradient-gold">
-                {stats.total_users.toLocaleString()}
-              </p>
-              <p className="text-xs text-muted-foreground">عضو نشط</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gradient-gold">
-                ${(stats.total_paid / 1000000).toFixed(1)}M
-              </p>
-              <p className="text-xs text-muted-foreground">إجمالي المدفوعات</p>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
       {/* CTA Button */}
       <section className="px-4 pb-6">
-        <GoldButton variant="primary" size="lg" className="w-full">
+        <GoldButton variant="primary" size="lg" className="w-full" onClick={handleStartChallenge}>
           <span className="flex items-center justify-center gap-2">
             <Trophy className="w-5 h-5" />
             ابدأ تحدي جديد

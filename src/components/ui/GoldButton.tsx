@@ -1,19 +1,15 @@
-import { forwardRef, ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { forwardRef, ReactNode, ButtonHTMLAttributes } from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-interface GoldButtonProps {
+interface GoldButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   variant?: 'primary' | 'secondary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   children: ReactNode;
-  className?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  type?: 'button' | 'submit' | 'reset';
 }
 
 export const GoldButton = forwardRef<HTMLButtonElement, GoldButtonProps>(
-  ({ className, variant = 'primary', size = 'md', children, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', children, disabled, onClick, ...props }, ref) => {
     const baseStyles = "relative font-semibold rounded-xl transition-all duration-300 overflow-hidden";
     
     const variants = {
@@ -28,15 +24,19 @@ export const GoldButton = forwardRef<HTMLButtonElement, GoldButtonProps>(
       lg: "px-8 py-4 text-lg",
     };
 
+    const disabledStyles = disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer";
+
     return (
       <motion.button
         ref={ref}
-        className={cn(baseStyles, variants[variant], sizes[size], className)}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        className={cn(baseStyles, variants[variant], sizes[size], disabledStyles, className)}
+        whileHover={disabled ? {} : { scale: 1.02 }}
+        whileTap={disabled ? {} : { scale: 0.98 }}
+        onClick={disabled ? undefined : onClick}
+        disabled={disabled}
         {...props}
       >
-        {variant === 'primary' && (
+        {variant === 'primary' && !disabled && (
           <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer" />
         )}
         <span className="relative z-10">{children}</span>

@@ -4,6 +4,8 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { vipLevels } from '@/data/mockData';
 import { GoldButton } from '@/components/ui/GoldButton';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface DailyChallenge {
   id: string;
@@ -18,6 +20,8 @@ interface DailyChallenge {
 
 const Challenges = () => {
   const { profile } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const userVipLevel = profile?.vip_level ?? 0;
 
   // Generate daily login challenges for each VIP level
@@ -52,6 +56,34 @@ const Challenges = () => {
   const availableChallenges = allChallenges.filter(c => !c.requiresVipUpgrade);
   const lockedChallenges = allChallenges.filter(c => c.requiresVipUpgrade);
 
+  const handleClaimReward = (challenge: DailyChallenge) => {
+    if (challenge.type === 'invite_friend') {
+      // Navigate to team page or copy referral link
+      if (profile?.referral_code) {
+        const link = `${window.location.origin}/auth?ref=${profile.referral_code}`;
+        navigator.clipboard.writeText(link);
+        toast({
+          title: 'تم النسخ! ✓',
+          description: 'رابط الإحالة تم نسخه، شاركه مع أصدقائك',
+        });
+      }
+    } else if (challenge.type === 'daily_login') {
+      if (challenge.vipLevel === 0) {
+        toast({
+          title: 'ترقية مطلوبة',
+          description: 'قم بالترقية إلى VIP1 للحصول على أرباح يومية',
+          variant: 'destructive',
+        });
+        navigate('/vip');
+      } else {
+        toast({
+          title: 'تم استلام المكافأة! 🎉',
+          description: `تم إضافة ${challenge.reward.toFixed(2)} USDT إلى رصيدك`,
+        });
+      }
+    }
+  };
+
   if (!profile) {
     return (
       <PageLayout>
@@ -62,21 +94,20 @@ const Challenges = () => {
     );
   }
 
+  const getLevelColor = (level: number) => {
+    const colors: Record<number, string> = {
+      0: 'from-gray-500 to-gray-600',
+      1: 'from-amber-700 to-amber-800',
+      2: 'from-gray-300 to-gray-400',
+      3: 'from-yellow-500 to-yellow-600',
+      4: 'from-slate-300 to-slate-400',
+      5: 'from-cyan-300 to-cyan-500',
+    };
+    return colors[level] || 'from-primary to-gold-light';
+  };
+
   const ChallengeCard = ({ challenge, index }: { challenge: DailyChallenge; index: number }) => {
     const isLocked = challenge.requiresVipUpgrade;
-    const vipInfo = vipLevels.find(v => v.level === challenge.vipLevel);
-
-    const getLevelColor = (level: number) => {
-      const colors: Record<number, string> = {
-        0: 'from-gray-500 to-gray-600',
-        1: 'from-amber-700 to-amber-800',
-        2: 'from-gray-300 to-gray-400',
-        3: 'from-yellow-500 to-yellow-600',
-        4: 'from-slate-300 to-slate-400',
-        5: 'from-cyan-300 to-cyan-500',
-      };
-      return colors[level] || 'from-primary to-gold-light';
-    };
 
     return (
       <motion.div
@@ -142,13 +173,14 @@ const Challenges = () => {
           </div>
 
           {/* Action Button - Only for available challenges */}
-          {!isLocked && challenge.reward > 0 && (
+          {!isLocked && (
             <div className="mt-3 pt-3 border-t border-border/50">
               <GoldButton
                 variant="primary"
                 size="sm"
                 className="w-full"
                 disabled={challenge.isCompleted}
+                onClick={() => handleClaimReward(challenge)}
               >
                 {challenge.isCompleted ? (
                   <span className="flex items-center justify-center gap-2">
@@ -157,7 +189,8 @@ const Challenges = () => {
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    {challenge.type === 'invite_friend' ? 'دعوة صديق' : 'استلام المكافأة'}
+                    {challenge.type === 'invite_friend' ? 'دعوة صديق' : 
+                     challenge.reward === 0 ? 'ترقية للحصول على ربح' : 'استلام المكافأة'}
                   </span>
                 )}
               </GoldButton>
