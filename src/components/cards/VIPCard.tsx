@@ -4,12 +4,13 @@ import { VIPLevel } from '@/data/mockData';
 import { GoldButton } from '../ui/GoldButton';
 
 // Import VIP background images
-import vip0Bg from '@/assets/vip/vip-0-rookie.jpg';
-import vip1Bg from '@/assets/vip/vip-1-bronze.jpg';
-import vip2Bg from '@/assets/vip/vip-2-silver.jpg';
-import vip3Bg from '@/assets/vip/vip-3-gold.jpg';
-import vip4Bg from '@/assets/vip/vip-4-platinum.jpg';
-import vip5Bg from '@/assets/vip/vip-5-diamond.jpg';
+import bg0 from '@/assets/vip/bg-0-rookie.jpg';
+import bg1 from '@/assets/vip/bg-1-bronze.jpg';
+import bg2 from '@/assets/vip/bg-2-silver.jpg';
+import bg3 from '@/assets/vip/bg-3-gold.jpg';
+import bg4 from '@/assets/vip/bg-4-platinum.jpg';
+import bg5 from '@/assets/vip/bg-5-diamond.jpg';
+import ronaldoCutout from '@/assets/vip/ronaldo-cutout.png';
 
 interface VIPCardProps {
   vipLevel: VIPLevel;
@@ -18,12 +19,12 @@ interface VIPCardProps {
 }
 
 const vipBackgrounds: Record<number, string> = {
-  0: vip0Bg,
-  1: vip1Bg,
-  2: vip2Bg,
-  3: vip3Bg,
-  4: vip4Bg,
-  5: vip5Bg,
+  0: bg0,
+  1: bg1,
+  2: bg2,
+  3: bg3,
+  4: bg4,
+  5: bg5,
 };
 
 export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
@@ -40,13 +41,23 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
     5: 'from-cyan-300 to-cyan-500',
   };
 
+  // Level-specific glow colors
+  const glowColors: Record<number, string> = {
+    0: 'shadow-[0_0_30px_rgba(100,100,100,0.3)]',
+    1: 'shadow-[0_0_30px_rgba(180,100,50,0.4)]',
+    2: 'shadow-[0_0_30px_rgba(192,192,192,0.4)]',
+    3: 'shadow-[0_0_30px_rgba(212,175,55,0.5)]',
+    4: 'shadow-[0_0_30px_rgba(200,200,220,0.5)]',
+    5: 'shadow-[0_0_40px_rgba(100,200,255,0.5)]',
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className={`relative rounded-2xl overflow-hidden ${
-        isCurrentLevel ? 'ring-2 ring-primary shadow-glow' : ''
+      className={`relative rounded-2xl overflow-hidden ${glowColors[vipLevel.level]} ${
+        isCurrentLevel ? 'ring-2 ring-primary' : ''
       }`}
     >
       {/* Background Image */}
@@ -55,16 +66,33 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         style={{
           backgroundImage: `url(${vipBackgrounds[vipLevel.level]})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center top',
+          backgroundPosition: 'center',
         }}
+      />
+
+      {/* Ronaldo Cutout - positioned on the left */}
+      <motion.div 
+        className="absolute left-0 bottom-0 z-[1] h-full flex items-end"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: index * 0.1 + 0.2 }}
       >
-        {/* Dark Overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
-      </div>
+        <img 
+          src={ronaldoCutout} 
+          alt="Cristiano Ronaldo"
+          className="h-[85%] w-auto object-contain object-bottom drop-shadow-2xl"
+          style={{
+            filter: `drop-shadow(0 0 20px rgba(0,0,0,0.5))`,
+          }}
+        />
+      </motion.div>
+
+      {/* Dark Overlay for content readability */}
+      <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/80 to-transparent z-[2]" />
 
       {/* Current Level Badge */}
       {isCurrentLevel && (
-        <div className="absolute top-3 left-3 z-10">
+        <div className="absolute top-3 right-3 z-10">
           <div className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
             <Check className="w-3 h-3" />
             مستواك الحالي
@@ -72,8 +100,8 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         </div>
       )}
 
-      {/* Card Content */}
-      <div className="relative z-[1] p-5">
+      {/* Card Content - positioned on the right */}
+      <div className="relative z-[3] p-5 mr-0 ml-auto w-[65%]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
