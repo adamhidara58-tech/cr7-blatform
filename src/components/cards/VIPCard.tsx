@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Check, Crown, Zap, Calendar, TrendingUp, DollarSign, Coins } from 'lucide-react';
+import { Check, Crown, Zap, Calendar, TrendingUp, DollarSign, Coins, Gift } from 'lucide-react';
 import { VIPLevel } from '@/data/mockData';
 import { GoldButton } from '../ui/GoldButton';
+import { useToast } from '@/hooks/use-toast';
 
 // Import VIP background images
 import bg0 from '@/assets/vip/bg-0-rookie.jpg';
@@ -16,6 +17,7 @@ interface VIPCardProps {
   vipLevel: VIPLevel;
   currentLevel: number;
   index: number;
+  referralDiscount?: number;
 }
 
 const vipBackgrounds: Record<number, string> = {
@@ -27,10 +29,16 @@ const vipBackgrounds: Record<number, string> = {
   5: bg5,
 };
 
-export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
+export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }: VIPCardProps) => {
+  const { toast } = useToast();
   const isCurrentLevel = vipLevel.level === currentLevel;
   const isUnlocked = vipLevel.level <= currentLevel;
   const isNextLevel = vipLevel.level === currentLevel + 1;
+
+  // Calculate discounted price
+  const originalPrice = vipLevel.price;
+  const discountedPrice = Math.max(0, originalPrice - referralDiscount);
+  const hasDiscount = referralDiscount > 0 && originalPrice > 0;
 
   const levelColors: Record<number, string> = {
     0: 'from-gray-500 to-gray-600',
@@ -53,6 +61,13 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
 
   const formatNumber = (num: number) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const handleUpgrade = () => {
+    toast({
+      title: 'قريباً!',
+      description: 'نظام الإيداع والترقية قيد التطوير',
+    });
   };
 
   return (
@@ -100,6 +115,16 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
           <div className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
             <Check className="w-3 h-3" />
             مستواك الحالي
+          </div>
+        </div>
+      )}
+
+      {/* Discount Badge */}
+      {hasDiscount && !isUnlocked && (
+        <div className="absolute top-3 left-3 z-10">
+          <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+            <Gift className="w-3 h-3" />
+            خصم ${referralDiscount}
           </div>
         </div>
       )}
@@ -168,10 +193,18 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
             variant={isNextLevel ? 'primary' : 'secondary'}
             size="md"
             className="w-full"
+            onClick={handleUpgrade}
           >
             <span className="flex items-center justify-center gap-2">
               <Zap className="w-4 h-4" />
-              فتح بـ {formatNumber(vipLevel.price)} USDT
+              {hasDiscount ? (
+                <span className="flex items-center gap-2">
+                  <span className="line-through text-primary-foreground/60">{formatNumber(originalPrice)}</span>
+                  <span>{formatNumber(discountedPrice)} USDT</span>
+                </span>
+              ) : (
+                <span>فتح بـ {formatNumber(vipLevel.price)} USDT</span>
+              )}
             </span>
           </GoldButton>
         )}

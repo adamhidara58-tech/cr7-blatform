@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_claims: {
+        Row: {
+          amount: number
+          claimed_at: string
+          created_at: string
+          id: string
+          user_id: string
+          vip_level: number
+        }
+        Insert: {
+          amount: number
+          claimed_at?: string
+          created_at?: string
+          id?: string
+          user_id: string
+          vip_level: number
+        }
+        Update: {
+          amount?: number
+          claimed_at?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          vip_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_stats: {
         Row: {
           active_challenges: number
@@ -48,6 +83,7 @@ export type Database = {
           email: string
           id: string
           referral_code: string
+          referral_discount: number | null
           referred_by: string | null
           total_earned: number
           updated_at: string
@@ -63,6 +99,7 @@ export type Database = {
           email: string
           id: string
           referral_code: string
+          referral_discount?: number | null
           referred_by?: string | null
           total_earned?: number
           updated_at?: string
@@ -78,6 +115,7 @@ export type Database = {
           email?: string
           id?: string
           referral_code?: string
+          referral_discount?: number | null
           referred_by?: string | null
           total_earned?: number
           updated_at?: string

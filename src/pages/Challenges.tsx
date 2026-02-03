@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Trophy, Calendar, Users, Lock, Crown, Check, Star } from 'lucide-react';
+import { Trophy, Calendar, Users, Lock, Crown, Check, Star, Gift } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useAuth } from '@/hooks/useAuth';
+import { useDailyClaim } from '@/hooks/useDailyClaim';
 import { vipLevels } from '@/data/mockData';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +23,7 @@ const Challenges = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { hasClaimed, claiming, claimDailyReward } = useDailyClaim();
   const userVipLevel = profile?.vip_level ?? 0;
 
   // Generate daily login challenges for each VIP level
@@ -34,7 +36,7 @@ const Challenges = () => {
     descriptionAr: level.level === 0 
       ? 'سجل دخولك يومياً (لا يوجد ربح بدون عضوية)'
       : `سجل دخولك يومياً واحصل على ${level.dailyProfit.toFixed(2)} USDT`,
-    isCompleted: false,
+    isCompleted: level.level === userVipLevel && hasClaimed,
     requiresVipUpgrade: level.level > userVipLevel,
   }));
 
@@ -56,7 +58,7 @@ const Challenges = () => {
   const availableChallenges = allChallenges.filter(c => !c.requiresVipUpgrade);
   const lockedChallenges = allChallenges.filter(c => c.requiresVipUpgrade);
 
-  const handleClaimReward = (challenge: DailyChallenge) => {
+  const handleClaimReward = async (challenge: DailyChallenge) => {
     if (challenge.type === 'invite_friend') {
       // Navigate to team page or copy referral link
       if (profile?.referral_code) {
@@ -75,10 +77,13 @@ const Challenges = () => {
           variant: 'destructive',
         });
         navigate('/vip');
-      } else {
+      } else if (challenge.vipLevel === userVipLevel) {
+        // Actually claim the reward
+        await claimDailyReward();
+      } else if (challenge.vipLevel < userVipLevel) {
         toast({
-          title: 'تم استلام المكافأة! 🎉',
-          description: `تم إضافة ${challenge.reward.toFixed(2)} USDT إلى رصيدك`,
+          title: 'مهمة مستوى أدنى',
+          description: 'استلم مكافأة مستواك الحالي',
         });
       }
     }
@@ -108,16 +113,24 @@ const Challenges = () => {
 
   const ChallengeCard = ({ challenge, index }: { challenge: DailyChallenge; index: number }) => {
     const isLocked = challenge.requiresVipUpgrade;
+    const isCurrentUserChallenge = challenge.type === 'daily_login' && challenge.vipLevel === userVipLevel;
+    const isLowerLevel = challenge.type === 'daily_login' && challenge.vipLevel < userVipLevel && challenge.vipLevel !== 0;
 
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: index * 0.05 }}
-        className={`relative bg-gradient-card rounded-2xl overflow-hidden border border-border ${
-          isLocked ? 'opacity-60' : 'hover:border-primary/50'
+        className={`relative bg-gradient-card rounded-2xl overflow-hidden border ${
+          isLocked ? 'opacity-60 border-border' : 
+          isCurrentUserChallenge ? 'border-primary shadow-gold' : 'border-border hover:border-primary/50'
         }`}
       >
+        {/* Current Level Highlight */}
+        {isCurrentUserChallenge && (
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-gold" />
+        )}
+
         {/* Locked Overlay */}
         {isLocked && (
           <div className="absolute inset-0 bg-background/60 backdrop-blur-sm z-10 flex items-center justify-center">
@@ -151,6 +164,11 @@ const Challenges = () => {
                     VIP {challenge.vipLevel}
                   </span>
                 )}
+                {isCurrentUserChallenge && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                    مستواك
+                  </span>
+                )}
                 <h3 className="font-semibold text-foreground text-base">
                   {challenge.titleAr}
                 </h3>
@@ -175,25 +193,68 @@ const Challenges = () => {
           {/* Action Button - Only for available challenges */}
           {!isLocked && (
             <div className="mt-3 pt-3 border-t border-border/50">
-              <GoldButton
-                variant="primary"
-                size="sm"
-                className="w-full"
-                disabled={challenge.isCompleted}
-                onClick={() => handleClaimReward(challenge)}
-              >
-                {challenge.isCompleted ? (
+              {challenge.type === 'invite_friend' ? (
+                <GoldButton
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => handleClaimReward(challenge)}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <Users className="w-4 h-4" />
+                    دعوة صديق
+                  </span>
+                </GoldButton>
+              ) : challenge.vipLevel === 0 ? (
+                <GoldButton
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => navigate('/vip')}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <Crown className="w-4 h-4" />
+                    ترقية للحصول على ربح
+                  </span>
+                </GoldButton>
+              ) : isCurrentUserChallenge ? (
+                <GoldButton
+                  variant="primary"
+                  size="sm"
+                  className="w-full"
+                  disabled={challenge.isCompleted || claiming}
+                  onClick={() => handleClaimReward(challenge)}
+                >
+                  {claiming ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                      جاري الاستلام...
+                    </span>
+                  ) : challenge.isCompleted ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Check className="w-4 h-4" />
+                      تم الاستلام اليوم ✓
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Gift className="w-4 h-4" />
+                      استلام المكافأة
+                    </span>
+                  )}
+                </GoldButton>
+              ) : isLowerLevel ? (
+                <GoldButton
+                  variant="secondary"
+                  size="sm"
+                  className="w-full opacity-50"
+                  disabled
+                >
                   <span className="flex items-center justify-center gap-2">
                     <Check className="w-4 h-4" />
-                    تم الإنجاز
+                    مستوى أدنى
                   </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    {challenge.type === 'invite_friend' ? 'دعوة صديق' : 
-                     challenge.reward === 0 ? 'ترقية للحصول على ربح' : 'استلام المكافأة'}
-                  </span>
-                )}
-              </GoldButton>
+                </GoldButton>
+              ) : null}
             </div>
           )}
         </div>
@@ -245,6 +306,22 @@ const Challenges = () => {
               <p className="text-primary-foreground/80 text-xs">ربحك اليومي</p>
             </div>
           </div>
+
+          {/* Claim Status */}
+          {userVipLevel > 0 && (
+            <div className="mt-3 pt-3 border-t border-primary-foreground/20">
+              {hasClaimed ? (
+                <p className="text-center text-primary-foreground/80 text-sm flex items-center justify-center gap-2">
+                  <Check className="w-4 h-4" />
+                  تم استلام مكافأة اليوم ✓
+                </p>
+              ) : (
+                <p className="text-center text-primary-foreground text-sm">
+                  مكافأتك اليومية جاهزة للاستلام! 🎁
+                </p>
+              )}
+            </div>
+          )}
         </motion.div>
       </section>
 

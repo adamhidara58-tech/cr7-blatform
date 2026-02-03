@@ -14,6 +14,7 @@ interface Profile {
   daily_challenges_completed: number;
   daily_challenges_limit: number;
   avatar_url: string | null;
+  referral_discount: number;
   created_at: string;
   updated_at: string;
 }
