@@ -1,25 +1,20 @@
 import { motion } from 'framer-motion';
-import { Crown, Trophy, Wallet, TrendingUp, Target, Users, ChevronLeft, Copy, Share2 } from 'lucide-react';
+import { Crown, Wallet, TrendingUp, Target, Users, Copy, Share2 } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { StatCard } from '@/components/cards/StatCard';
-import { ChallengeCard } from '@/components/cards/ChallengeCard';
-import { GoldButton } from '@/components/ui/GoldButton';
 import { FakeWithdrawals } from '@/components/home/FakeWithdrawals';
 import { PlatformStatsCard } from '@/components/home/PlatformStatsCard';
-import { mockChallenges } from '@/data/mockData';
+import { VIPCardsSection } from '@/components/home/VIPCardsSection';
 import { useAuth } from '@/hooks/useAuth';
 import { useReferrals } from '@/hooks/useReferrals';
 import { useToast } from '@/hooks/use-toast';
 import { vipLevels } from '@/data/mockData';
-import { useNavigate } from 'react-router-dom';
 import heroBg from '@/assets/hero-bg.jpg';
 
 const Index = () => {
   const { profile, loading } = useAuth();
   const { count: referralCount } = useReferrals();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const featuredChallenges = mockChallenges.slice(0, 3);
 
   const copyReferralCode = () => {
     if (profile?.referral_code) {
@@ -42,14 +37,6 @@ const Index = () => {
     }
   };
 
-  const handleStartChallenge = () => {
-    navigate('/challenges');
-  };
-
-  const handleViewAllChallenges = () => {
-    navigate('/challenges');
-  };
-
   if (loading || !profile) {
     return (
       <PageLayout>
@@ -67,10 +54,10 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30"
+          className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url(${heroBg})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background" />
         
         <div className="relative px-4 pt-6 pb-8">
           <motion.div
@@ -94,10 +81,10 @@ const Index = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex justify-center mb-6"
           >
-            <div className="bg-gradient-gold rounded-full px-6 py-2 shadow-gold flex items-center gap-2">
+            <div className="bg-gradient-gold rounded-full px-6 py-2 shadow-gold glow-gold flex items-center gap-2">
               <Crown className="w-5 h-5 text-primary-foreground" />
               <span className="font-bold text-primary-foreground">
-                VIP {profile.vip_level} - {currentVipLevel.nameAr}
+                {profile.vip_level === 0.5 ? 'VIP تجريبي' : `VIP ${profile.vip_level}`} - {currentVipLevel.nameAr}
               </span>
             </div>
           </motion.div>
@@ -107,19 +94,19 @@ const Index = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="bg-secondary/50 rounded-2xl p-4 mb-4"
+            className="glass-section rounded-2xl p-4 mb-4"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex gap-2">
                 <button 
                   onClick={shareReferralLink}
-                  className="p-2 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors"
+                  className="p-2 rounded-xl glass-card border border-border/30 hover:border-primary/50 transition-colors"
                 >
                   <Share2 className="w-4 h-4 text-primary" />
                 </button>
                 <button 
                   onClick={copyReferralCode}
-                  className="p-2 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors"
+                  className="p-2 rounded-xl glass-card border border-border/30 hover:border-primary/50 transition-colors"
                 >
                   <Copy className="w-4 h-4 text-primary" />
                 </button>
@@ -136,24 +123,24 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar - Changed to 0/2 */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="bg-secondary/50 rounded-2xl p-4 mb-6"
+            className="glass-section rounded-2xl p-4 mb-6"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-muted-foreground">التحديات اليومية</span>
               <span className="text-sm font-semibold text-foreground">
-                {profile.daily_challenges_completed}/{profile.daily_challenges_limit}
+                {Math.min(profile.daily_challenges_completed, 2)}/2
               </span>
             </div>
-            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+            <div className="h-2 bg-secondary/50 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-gold rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: `${(profile.daily_challenges_completed / profile.daily_challenges_limit) * 100}%` }}
+                animate={{ width: `${Math.min((profile.daily_challenges_completed / 2) * 100, 100)}%` }}
                 transition={{ duration: 1, delay: 0.5 }}
               />
             </div>
@@ -180,7 +167,7 @@ const Index = () => {
           <StatCard
             icon={Target}
             label="مستوى VIP"
-            value={`VIP ${profile.vip_level}`}
+            value={profile.vip_level === 0.5 ? 'تجريبي' : `VIP ${profile.vip_level}`}
             subValue={currentVipLevel.nameAr}
             index={2}
           />
@@ -211,42 +198,8 @@ const Index = () => {
         <FakeWithdrawals />
       </section>
 
-      {/* Featured Challenges */}
-      <section className="px-4 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <GoldButton variant="outline" size="sm" onClick={handleViewAllChallenges}>
-            <span className="flex items-center gap-1">
-              عرض الكل
-              <ChevronLeft className="w-4 h-4" />
-            </span>
-          </GoldButton>
-          <h3 className="font-display text-xl text-foreground flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-primary" />
-            التحديات المميزة
-          </h3>
-        </div>
-
-        <div className="space-y-3">
-          {featuredChallenges.map((challenge, index) => (
-            <ChallengeCard
-              key={challenge.id}
-              challenge={challenge}
-              userVipLevel={profile.vip_level}
-              index={index}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Button */}
-      <section className="px-4 pb-6">
-        <GoldButton variant="primary" size="lg" className="w-full" onClick={handleStartChallenge}>
-          <span className="flex items-center justify-center gap-2">
-            <Trophy className="w-5 h-5" />
-            ابدأ تحدي جديد
-          </span>
-        </GoldButton>
-      </section>
+      {/* VIP Cards Section - Replaces Featured Challenges */}
+      <VIPCardsSection />
     </PageLayout>
   );
 };

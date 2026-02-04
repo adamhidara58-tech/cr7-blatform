@@ -63,7 +63,7 @@ export const FakeWithdrawals = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-gradient-card border border-border rounded-2xl p-4 overflow-hidden"
+      className="glass-card border border-border/30 rounded-2xl p-4 overflow-hidden"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export const FakeWithdrawals = () => {
               animate={{ opacity: 1, x: 0, height: 'auto' }}
               exit={{ opacity: 0, x: 20, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex items-center justify-between py-2 px-3 bg-secondary/50 rounded-xl"
+              className="flex items-center justify-between py-2 px-3 glass-section rounded-xl"
             >
               <span className="text-xs text-muted-foreground">{withdrawal.timeAgo}</span>
               <div className="flex items-center gap-2">

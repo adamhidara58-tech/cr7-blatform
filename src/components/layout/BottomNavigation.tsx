@@ -22,8 +22,8 @@ export const BottomNavigation = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border">
-      <div className="flex items-center justify-around py-2 px-2 max-w-lg mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-nav border-t border-border/50 safe-area-bottom">
+      <div className="flex items-center justify-around py-3 px-2 max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
@@ -32,7 +32,7 @@ export const BottomNavigation = () => {
             <motion.button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-300 min-w-[60px] ${
+              className={`relative flex flex-col items-center justify-center py-2 px-4 rounded-2xl transition-all duration-300 min-w-[64px] ${
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
@@ -42,20 +42,22 @@ export const BottomNavigation = () => {
               {isActive && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-primary/10 rounded-xl"
+                  className="absolute inset-0 bg-primary/15 rounded-2xl border border-primary/30"
                   initial={false}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
               <Icon
-                className={`w-5 h-5 mb-1 transition-all duration-300 ${
+                className={`w-5 h-5 mb-1 transition-all duration-300 relative z-10 ${
                   isActive ? 'text-primary' : ''
                 }`}
               />
-              <span className="text-[10px] font-medium">{item.labelAr}</span>
+              <span className={`text-[10px] font-medium relative z-10 ${isActive ? 'text-primary' : ''}`}>
+                {item.labelAr}
+              </span>
               {isActive && (
                 <motion.div
-                  className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-gradient-gold rounded-full"
                   layoutId="activeDot"
                 />
               )}

@@ -125,7 +125,7 @@ export const PlatformStatsCard = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-            className="bg-gradient-card border border-border rounded-2xl p-4 relative overflow-hidden"
+            className="glass-card border border-border/30 rounded-2xl p-4 relative overflow-hidden"
           >
             {/* Background gradient accent */}
             <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${item.color} opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2`} />
