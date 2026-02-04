@@ -22,17 +22,25 @@ const Settings = () => {
   const [minWithdrawal, setMinWithdrawal] = useState('');
   const [maxWithdrawal, setMaxWithdrawal] = useState('');
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, error: queryError } = useQuery({
     queryKey: ['admin-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('admin_settings').select('*');
-      if (error) throw error;
-      
-      const settingsObj: any = {};
-      data.forEach(s => {
-        settingsObj[s.key] = s.value;
-      });
-      return settingsObj;
+      try {
+        const { data, error } = await supabase.from('admin_settings').select('*');
+        if (error) {
+          console.warn('Table admin_settings might not exist yet:', error);
+          return {};
+        }
+        
+        const settingsObj: any = {};
+        data.forEach(s => {
+          settingsObj[s.key] = s.value;
+        });
+        return settingsObj;
+      } catch (e) {
+        console.error('Error fetching settings:', e);
+        return {};
+      }
     }
   });
 
