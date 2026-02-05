@@ -50,12 +50,12 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
   const discountedPrice = Math.max(0, originalPrice - effectiveDiscount);
 
   const levelIntensity: Record<number, { glow: string, border: string, overlay: string }> = {
-    0: { glow: 'shadow-[0_0_20px_rgba(255,255,255,0.1)]', border: 'border-white/10', overlay: 'bg-black/40' },
-    1: { glow: 'shadow-[0_0_30px_rgba(59,130,246,0.2)]', border: 'border-blue-500/20', overlay: 'bg-blue-950/30' },
-    2: { glow: 'shadow-[0_0_35px_rgba(255,255,255,0.25)]', border: 'border-slate-200/20', overlay: 'bg-slate-900/30' },
-    3: { glow: 'shadow-[0_0_45px_rgba(168,85,247,0.3)]', border: 'border-purple-500/30', overlay: 'bg-purple-950/30' },
+    0: { glow: 'shadow-[0_0_15px_rgba(255,255,255,0.1)]', border: 'border-white/10', overlay: 'bg-black/40' },
+    1: { glow: 'shadow-[0_0_25px_rgba(59,130,246,0.2)]', border: 'border-blue-500/20', overlay: 'bg-blue-950/30' },
+    2: { glow: 'shadow-[0_0_30px_rgba(255,255,255,0.25)]', border: 'border-slate-200/20', overlay: 'bg-slate-900/30' },
+    3: { glow: 'shadow-[0_0_40px_rgba(168,85,247,0.3)]', border: 'border-purple-500/30', overlay: 'bg-purple-950/30' },
     4: { glow: 'shadow-[0_0_50px_rgba(234,179,8,0.35)]', border: 'border-yellow-500/30', overlay: 'bg-yellow-950/30' },
-    5: { glow: 'shadow-[0_0_70px_rgba(255,215,0,0.5),0_0_30px_rgba(59,130,246,0.3)]', border: 'border-yellow-400/50', overlay: 'bg-yellow-950/10' },
+    5: { glow: 'shadow-[0_0_80px_rgba(255,215,0,0.6),0_0_40px_rgba(59,130,246,0.4)]', border: 'border-yellow-400/60', overlay: 'bg-yellow-950/10' },
   };
 
   const intensity = levelIntensity[vipLevel.level] || levelIntensity[0];
@@ -95,10 +95,10 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
           alt="Cristiano Ronaldo"
           className="h-[110%] w-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] group-hover:scale-110 transition-transform duration-700 ease-out origin-bottom"
           style={{
-            filter: vipLevel.level === 5 ? `drop-shadow(0 0 35px rgba(255,215,0,0.7)) drop-shadow(0 0 15px rgba(59,130,246,0.5))` : 
-                    vipLevel.level === 4 ? `drop-shadow(0 0 25px rgba(234,179,8,0.6))` :
-                    vipLevel.level === 3 ? `drop-shadow(0 0 25px rgba(168,85,247,0.5))` :
-                    vipLevel.level === 2 ? `drop-shadow(0 0 15px rgba(255,255,255,0.4))` :
+            filter: vipLevel.level === 5 ? `drop-shadow(0 0 45px rgba(255,215,0,0.8)) drop-shadow(0 0 20px rgba(59,130,246,0.6))` : 
+                    vipLevel.level === 4 ? `drop-shadow(0 0 35px rgba(234,179,8,0.7))` :
+                    vipLevel.level === 3 ? `drop-shadow(0 0 30px rgba(168,85,247,0.6))` :
+                    vipLevel.level === 2 ? `drop-shadow(0 0 20px rgba(255,255,255,0.4))` :
                     vipLevel.level === 1 ? `drop-shadow(0 0 15px rgba(59,130,246,0.3))` :
                     `drop-shadow(0 0 10px rgba(255,255,255,0.2))`
           }}
@@ -160,45 +160,53 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
         </div>
       </div>
 
-      {vipLevel.level >= 1 && (
-        <div className={`absolute inset-0 pointer-events-none z-[4] overflow-hidden ${vipLevel.level === 5 ? 'opacity-60' : 'opacity-30'}`}>
-          {[...Array(vipLevel.level === 5 ? 15 : vipLevel.level * 3)].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 150 }}
-              animate={{ 
-                opacity: [0, 1, 0], 
-                y: -200,
-                x: (Math.random() - 0.5) * 300,
-                scale: [1, 1.5, 0.5],
-                rotate: [0, 180, 360]
-              }}
-              transition={{ 
-                duration: (vipLevel.level === 5 ? 1.5 : 2.5) + Math.random() * 2, 
-                repeat: Infinity,
-                delay: Math.random() * 5,
-                ease: "linear"
-              }}
-              className={`absolute bottom-[-20px] left-1/2 w-1 h-1 rounded-full ${
-                vipLevel.level === 5 ? 'bg-yellow-300 shadow-[0_0_8px_rgba(255,215,0,0.8)]' : 
-                vipLevel.level === 4 ? 'bg-yellow-400' : 
-                vipLevel.level === 3 ? 'bg-purple-400' :
-                vipLevel.level === 2 ? 'bg-slate-200' : 'bg-blue-400'
-              }`}
-            />
-          ))}
-          {vipLevel.level === 5 && (
+      <div className={`absolute inset-0 pointer-events-none z-[4] overflow-hidden ${vipLevel.level === 5 ? 'opacity-70' : 'opacity-40'}`}>
+        {[...Array(vipLevel.level === 5 ? 30 : vipLevel.level === 4 ? 20 : vipLevel.level === 3 ? 15 : vipLevel.level * 5)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 150 }}
+            animate={{ 
+              opacity: [0, 1, 0], 
+              y: -250,
+              x: (Math.random() - 0.5) * 400,
+              scale: [0.5, 1.2, 0.3],
+              rotate: [0, 180, 360]
+            }}
+            transition={{ 
+              duration: (vipLevel.level === 5 ? 1.2 : 2.0) + Math.random() * 2, 
+              repeat: Infinity,
+              delay: Math.random() * 4,
+              ease: "linear"
+            }}
+            className={`absolute bottom-[-20px] left-1/2 w-1 h-1 rounded-full ${
+              vipLevel.level === 5 ? 'bg-yellow-200 shadow-[0_0_12px_rgba(255,215,0,1)]' : 
+              vipLevel.level === 4 ? 'bg-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.8)]' : 
+              vipLevel.level === 3 ? 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]' :
+              vipLevel.level === 2 ? 'bg-slate-200' : 
+              vipLevel.level === 1 ? 'bg-blue-400' : 'bg-white/40'
+            }`}
+          />
+        ))}
+        {vipLevel.level === 5 && (
+          <>
             <motion.div 
               animate={{ 
-                opacity: [0.1, 0.3, 0.1],
-                scale: [1, 1.05, 1],
+                opacity: [0.2, 0.5, 0.2],
+                scale: [1, 1.1, 1],
+              }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="absolute inset-0 bg-gradient-to-t from-yellow-500/30 via-transparent to-transparent mix-blend-screen"
+            />
+            <motion.div 
+              animate={{ 
+                boxShadow: ['0 0 20px rgba(255,215,0,0.2)', '0 0 60px rgba(255,215,0,0.5)', '0 0 20px rgba(255,215,0,0.2)']
               }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="absolute inset-0 bg-gradient-to-t from-yellow-500/20 via-transparent to-transparent mix-blend-overlay"
+              className="absolute inset-0 rounded-[2.5rem]"
             />
-          )}
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </motion.div>
   );
 };
