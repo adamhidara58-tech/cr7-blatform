@@ -5,10 +5,25 @@ import {
   History, 
   User, 
   Settings, 
-  ArrowDownCircle, 
-  AlertTriangle 
+  ArrowDownCircle,
+  Zap,
+  XCircle,
+  CheckCircle,
+  RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+interface ActivityLog {
+  id: string;
+  admin_id: string | null;
+  action: string;
+  target_id: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+  profiles?: {
+    username: string;
+  } | null;
+}
 
 const ActivityLogs = () => {
   const { data: logs, isLoading } = useQuery({
@@ -21,22 +36,41 @@ const ActivityLogs = () => {
         .limit(100);
       
       if (error) throw error;
-      return data;
+      return data as ActivityLog[];
     }
   });
 
   const getActionIcon = (action: string) => {
     if (action.includes('USER')) return <User className="w-4 h-4 text-blue-500" />;
-    if (action.includes('WITHDRAWAL')) return <ArrowDownCircle className="w-4 h-4 text-amber-500" />;
+    if (action.includes('APPROVED') || action.includes('SUCCESS')) return <CheckCircle className="w-4 h-4 text-emerald-500" />;
+    if (action.includes('REJECTED') || action.includes('FAILED') || action.includes('ERROR')) return <XCircle className="w-4 h-4 text-rose-500" />;
+    if (action.includes('RETRY')) return <RefreshCw className="w-4 h-4 text-amber-500" />;
+    if (action.includes('AUTO')) return <Zap className="w-4 h-4 text-blue-500" />;
+    if (action.includes('WITHDRAWAL') || action.includes('PAYOUT')) return <ArrowDownCircle className="w-4 h-4 text-amber-500" />;
     if (action.includes('SETTINGS')) return <Settings className="w-4 h-4 text-primary" />;
     return <History className="w-4 h-4 text-muted-foreground" />;
+  };
+
+  const getActionLabel = (action: string) => {
+    const labels: Record<string, string> = {
+      'USER_UPDATE': 'تحديث مستخدم',
+      'WITHDRAWAL_APPROVED': 'موافقة على سحب',
+      'WITHDRAWAL_REJECTED': 'رفض سحب',
+      'WITHDRAWAL_ERROR': 'خطأ في السحب',
+      'WITHDRAWAL_RETRY_SUCCESS': 'نجاح إعادة المحاولة',
+      'WITHDRAWAL_RETRY_FAILED': 'فشل إعادة المحاولة',
+      'MASS_PAYOUT': 'دفع جماعي',
+      'AUTO_PAYOUT_SUCCESS': 'دفع تلقائي ناجح',
+      'AUTO_PAYOUT_FAILED': 'فشل دفع تلقائي'
+    };
+    return labels[action] || action;
   };
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold text-gradient-gold mb-2">سجل النشاطات</h2>
-        <p className="text-muted-foreground">تتبع جميع العمليات التي تمت بواسطة المدراء</p>
+        <p className="text-muted-foreground">تتبع جميع العمليات التي تمت على النظام</p>
       </div>
 
       <div className="glass-card rounded-2xl border border-border/50 overflow-hidden">
@@ -77,7 +111,7 @@ const ActivityLogs = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         {getActionIcon(log.action)}
-                        <span className="text-xs font-bold">{log.action}</span>
+                        <span className="text-xs font-bold">{getActionLabel(log.action)}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">

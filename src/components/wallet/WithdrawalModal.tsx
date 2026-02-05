@@ -36,13 +36,13 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
         .from('admin_settings')
         .select('value')
         .eq('key', 'withdrawal_limits')
-        .single();
+        .maybeSingle();
       
       if (data && !error) {
-        const val = data.value as any;
+        const val = data.value as { min?: number; max?: number };
         setLimits({
-          min: Number(val.min || 10),
-          max: Number(val.max || 1000)
+          min: Number(val?.min || 10),
+          max: Number(val?.max || 1000)
         });
       }
     } catch (e) {
