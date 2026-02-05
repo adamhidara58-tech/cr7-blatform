@@ -5,8 +5,6 @@ import {
   Users as UsersIcon, 
   Search, 
   Edit2, 
-  Trash2, 
-  Shield, 
   Plus, 
   Minus,
   Trophy,
@@ -56,7 +54,7 @@ const Users = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       await supabase.from('activity_logs').insert({
-        admin_id: user?.id,
+        admin_id: null,
         action: 'USER_UPDATE',
         target_id: id,
         details: updates
@@ -126,7 +124,6 @@ const Users = () => {
                 <th className="px-6 py-4 text-sm font-semibold">الرصيد</th>
                 <th className="px-6 py-4 text-sm font-semibold">VIP</th>
                 <th className="px-6 py-4 text-sm font-semibold">المهام</th>
-                <th className="px-6 py-4 text-sm font-semibold">الدور</th>
                 <th className="px-6 py-4 text-sm font-semibold">تاريخ التسجيل</th>
                 <th className="px-6 py-4 text-sm font-semibold text-center">الإجراءات</th>
               </tr>
@@ -135,7 +132,7 @@ const Users = () => {
               {isLoading ? (
                 [1, 2, 3, 4, 5].map(i => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={7} className="px-6 py-4 h-16 bg-white/5" />
+                    <td colSpan={6} className="px-6 py-4 h-16 bg-white/5" />
                   </tr>
                 ))
               ) : (
@@ -164,11 +161,6 @@ const Users = () => {
                         <Activity className="w-3 h-3 text-emerald-500" />
                         <span>{u.daily_challenges_completed}/{u.daily_challenges_limit}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-[10px] px-2 py-1 rounded-full border ${u.role === 'admin' ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
-                        {u.role === 'admin' ? 'مدير' : 'مستخدم'}
-                      </span>
                     </td>
                     <td className="px-6 py-4 text-xs text-muted-foreground">
                       {new Date(u.created_at).toLocaleDateString('ar-EG')}
@@ -238,28 +230,6 @@ const Users = () => {
                       {level}
                     </Button>
                   ))}
-                </div>
-              </div>
-
-              {/* Role Section */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-muted-foreground">دور المستخدم</label>
-                <div className="flex gap-2">
-                  <Button
-                    variant={selectedUser.role === 'user' ? 'default' : 'outline'}
-                    className="flex-1"
-                    onClick={() => updateProfileMutation.mutate({ id: selectedUser.id, updates: { role: 'user' } })}
-                  >
-                    مستخدم
-                  </Button>
-                  <Button
-                    variant={selectedUser.role === 'admin' ? 'default' : 'outline'}
-                    className="flex-1 border-primary/50"
-                    onClick={() => updateProfileMutation.mutate({ id: selectedUser.id, updates: { role: 'admin' } })}
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    مدير
-                  </Button>
                 </div>
               </div>
             </div>
