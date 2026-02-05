@@ -20,6 +20,7 @@ const Settings = () => {
   const [apiKey, setApiKey] = useState('');
   const [minWithdrawal, setMinWithdrawal] = useState('10');
   const [maxWithdrawal, setMaxWithdrawal] = useState('1000');
+  const [autoWithdrawal, setAutoWithdrawal] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -37,6 +38,7 @@ const Settings = () => {
       if (data) {
         const limits = data.find(s => s.key === 'withdrawal_limits')?.value as any;
         const api = data.find(s => s.key === 'nowpayments_api_key')?.value as any;
+        const security = data.find(s => s.key === 'security_settings')?.value as any;
 
         if (limits) {
           setMinWithdrawal(limits.min || '10');
@@ -44,6 +46,9 @@ const Settings = () => {
         }
         if (api) {
           setApiKey(api.value || '');
+        }
+        if (security) {
+          setAutoWithdrawal(security.auto_withdrawal || false);
         }
       }
     } catch (error: any) {
@@ -63,7 +68,7 @@ const Settings = () => {
           key: 'withdrawal_limits',
           value: { min: minWithdrawal, max: maxWithdrawal },
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'key' });
 
       if (error) throw error;
       toast.success('تم حفظ حدود السحب بنجاح');
@@ -83,12 +88,33 @@ const Settings = () => {
           key: 'nowpayments_api_key',
           value: { value: apiKey },
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'key' });
 
       if (error) throw error;
       toast.success('تم حفظ مفتاح API بنجاح');
     } catch (error: any) {
       toast.error('فشل حفظ مفتاح API');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleAutoWithdrawal = async (checked: boolean) => {
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('admin_settings')
+        .upsert({
+          key: 'security_settings',
+          value: { auto_withdrawal: checked },
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' });
+
+      if (error) throw error;
+      setAutoWithdrawal(checked);
+      toast.success(`تم ${checked ? 'تفعيل' : 'تعطيل'} السحب التلقائي`);
+    } catch (error: any) {
+      toast.error('فشل تحديث إعدادات السحب التلقائي');
     } finally {
       setSaving(false);
     }
@@ -199,6 +225,18 @@ const Settings = () => {
           </div>
 
           <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border/30">
+              <div className="space-y-0.5">
+                <span className="text-sm font-medium">تفعيل السحب التلقائي</span>
+                <p className="text-[10px] text-muted-foreground">تنفيذ عمليات السحب فور طلبها دون مراجعة يدوية</p>
+              </div>
+              <Switch 
+                checked={autoWithdrawal} 
+                onCheckedChange={handleToggleAutoWithdrawal}
+                disabled={saving}
+              />
+            </div>
+
             <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border/30">
               <div className="space-y-0.5">
                 <span className="text-sm font-medium">تفعيل IP Whitelist</span>

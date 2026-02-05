@@ -53,7 +53,10 @@ const Users = () => {
       
       if (error) throw error;
       
+      const { data: { user } } = await supabase.auth.getUser();
+      
       await supabase.from('activity_logs').insert({
+        admin_id: user?.id,
         action: 'USER_UPDATE',
         target_id: id,
         details: updates

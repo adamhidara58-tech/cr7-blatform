@@ -59,7 +59,12 @@ export const useCryptoPayments = () => {
 
   const fetchCurrencies = useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('nowpayments-currencies');
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke('nowpayments-currencies', {
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
+      });
       
       if (error) throw error;
       
@@ -80,7 +85,12 @@ export const useCryptoPayments = () => {
 
   const fetchStatus = useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('nowpayments-status');
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke('nowpayments-status', {
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
+      });
       
       if (error) throw error;
       
@@ -107,8 +117,12 @@ export const useCryptoPayments = () => {
         return null;
       }
 
+      const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('nowpayments-deposit', {
         body: { amount, currency },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
       });
       
       if (error) throw error;
@@ -139,8 +153,12 @@ export const useCryptoPayments = () => {
   const createWithdrawal = async (amount: number, currency: string, walletAddress: string) => {
     setLoading(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('nowpayments-withdrawal', {
         body: { amount, currency, walletAddress },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
       });
       
       if (error) throw error;

@@ -35,8 +35,12 @@ const Withdrawals = () => {
 
   const processWithdrawalMutation = useMutation({
     mutationFn: async ({ id, action }: { id: string, action: 'approve' | 'reject' }) => {
+      const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('nowpayments-withdrawal', {
-        body: { withdrawalId: id, action }
+        body: { withdrawalId: id, action },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
       });
 
       if (error) throw error;

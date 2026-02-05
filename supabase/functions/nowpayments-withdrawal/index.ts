@@ -52,9 +52,56 @@ serve(async (req) => {
     }
 
     // Get the request body
-    const { withdrawalId, action } = await req.json();
+    const body = await req.json();
+    const { withdrawalId, action, amount, currency, walletAddress } = body;
 
-    if (!withdrawalId || !action) {
+    // Handle User-Initiated Withdrawal Request (Auto-process if enabled)
+    if (!withdrawalId && amount && currency && walletAddress) {
+      // 1. Get auto-withdrawal setting
+      const { data: autoSetting } = await supabase
+        .from('admin_settings')
+        .select('value')
+        .eq('key', 'security_settings')
+        .single();
+      
+      const isAutoEnabled = autoSetting?.value?.auto_withdrawal === true;
+
+      // 2. Create the withdrawal record first
+      const { data: newWithdrawal, error: createError } = await supabase
+        .from('crypto_withdrawals')
+        .insert({
+          user_id: user.id,
+          amount_usd: amount,
+          currency: currency,
+          wallet_address: walletAddress,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      // 3. Deduct balance
+      const { data: profile } = await supabase.from('profiles').select('balance').eq('id', user.id).single();
+      await supabase.from('profiles').update({ balance: (profile?.balance || 0) - amount }).eq('id', user.id);
+
+      // 4. If auto is enabled, proceed to approve
+      if (isAutoEnabled) {
+        // Continue with approval logic using the new ID
+        body.withdrawalId = newWithdrawal.id;
+        body.action = 'approve';
+      } else {
+        return new Response(
+          JSON.stringify({ success: true, message: 'Withdrawal request submitted for review', withdrawal: newWithdrawal }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    const finalWithdrawalId = body.withdrawalId;
+    const finalAction = body.action;
+
+    if (!finalWithdrawalId || !finalAction) {
       return new Response(
         JSON.stringify({ success: false, error: 'Withdrawal ID and action are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
