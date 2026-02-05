@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.create-withdrawal]
 verify_jwt = false
+
+[functions.update-admin-settings]
+verify_jwt = false
