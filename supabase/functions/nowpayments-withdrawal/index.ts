@@ -27,18 +27,27 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 
     // Verify Admin JWT
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+    if (!authHeader || authHeader === 'Bearer undefined') {
+      console.error('Authorization header is empty or undefined');
+      return new Response(JSON.stringify({ success: false, error: 'Authorization header is empty (Bearer JWTtoken is required)' }), { status: 401, headers: corsHeaders });
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    // Create a client with the user's token to verify it
+    const userClient = createClient(supabaseUrl, supabaseAnonKey || '', {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    });
+    
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ success: false, error: 'Invalid Token' }), { status: 401, headers: corsHeaders });
+      console.error('Auth error:', authError?.message);
+      return new Response(JSON.stringify({ success: false, error: 'Invalid Token: ' + (authError?.message || 'User not found') }), { status: 401, headers: corsHeaders });
     }
 
     // Check if user is admin (Assuming role is in user_metadata or a profiles table)

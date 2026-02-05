@@ -25,10 +25,12 @@ const Settings = () => {
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-    fetchSettings();
+    const getSession = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      setSession(currentSession);
+      fetchSettings();
+    };
+    getSession();
   }, []);
 
   const fetchSettings = async () => {
@@ -66,10 +68,22 @@ const Settings = () => {
   const saveSetting = async (key: string, value: any) => {
     try {
       setSaving(true);
+      
+      // Get current session if state is not yet updated
+      let currentSession = session;
+      if (!currentSession) {
+        const { data } = await supabase.auth.getSession();
+        currentSession = data.session;
+      }
+
+      if (!currentSession) {
+        throw new Error('لم يتم العثور على جلسة نشطة. يرجى تسجيل الدخول مرة أخرى.');
+      }
+
       const { data, error } = await supabase.functions.invoke('update-admin-settings', {
         body: { key, value },
         headers: {
-          Authorization: `Bearer ${session?.access_token}`
+          Authorization: `Bearer ${currentSession.access_token}`
         }
       });
 
