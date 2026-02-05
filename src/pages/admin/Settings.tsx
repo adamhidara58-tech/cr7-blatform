@@ -5,7 +5,8 @@ import {
   Bell, 
   Save,
   ArrowDownCircle,
-  Loader2
+  Loader2,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,9 +18,9 @@ import { supabase } from '@/integrations/supabase/client';
 const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [apiKey, setApiKey] = useState('');
   const [minWithdrawal, setMinWithdrawal] = useState('10');
   const [maxWithdrawal, setMaxWithdrawal] = useState('1000');
+  const [autoPayoutThreshold, setAutoPayoutThreshold] = useState('10');
 
   useEffect(() => {
     fetchSettings();
@@ -35,18 +36,18 @@ const Settings = () => {
       if (error) throw error;
 
       if (data) {
-        const limits = data.find(s => s.key === 'withdrawal_limits')?.value as any;
-        const api = data.find(s => s.key === 'nowpayments_api_key')?.value as any;
+        const limits = data.find(s => s.key === 'withdrawal_limits')?.value as { min?: string; max?: string } | undefined;
+        const threshold = data.find(s => s.key === 'auto_payout_threshold')?.value as { amount?: string } | undefined;
 
         if (limits) {
-          setMinWithdrawal(limits.min || '10');
-          setMaxWithdrawal(limits.max || '1000');
+          setMinWithdrawal(String(limits.min || '10'));
+          setMaxWithdrawal(String(limits.max || '1000'));
         }
-        if (api) {
-          setApiKey(api.value || '');
+        if (threshold) {
+          setAutoPayoutThreshold(String(threshold.amount || '10'));
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching settings:', error);
       toast.error('فشل تحميل الإعدادات');
     } finally {
@@ -63,32 +64,34 @@ const Settings = () => {
           key: 'withdrawal_limits',
           value: { min: minWithdrawal, max: maxWithdrawal },
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'key' });
 
       if (error) throw error;
       toast.success('تم حفظ حدود السحب بنجاح');
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Save limits error:', error);
       toast.error('فشل حفظ حدود السحب');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveApiKey = async () => {
+  const handleSaveAutoThreshold = async () => {
     try {
       setSaving(true);
       const { error } = await supabase
         .from('admin_settings')
         .upsert({
-          key: 'nowpayments_api_key',
-          value: { value: apiKey },
+          key: 'auto_payout_threshold',
+          value: { amount: autoPayoutThreshold },
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'key' });
 
       if (error) throw error;
-      toast.success('تم حفظ مفتاح API بنجاح');
-    } catch (error: any) {
-      toast.error('فشل حفظ مفتاح API');
+      toast.success('تم حفظ حد الدفع التلقائي بنجاح');
+    } catch (error) {
+      console.error('Save threshold error:', error);
+      toast.error('فشل حفظ الإعداد');
     } finally {
       setSaving(false);
     }
@@ -106,7 +109,7 @@ const Settings = () => {
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold text-gradient-gold mb-2">الإعدادات العامة</h2>
-        <p className="text-muted-foreground">إدارة مفاتيح API وإعدادات الأمان والنظام</p>
+        <p className="text-muted-foreground">إدارة حدود السحب وإعدادات الدفع التلقائي</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -151,7 +154,7 @@ const Settings = () => {
           </div>
         </motion.div>
 
-        {/* API Settings */}
+        {/* Auto Payout Settings */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -159,28 +162,38 @@ const Settings = () => {
           className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
         >
           <div className="flex items-center gap-3 border-b border-border/50 pb-4">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Key className="w-5 h-5" />
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+              <Zap className="w-5 h-5" />
             </div>
-            <h3 className="font-bold">إعدادات NOWPayments</h3>
+            <h3 className="font-bold">الدفع التلقائي</h3>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">API Key</label>
-              <div className="flex gap-2">
-                <Input 
-                  type="password" 
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="glass-card"
-                />
-                <Button onClick={handleSaveApiKey} disabled={saving}>
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                </Button>
-              </div>
-              <p className="text-[10px] text-muted-foreground">يستخدم هذا المفتاح لمعالجة عمليات السحب التلقائية</p>
+              <label className="text-sm font-medium">حد الدفع التلقائي ($)</label>
+              <Input 
+                type="number" 
+                value={autoPayoutThreshold}
+                onChange={(e) => setAutoPayoutThreshold(e.target.value)}
+                className="glass-card"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                طلبات السحب التي تساوي أو أقل من هذا المبلغ ستتم معالجتها تلقائياً
+              </p>
             </div>
+            
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+              <p className="text-xs text-blue-400">
+                💡 السحب ≤ ${autoPayoutThreshold} → تلقائي
+                <br />
+                💼 السحب &gt; ${autoPayoutThreshold} → يتطلب موافقة يدوية
+              </p>
+            </div>
+
+            <Button className="w-full" onClick={handleSaveAutoThreshold} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              حفظ إعدادات الدفع التلقائي
+            </Button>
           </div>
         </motion.div>
 

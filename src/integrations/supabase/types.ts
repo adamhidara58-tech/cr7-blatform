@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          target_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       crypto_deposits: {
         Row: {
           amount_crypto: number | null
@@ -85,6 +144,7 @@ export type Database = {
           fee_amount: number | null
           id: string
           network: string | null
+          payout_type: string | null
           processed_at: string | null
           status: string
           tx_hash: string | null
@@ -100,6 +160,7 @@ export type Database = {
           fee_amount?: number | null
           id?: string
           network?: string | null
+          payout_type?: string | null
           processed_at?: string | null
           status?: string
           tx_hash?: string | null
@@ -115,6 +176,7 @@ export type Database = {
           fee_amount?: number | null
           id?: string
           network?: string | null
+          payout_type?: string | null
           processed_at?: string | null
           status?: string
           tx_hash?: string | null

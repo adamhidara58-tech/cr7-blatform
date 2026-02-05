@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Wallet, LogOut, Shield, Eye, ShieldCheck } from 'lucide-react';
+import { Bell, Wallet, LogOut, Shield, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationsModal } from '@/components/modals/NotificationsModal';
@@ -34,19 +34,6 @@ export const Header = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Admin Link */}
-            {profile?.role === 'admin' && (
-              <motion.a
-                href="/admin"
-                className="p-2 rounded-full glass-card border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.05 }}
-              >
-                <ShieldCheck className="w-4 h-4" />
-              </motion.a>
-            )}
 
             {/* Balance */}
             <motion.div

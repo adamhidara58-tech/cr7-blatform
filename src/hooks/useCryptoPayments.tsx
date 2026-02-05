@@ -136,18 +136,18 @@ export const useCryptoPayments = () => {
     }
   };
 
-  const createWithdrawal = async (amount: number, currency: string, walletAddress: string) => {
+  const createWithdrawal = async (amount: number, currency: string, walletAddress: string, network?: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('nowpayments-withdrawal', {
-        body: { amount, currency, walletAddress },
+      const { data, error } = await supabase.functions.invoke('create-withdrawal', {
+        body: { amount, currency, walletAddress, network },
       });
       
       if (error) throw error;
       
       if (data.success) {
         toast({
-          title: 'تم إرسال طلب السحب',
+          title: data.auto_processed ? 'تم إرسال السحب! 🎉' : 'تم إرسال الطلب',
           description: data.message,
         });
         await fetchStatus();
