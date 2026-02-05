@@ -43,6 +43,13 @@ interface Withdrawal {
 const Withdrawals = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+  const [session, setSession] = useState<any>(null);
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+  }, []);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -89,7 +96,10 @@ const Withdrawals = () => {
   const massPayoutMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       const { data, error } = await supabase.functions.invoke('nowpayments-withdrawal', {
-        body: { action: 'mass_payout', withdrawalIds: ids }
+        body: { action: 'mass_payout', withdrawalIds: ids },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
       });
 
       if (error) throw error;

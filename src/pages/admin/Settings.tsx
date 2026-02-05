@@ -21,8 +21,13 @@ const Settings = () => {
   const [minWithdrawal, setMinWithdrawal] = useState('10');
   const [maxWithdrawal, setMaxWithdrawal] = useState('1000');
   const [autoPayoutThreshold, setAutoPayoutThreshold] = useState('10');
+  const [autoWithdrawal, setAutoWithdrawal] = useState(false);
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
     fetchSettings();
   }, []);
 
@@ -58,67 +63,35 @@ const Settings = () => {
     }
   };
 
-  const handleSaveLimits = async () => {
+  const saveSetting = async (key: string, value: any) => {
     try {
       setSaving(true);
-      const { error } = await supabase
-        .from('admin_settings')
-        .upsert({
-          key: 'withdrawal_limits',
-          value: { min: minWithdrawal, max: maxWithdrawal },
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'key' });
+      const { data, error } = await supabase.functions.invoke('update-admin-settings', {
+        body: { key, value },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
+      });
 
       if (error) throw error;
-      toast.success('تم حفظ حدود السحب بنجاح');
-    } catch (error) {
-      console.error('Save limits error:', error);
-      toast.error('فشل حفظ حدود السحب');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveAutoThreshold = async () => {
-    try {
-      setSaving(true);
-      const { error } = await supabase
-        .from('admin_settings')
-        .upsert({
-          key: 'auto_payout_threshold',
-          value: { amount: autoPayoutThreshold },
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'key' });
-
-      if (error) throw error;
-      toast.success('تم حفظ حد الدفع التلقائي بنجاح');
-    } catch (error) {
-      console.error('Save threshold error:', error);
-      toast.error('فشل حفظ الإعداد');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleToggleAutoWithdrawal = async (checked: boolean) => {
-    try {
-      setSaving(true);
-      const { error } = await supabase
-        .from('admin_settings')
-        .upsert({
-          key: 'security_settings',
-          value: { auto_withdrawal: checked },
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'key' });
-
-      if (error) throw error;
-      setAutoWithdrawal(checked);
-      toast.success(`تم ${checked ? 'تفعيل' : 'تعطيل'} السحب التلقائي`);
+      if (data?.success) {
+        toast.success('تم الحفظ بنجاح');
+      } else {
+        throw new Error(data?.error || 'خطأ في الحفظ');
+      }
     } catch (error: any) {
-      toast.error('فشل تحديث إعدادات السحب التلقائي');
+      console.error('Save error:', error);
+      toast.error(error.message || 'فشل الحفظ');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSaveLimits = () => saveSetting('withdrawal_limits', { min: minWithdrawal, max: maxWithdrawal });
+  const handleSaveAutoThreshold = () => saveSetting('auto_payout_threshold', { amount: autoPayoutThreshold });
+  const handleToggleAutoWithdrawal = (checked: boolean) => {
+    setAutoWithdrawal(checked);
+    saveSetting('security_settings', { auto_withdrawal: checked });
   };
 
   if (loading) {

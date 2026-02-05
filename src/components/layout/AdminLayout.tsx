@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,9 +25,14 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for admin session in localStorage
-    const session = localStorage.getItem('admin_session');
-    setIsAdmin(session === 'true');
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const localSession = localStorage.getItem('admin_session');
+      
+      // Allow access if either Supabase session exists OR localSession is true (for dev mode)
+      setIsAdmin(!!session || localSession === 'true');
+    };
+    checkAuth();
   }, []);
 
   if (isAdmin === null) {
@@ -41,7 +47,8 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem('admin_session');
     toast.info('تم تسجيل الخروج من لوحة التحكم');
     navigate('/admin/login');

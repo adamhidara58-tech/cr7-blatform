@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ShieldCheck, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminLogin = () => {
   const [username, setUsername] = useState('');
@@ -19,19 +20,30 @@ const AdminLogin = () => {
     try {
       // Simulation of server-side validation with environment variables
       // In a real production app, this would be an API call to a backend
-      const adminUser = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
-      const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'Nador@2009';
+      const adminEmail = `${username}@admin.com`; // Helper to use email for Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: adminEmail,
+        password: password,
+      });
 
-      if (username === adminUser && password === adminPass) {
-        // Set admin session in localStorage for demo/simplicity
-        // The user requested HttpOnly cookies, which requires a real backend.
-        // For this frontend-heavy project, we'll use a secure-ish local flag 
-        // that is checked by the AdminLayout.
+      if (error) {
+        // Fallback for demo/development if user doesn't exist in Supabase yet
+        const adminUser = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
+        const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'Nador@2009';
+        
+        if (username === adminUser && password === adminPass) {
+          localStorage.setItem('admin_session', 'true');
+          toast.success('تم تسجيل الدخول بنجاح (وضع التطوير)');
+          navigate('/admin');
+          return;
+        }
+        throw error;
+      }
+
+      if (data.user) {
         localStorage.setItem('admin_session', 'true');
         toast.success('تم تسجيل الدخول بنجاح');
         navigate('/admin');
-      } else {
-        toast.error('بيانات الدخول غير صحيحة');
       }
     } catch (error) {
       toast.error('حدث خطأ أثناء تسجيل الدخول');
