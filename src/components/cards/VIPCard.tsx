@@ -27,7 +27,7 @@ const players: Record<number, string> = {
   5: player5,
 };
 
-// Using the same background as main page cards
+// Using the exact background system from the main page memberships
 const stadiumBackgrounds: Record<number, string> = {
   0: 'linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%))',
   1: 'linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%))',
@@ -76,11 +76,14 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       onClick={handleAction}
       className="relative w-full max-w-md mx-auto aspect-[1.2/1] rounded-[2.5rem] overflow-hidden border border-white/10 p-5 flex flex-col mb-6 cursor-pointer shadow-2xl transition-all duration-500 hover:scale-[1.02] group bg-gradient-card"
     >
+      {/* Background Pattern Overlay - Matching Main Page */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] z-0" />
+      
       {/* FIFA Stadium Night Atmosphere - Spotlight Effect */}
       <div className={`absolute inset-0 z-1 ${spotlight.intensity} pointer-events-none`} style={{ background: `radial-gradient(ellipse 50% 70% at 50% 40%, ${spotlight.color}, transparent)` }} />
       
       {/* Additional depth layer */}
-      <div className="absolute inset-0 z-2 bg-gradient-to-b from-black/10 via-transparent to-black/60 pointer-events-none" />
+      <div className="absolute inset-0 z-2 bg-gradient-to-b from-black/20 via-transparent to-black/80 pointer-events-none" />
 
       {/* Header Row */}
       <div className="flex justify-between items-start z-20 relative">
@@ -122,7 +125,9 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
           <img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
-            className="h-[145%] w-auto object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.95)] transition-all duration-700 group-hover:scale-105 origin-bottom z-30"
+            className={`w-auto object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.95)] transition-all duration-700 group-hover:scale-105 origin-bottom z-30 ${
+              vipLevel.level === 5 ? 'h-[120%] mb-4' : 'h-[145%]'
+            }`}
           />
         </div>
 
