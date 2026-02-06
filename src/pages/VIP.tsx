@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Crown, Zap, Star, Shield, Gift, Percent } from 'lucide-react';
+import { Crown, Zap, Star, Shield } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { VIPCard } from '@/components/cards/VIPCard';
 import { vipLevels } from '@/data/mockData';
@@ -8,8 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 const VIP = () => {
   const { profile } = useAuth();
   const currentVipLevel = profile?.vip_level ?? 0;
-  const currentLevel = vipLevels.find(v => v.level === currentVipLevel) || vipLevels[0];
-  const referralDiscount = profile?.referral_discount || 20; // Default to 20 for UI display as per rules
+  const currentLevelData = vipLevels.find(v => v.level === currentVipLevel) || vipLevels[0];
 
   if (!profile) {
     return (
@@ -23,120 +22,46 @@ const VIP = () => {
 
   return (
     <PageLayout>
-      {/* Header */}
-      <section className="px-4 pt-6 pb-6">
+      {/* Header Section */}
+      <section className="px-4 pt-6 pb-2">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Crown className="w-6 h-6 text-primary" />
-            <h1 className="font-display text-2xl text-foreground">عضوية VIP</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            ارتقِ بمستواك واربح المزيد مع الدون
-          </p>
-        </motion.div>
-
-        {/* Referral Discount Banner */}
-        {true && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.05 }}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-4 mb-4 shadow-lg"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 rounded-full p-2">
-                  <Gift className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-white font-bold text-lg">
-                    خصم إحالة!
-                  </p>
-                  <p className="text-white/80 text-sm">
-                    لديك خصم ${referralDiscount.toFixed(0)} على جميع العروض
-                  </p>
-                </div>
-              </div>
-              <div className="text-left">
-                <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1">
-                  <Percent className="w-4 h-4 text-white" />
-                  <span className="text-white font-bold">${referralDiscount.toFixed(0)}</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Current Level Highlight */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="bg-gradient-gold rounded-2xl p-4 mb-6 shadow-gold"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="bg-primary-foreground/20 rounded-full p-2">
-                <Crown className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <p className="text-primary-foreground font-bold text-lg">
-                  VIP {currentVipLevel}
-                </p>
-                <p className="text-primary-foreground/80 text-sm">
-                  {currentLevel.nameAr}
-                </p>
-              </div>
-            </div>
-            <div className="text-left">
-              <p className="text-primary-foreground text-2xl font-bold">
-                {currentLevel.dailyProfit.toFixed(2)}
-              </p>
-              <p className="text-primary-foreground/80 text-xs">USDT يومياً</p>
-            </div>
+            <Crown className="w-6 h-6 text-[#D4AF37]" />
+            <h1 className="font-display text-2xl text-white font-black">مستويات العضوية</h1>
           </div>
         </motion.div>
 
-        {/* Benefits Overview */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-3 gap-3 mb-6"
-        >
-          <div className="bg-secondary/50 rounded-xl p-3 text-center">
-            <Zap className="w-5 h-5 text-primary mx-auto mb-1" />
-            <p className="text-xs text-muted-foreground">مكافآت أكثر</p>
+        {/* Benefits Grid */}
+        <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="bg-[#1A1A1A] rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5">
+            <Shield className="w-6 h-6 text-zinc-400 mb-2" />
+            <span className="text-xs text-zinc-400 font-bold">دعم أولوي</span>
           </div>
-          <div className="bg-secondary/50 rounded-xl p-3 text-center">
-            <Star className="w-5 h-5 text-primary mx-auto mb-1" />
-            <p className="text-xs text-muted-foreground">تحديات حصرية</p>
+          <div className="bg-[#1A1A1A] rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5">
+            <Star className="w-6 h-6 text-zinc-400 mb-2" />
+            <span className="text-xs text-zinc-400 font-bold">تحديات حصرية</span>
           </div>
-          <div className="bg-secondary/50 rounded-xl p-3 text-center">
-            <Shield className="w-5 h-5 text-primary mx-auto mb-1" />
-            <p className="text-xs text-muted-foreground">دعم أولوي</p>
+          <div className="bg-[#1A1A1A] rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5">
+            <Zap className="w-6 h-6 text-zinc-400 mb-2" />
+            <span className="text-xs text-zinc-400 font-bold">مكافآت أكثر</span>
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* VIP Levels */}
-      <section className="px-4 pb-6">
-        <h2 className="font-display text-lg text-foreground mb-4 text-right">مستويات العضوية</h2>
-        <div className="space-y-4">
-          {vipLevels.map((level, index) => (
-            <VIPCard
-              key={level.level}
-              vipLevel={level}
-              currentLevel={currentVipLevel}
-              index={index}
-              referralDiscount={referralDiscount}
-            />
-          ))}
-        </div>
+      {/* VIP Cards List */}
+      <section className="px-4 pb-12 space-y-4">
+        {vipLevels.map((level, index) => (
+          <VIPCard
+            key={level.level}
+            vipLevel={level}
+            currentLevel={currentVipLevel}
+            index={index}
+          />
+        ))}
       </section>
     </PageLayout>
   );
