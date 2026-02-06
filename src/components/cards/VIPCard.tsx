@@ -6,11 +6,11 @@ import { GoldButton } from '../ui/GoldButton';
 
 // Import New VIP Images from processed folder
 import vip0 from '@/assets/vip-processed/vip0.png';
-import vip1 from '@/assets/vip-processed/vip1.png';
-import vip2 from '@/assets/vip-processed/vip2.png';
+import vip1 from '@/assets/vip-processed/vip1.webp';
+import vip2 from '@/assets/vip-processed/vip2.webp';
 import vip3 from '@/assets/vip-processed/vip3.png';
-import vip4 from '@/assets/vip-processed/vip4.png';
-import vip5 from '@/assets/vip-processed/vip5.png';
+import vip4 from '@/assets/vip-processed/vip4.webp';
+import vip5 from '@/assets/vip-processed/vip5.webp';
 
 interface VIPCardProps {
   vipLevel: VIPLevel;
@@ -90,14 +90,18 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       {/* Ronaldo Image */}
       <div className={`absolute ${vipLevel.level === 5 ? 'left-0' : 'left-[-5%]'} bottom-0 z-[2] h-full w-[65%] flex items-end justify-center pointer-events-none`}>
         <motion.img 
-          animate={controls}
+          loading="eager"
+          animate={vipLevel.level === 5 ? {
+            y: [0, -10, 0],
+            transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+          } : controls}
           src={ronaldoImages[vipLevel.level]} 
           alt={vipLevel.name}
           className={`${vipLevel.level === 5 ? 'h-[100%] w-full' : 'h-[100%] w-auto'} object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] group-hover:scale-105 transition-transform duration-700 ease-out origin-bottom`}
           style={{
             filter: vipLevel.level === 5 ? `drop-shadow(0 0 30px rgba(255,215,0,0.6))` : 'none',
-            scale: vipLevel.level === 2 ? 1.3 : (vipLevel.level === 1 ? 0.9 : 1), // VIP 2 out of frame, VIP 1 inside frame
-            marginBottom: vipLevel.level === 1 ? '10px' : '0px'
+            scale: vipLevel.level === 2 ? 1.4 : (vipLevel.level === 1 ? 0.95 : (vipLevel.level === 4 ? 1.2 : 1)),
+            marginBottom: vipLevel.level === 1 ? '15px' : '0px'
           }}
         />
       </div>
@@ -161,29 +165,45 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
 
               <GoldButton
                 variant="primary"
-                className="w-full h-12 rounded-xl relative overflow-hidden group/btn border border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]"
+                className="w-full h-14 rounded-2xl relative overflow-hidden group/btn border-2 border-yellow-400 shadow-[0_0_25px_rgba(234,179,8,0.5)] hover:shadow-[0_0_40px_rgba(234,179,8,0.8)] transition-all duration-300"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAction();
                 }}
               >
-                <div className="flex items-center justify-center gap-2 w-full relative z-10">
-                  <span className="text-sm font-black uppercase tracking-tighter">فتح الآن</span>
-                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                <div className="flex items-center justify-center gap-3 w-full relative z-10">
+                  <span className="text-lg font-black uppercase tracking-widest text-black">اشترِ الآن</span>
+                  <div className="bg-black rounded-full p-1">
+                    <ArrowRight className="w-4 h-4 text-yellow-400 group-hover/btn:translate-x-1 transition-transform" />
+                  </div>
                 </div>
                 
-                {/* Animation Effects */}
+                {/* Pulsing Glow Effect */}
+                <motion.div 
+                  animate={{ 
+                    opacity: [0.4, 0.8, 0.4],
+                    scale: [1, 1.05, 1]
+                  }}
+                  transition={{ 
+                    duration: 2, 
+                    repeat: Infinity, 
+                    ease: "easeInOut"
+                  }}
+                  className="absolute inset-0 bg-yellow-400/20"
+                />
+
+                {/* Shining Sweep */}
                 <motion.div 
                   animate={{ 
                     x: ['-100%', '200%'],
                   }}
                   transition={{ 
-                    duration: 1.5, 
+                    duration: 2, 
                     repeat: Infinity, 
                     ease: "easeInOut",
-                    repeatDelay: 0.5
+                    repeatDelay: 1
                   }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-12"
                 />
               </GoldButton>
             </div>
