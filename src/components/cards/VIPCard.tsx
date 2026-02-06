@@ -77,7 +77,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -10, transition: { duration: 0.4, ease: "easeOut" } }}
       onClick={handleAction}
-      className={`relative h-[500px] w-full rounded-[2.5rem] overflow-hidden cursor-pointer border ${style.border} ${style.glow} transition-all duration-500 group bg-black flex flex-col`}
+      className={`relative h-[480px] w-full rounded-[2.5rem] overflow-hidden cursor-pointer border ${style.border} ${style.glow} transition-all duration-500 group bg-black flex flex-col`}
     >
       {/* Background Stadium Effect */}
       <div 
@@ -107,121 +107,112 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       </div>
 
       {/* Content Area */}
-      <div className="relative z-[3] p-6 ml-auto w-[55%] h-full flex flex-col justify-between text-right">
+      <div className="relative z-[3] p-5 ml-auto w-[55%] h-full flex flex-col justify-between text-right">
         {/* Top Section */}
-        <div className="flex flex-col items-end space-y-2">
-          <motion.div 
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 5, repeat: Infinity }}
-            className={`w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border ${style.border} flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500`}
-          >
-            <Crown className={`w-8 h-8 ${vipLevel.level === 5 ? 'text-yellow-400' : 'text-white'}`} />
-          </motion.div>
+        <div className="flex flex-col items-end space-y-1">
+          <div className={`w-10 h-10 rounded-xl bg-white/5 backdrop-blur-xl border ${style.border} flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+            <Crown className={`w-6 h-6 ${vipLevel.level === 5 ? 'text-yellow-400' : 'text-white'}`} />
+          </div>
           
           <div className="flex flex-col items-end">
-            <h3 className="font-display text-4xl font-black text-white tracking-tighter italic leading-none drop-shadow-lg">
+            <h3 className="font-display text-2xl font-black text-white tracking-tighter italic leading-none">
               VIP {vipLevel.level}
             </h3>
-            <p className="text-xs font-bold text-yellow-500 uppercase tracking-widest mt-1 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> {vipLevel.nameAr}
+            <p className="text-[9px] font-bold text-yellow-500 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+              <Sparkles className="w-2 h-2" /> {vipLevel.nameAr}
             </p>
           </div>
         </div>
 
-        {/* Middle Section: Stats Grid - Redesigned for Impact */}
-        <div className="flex flex-col space-y-3 w-full">
+        {/* Middle Section: Stats Grid */}
+        <div className="flex flex-col space-y-2 w-full">
           {[
             { label: 'المهام اليومية', value: vipLevel.dailyChallengeLimit, icon: Target, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
             { label: 'الربح اليومي', value: `+${formatNumber(vipLevel.dailyProfit)}`, icon: TrendingUp, color: 'text-green-400', bg: 'bg-green-400/10' },
             { label: 'إجمالي الربح', value: formatNumber(vipLevel.totalProfit), icon: Wallet, color: 'text-blue-400', bg: 'bg-blue-400/10' }
           ].map((stat, i) => (
-            <motion.div 
+            <div 
               key={i}
-              whileHover={{ x: -5 }}
-              className={`bg-black/40 backdrop-blur-xl rounded-2xl p-3 border border-white/5 flex items-center justify-end gap-4 group-hover:border-white/20 transition-all shadow-inner`}
+              className={`bg-black/40 backdrop-blur-md rounded-xl p-2 border border-white/5 flex items-center justify-end gap-3 group-hover:border-white/10 transition-all`}
             >
               <div className="text-right">
-                <p className="text-[10px] text-zinc-500 font-bold uppercase leading-none mb-1">{stat.label}</p>
-                <p className={`text-lg font-display font-black ${stat.color}`}>{stat.value}</p>
+                <p className="text-[8px] text-zinc-500 font-bold uppercase leading-none mb-0.5">{stat.label}</p>
+                <p className={`text-sm font-display font-black ${stat.color}`}>{stat.value}</p>
               </div>
-              <div className={`p-2 rounded-xl ${stat.bg}`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+              <div className={`p-1.5 rounded-lg ${stat.bg}`}>
+                <stat.icon className={`w-3.5 h-3.5 ${stat.color}`} />
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        {/* Bottom Section: Action Button - The "Glowing" Masterpiece */}
-        <div className="w-full pt-4">
+        {/* Bottom Section: Action Button */}
+        <div className="w-full pt-2">
           {!isUnlocked ? (
-            <div className="flex flex-col items-center w-full space-y-3">
-              {/* Price Tag - Re-added and Styled */}
-              <div className="flex flex-col items-end w-full pr-2">
-                <span className="text-[10px] text-zinc-500 line-through decoration-red-500/50">
+            <div className="flex flex-col items-center w-full space-y-2">
+              {/* Price Tag */}
+              <div className="flex flex-col items-end w-full pr-1">
+                <span className="text-[8px] text-zinc-500 line-through decoration-red-500/50">
                   {formatNumber(vipLevel.price)} USDT
                 </span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-white drop-shadow-glow">
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-lg font-black text-white">
                     {formatNumber(vipLevel.referralPrice)}
                   </span>
-                  <span className="text-xs font-bold text-yellow-500">USDT</span>
+                  <span className="text-[10px] font-bold text-yellow-500">USDT</span>
                 </div>
               </div>
 
               <GoldButton
                 variant="primary"
-                className="w-full h-16 rounded-[1.5rem] relative overflow-hidden group/btn border-2 border-yellow-400/80 shadow-[0_0_30px_rgba(234,179,8,0.4)] hover:shadow-[0_0_50px_rgba(234,179,8,0.7)] transition-all duration-500 z-10"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                className="w-full h-12 rounded-xl relative overflow-hidden group/btn border border-yellow-400/60 shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-all duration-300 z-10"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAction();
                 }}
               >
-                <div className="flex items-center justify-center gap-3 w-full relative z-20">
-                  <span className="text-xl font-black uppercase tracking-tighter text-black">فتح الآن</span>
-                  <div className="bg-black rounded-full p-1.5 shadow-lg group-hover/btn:translate-x-2 transition-transform duration-300">
-                    <ArrowRight className="w-5 h-5 text-yellow-400" />
+                <div className="flex items-center justify-center gap-2 w-full relative z-20 px-2">
+                  <span className="text-sm font-black uppercase tracking-tight text-black whitespace-nowrap">فتح الآن</span>
+                  <div className="bg-black rounded-full p-1 shadow-md group-hover/btn:translate-x-1 transition-transform duration-300">
+                    <ArrowRight className="w-3.5 h-3.5 text-yellow-400" />
                   </div>
                 </div>
                 
-                {/* Intense Glowing Pulse */}
+                {/* Glowing Pulse */}
                 <motion.div 
                   animate={{ 
-                    opacity: [0.3, 0.6, 0.3],
-                    scale: [1, 1.1, 1]
+                    opacity: [0.2, 0.4, 0.2],
                   }}
                   transition={{ 
                     duration: 2, 
                     repeat: Infinity, 
                     ease: "easeInOut"
                   }}
-                  className="absolute inset-0 bg-yellow-400/30 z-0"
+                  className="absolute inset-0 bg-yellow-400/20 z-0"
                 />
 
-                {/* Cinematic Light Sweep */}
+                {/* Light Sweep */}
                 <motion.div 
                   animate={{ 
-                    x: ['-150%', '250%'],
+                    x: ['-100%', '200%'],
                   }}
                   transition={{ 
                     duration: 2, 
                     repeat: Infinity, 
                     ease: "easeInOut",
-                    repeatDelay: 0.5
+                    repeatDelay: 1
                   }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent skew-x-20 z-0"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 z-0"
                 />
-
-                {/* Border Glow Animation */}
-                <div className="absolute inset-0 border-2 border-white/20 rounded-[1.5rem] pointer-events-none" />
               </GoldButton>
             </div>
           ) : (
-            <div className="bg-green-500/10 border-2 border-green-500/50 rounded-2xl h-16 flex items-center justify-center gap-3 backdrop-blur-md w-full shadow-[0_0_20px_rgba(34,197,94,0.2)]">
-              <span className="text-green-400 font-black tracking-widest text-sm uppercase">تم التفعيل بنجاح</span>
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.6)]">
-                <Check className="w-5 h-5 text-black stroke-[4px]" />
+            <div className="bg-green-500/10 border border-green-500/40 rounded-xl h-12 flex items-center justify-center gap-2 backdrop-blur-md w-full">
+              <span className="text-green-400 font-black tracking-widest text-[10px] uppercase">تم التفعيل</span>
+              <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.4)]">
+                <Check className="w-4 h-4 text-black stroke-[4px]" />
               </div>
             </div>
           )}
@@ -232,16 +223,16 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       {vipLevel.level === 5 && (
         <div className="absolute inset-0 pointer-events-none z-[4]">
           <motion.div 
-            animate={{ opacity: [0.1, 0.3, 0.1] }}
+            animate={{ opacity: [0.1, 0.2, 0.1] }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="absolute inset-0 bg-gradient-to-t from-yellow-500/30 to-transparent mix-blend-screen"
+            className="absolute inset-0 bg-gradient-to-t from-yellow-500/20 to-transparent mix-blend-screen"
           />
         </div>
       )}
 
       {/* Floating Particles */}
-      <div className="absolute inset-0 pointer-events-none z-[4] overflow-hidden opacity-40">
-        {[...Array(vipLevel.level === 5 ? 40 : 20)].map((_, i) => (
+      <div className="absolute inset-0 pointer-events-none z-[4] overflow-hidden opacity-30">
+        {[...Array(vipLevel.level === 5 ? 30 : 15)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 500 }}
@@ -249,7 +240,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
               opacity: [0, 1, 0], 
               y: -100,
               x: (Math.random() - 0.5) * 500 + 250,
-              scale: [0.3, 1, 0.3],
+              scale: [0.3, 0.8, 0.3],
             }}
             transition={{ 
               duration: 3 + Math.random() * 4, 
@@ -257,7 +248,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
               delay: Math.random() * 5,
               ease: "linear"
             }}
-            className={`absolute bottom-0 w-1 h-1 rounded-full ${style.particleColor} blur-[1px]`}
+            className={`absolute bottom-0 w-1 h-1 rounded-full ${style.particleColor} blur-[0.5px]`}
           />
         ))}
       </div>
