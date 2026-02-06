@@ -4,14 +4,16 @@ import { vipLevels } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
-// Import New VIP Images from processed folder
-import vip1 from '@/assets/vip-processed/vip1.png';
-import vip2 from '@/assets/vip-processed/vip2.png';
-import vip3 from '@/assets/vip-processed/vip3.png';
-import vip4 from '@/assets/vip-processed/vip4.png';
-import vip5 from '@/assets/vip-processed/vip5.png';
+// Import New VIP Images
+import vip0 from '@/assets/vip-v3/players/vip0.png';
+import vip1 from '@/assets/vip-v3/players/vip1.png';
+import vip2 from '@/assets/vip-v3/players/vip2.png';
+import vip3 from '@/assets/vip-v3/players/vip3.png';
+import vip4 from '@/assets/vip-v3/players/vip4.png';
+import vip5 from '@/assets/vip-v3/players/vip5.png';
 
 const ronaldoImages: Record<number, string> = {
+  0: vip0,
   1: vip1,
   2: vip2,
   3: vip3,
@@ -19,8 +21,9 @@ const ronaldoImages: Record<number, string> = {
   5: vip5,
 };
 
-// Original Stadium backgrounds restored
+// Stadium backgrounds
 const stadiumBackgrounds: Record<number, string> = {
+  0: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh4mOmSgoCoctyIOJyLKCbocZpRqFB29IhBd4Q9fbAyKP_c7XasCLMGfeSX6sKXNbEkfh7nLyYGF1yPV42ja1jzEohg432ABmQIkRFdCsd3Pv_r32EMJ81R-REcV_go9r-sQYSp9shEIuHgxEgEY-SoZ33udIoVxr3q-ac-jbDkfibNaXvftpNCjsLMGoY/s1600/IMG_2560.png',
   1: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh4mOmSgoCoctyIOJyLKCbocZpRqFB29IhBd4Q9fbAyKP_c7XasCLMGfeSX6sKXNbEkfh7nLyYGF1yPV42ja1jzEohg432ABmQIkRFdCsd3Pv_r32EMJ81R-REcV_go9r-sQYSp9shEIuHgxEgEY-SoZ33udIoVxr3q-ac-jbDkfibNaXvftpNCjsLMGoY/s1600/IMG_2560.png',
   2: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjo0TFuiXxehVTorQw5zImbrMGPa6kaKZF2YxvaHiVqMaJIoIHcxfW95PX-juwZ3rKDJokReHPA3eLmTeWSryfyDTsfdmLv_KrtGsn1koOB1rvpp4nCUGDcZnzotZSDGWJeOA6K1nqh4MZ3L9MW1c2cOIcYTZEnuUVThMTfAstcHjL1KORXgBMfMfDZtns/s1600/IMG_2562.jpeg',
   3: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_cd6NYjdWfvpHXCplBWhkZndYiF1_w73CqlsyzWfPH5-9m488YEUE_YWmVu9rZ2pNphLxo-aEMKGRvaX7ESSctmWvuudxkPoXk7Q95WUvzlV2FWQUg_c4PHFKqfB37_BIJxxCC9JBs-_XqYK5EDuX9PeAbAy2tFFtCiyvd3PyyE-3oIywAUMebKIuf08/s1600/IMG_2558.png',
@@ -29,11 +32,12 @@ const stadiumBackgrounds: Record<number, string> = {
 };
 
 const levelStyles: Record<number, { border: string, overlay: string, bgGradient: string }> = {
-  1: { border: 'border-blue-500/20', overlay: 'bg-blue-950/40', bgGradient: 'from-blue-950 via-blue-900/20 to-transparent' },
-  2: { border: 'border-slate-400/20', overlay: 'bg-slate-900/40', bgGradient: 'from-slate-900 via-slate-800/20 to-transparent' },
-  3: { border: 'border-purple-500/20', overlay: 'bg-purple-950/40', bgGradient: 'from-purple-950 via-purple-900/20 to-transparent' },
-  4: { border: 'border-red-500/20', overlay: 'bg-red-950/40', bgGradient: 'from-red-950 via-yellow-900/20 to-transparent' },
-  5: { border: 'border-yellow-500/30', overlay: 'bg-yellow-950/20', bgGradient: 'from-yellow-950 via-yellow-900/40 to-transparent' },
+  0: { border: 'border-zinc-500/20', overlay: 'bg-zinc-950/40', bgGradient: 'from-zinc-950 via-zinc-900/20 to-transparent' },
+  1: { border: 'border-red-500/20', overlay: 'bg-red-950/40', bgGradient: 'from-red-950 via-red-900/20 to-transparent' },
+  2: { border: 'border-yellow-400/20', overlay: 'bg-zinc-900/40', bgGradient: 'from-zinc-900 via-zinc-800/20 to-transparent' },
+  3: { border: 'border-yellow-600/20', overlay: 'bg-zinc-900/40', bgGradient: 'from-zinc-900 via-zinc-800/20 to-transparent' },
+  4: { border: 'border-purple-500/20', overlay: 'bg-purple-950/40', bgGradient: 'from-purple-950 via-purple-900/20 to-transparent' },
+  5: { border: 'border-blue-400/30', overlay: 'bg-blue-950/20', bgGradient: 'from-blue-950 via-blue-900/40 to-transparent' },
 };
 
 export const VIPCardsSection = () => {
@@ -41,8 +45,8 @@ export const VIPCardsSection = () => {
   const { profile } = useAuth();
   const currentLevel = profile?.vip_level || 0;
 
-  // Only show VIP 1-5 (exclude 0)
-  const mainVipLevels = vipLevels.filter(v => v.level >= 1 && v.level <= 5);
+  // Show VIP 0-5
+  const mainVipLevels = vipLevels.filter(v => v.level >= 0 && v.level <= 5);
 
   const formatNumber = (num: number) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -68,7 +72,7 @@ export const VIPCardsSection = () => {
         {mainVipLevels.map((level, index) => {
           const isUnlocked = level.level <= currentLevel;
           const isCurrentLevel = level.level === currentLevel;
-          const style = levelStyles[level.level] || levelStyles[1];
+          const style = levelStyles[level.level] || levelStyles[0];
 
           return (
             <motion.div
@@ -95,9 +99,6 @@ export const VIPCardsSection = () => {
                   src={ronaldoImages[level.level]} 
                   alt={`VIP ${level.level}`}
                   className="h-[110%] w-auto object-contain object-bottom drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] group-hover:scale-110 transition-transform duration-700 ease-out origin-bottom"
-                  style={{
-                    scale: level.level === 2 ? 1.2 : 1 // Adjusted VIP 2 scale
-                  }}
                 />
               </div>
 
