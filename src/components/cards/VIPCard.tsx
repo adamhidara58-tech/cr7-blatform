@@ -151,58 +151,47 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         {/* Action Button Section - Fixed at bottom */}
         <div className="w-full mt-auto pt-4">
           {!isUnlocked ? (
-            <div className="flex flex-col gap-3">
-              {/* Pricing Display */}
-              <div className="flex flex-col items-end gap-0">
-                <span className="text-[10px] text-zinc-500 line-through decoration-red-500/70">
-                  {formatNumber(vipLevel.price)} USDT
-                </span>
-                <span className="text-xl font-black text-white">
-                  {formatNumber(vipLevel.referralPrice)} <span className="text-xs text-yellow-500">USDT</span>
-                </span>
-              </div>
-
+            <div className="flex flex-col gap-2">
               <GoldButton
                 variant="primary"
-                className="w-full h-14 rounded-2xl relative overflow-hidden group/btn border-2 border-yellow-400 shadow-[0_0_25px_rgba(234,179,8,0.5)] hover:shadow-[0_0_40px_rgba(234,179,8,0.8)] transition-all duration-300 z-10"
+                className="w-full h-14 rounded-2xl relative overflow-hidden group/btn border border-yellow-400/50 shadow-lg hover:shadow-yellow-400/20 transition-all duration-300 z-10"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAction();
                 }}
               >
-                <div className="flex items-center justify-center gap-3 w-full relative z-20">
-                  <span className="text-lg font-black uppercase tracking-widest text-black">فتح الآن</span>
-                  <div className="bg-black rounded-full p-1">
-                    <ArrowRight className="w-4 h-4 text-yellow-400 group-hover/btn:translate-x-1 transition-transform" />
-                  </div>
+                <div className="flex items-center justify-center gap-2 w-full relative z-20">
+                  <span className="text-lg font-black text-black">فتح الآن — ${formatNumber(vipLevel.referralPrice)}</span>
+                  <ArrowRight className="w-5 h-5 text-black group-hover/btn:translate-x-1 transition-transform" />
                 </div>
                 
-                {/* Pulsing Glow Effect */}
+                {/* Subtle Soft Glow Effect */}
                 <motion.div 
                   animate={{ 
-                    opacity: [0.4, 0.8, 0.4],
-                    scale: [1, 1.05, 1]
+                    opacity: [0.1, 0.3, 0.1],
                   }}
                   transition={{ 
-                    duration: 2, 
+                    duration: 3, 
                     repeat: Infinity, 
                     ease: "easeInOut"
                   }}
-                  className="absolute inset-0 bg-yellow-400/20 z-0"
+                  className="absolute inset-0 bg-white/20 z-0"
                 />
 
-                {/* Shining Sweep */}
+                {/* Gentle Shining Sweep */}
                 <motion.div 
                   animate={{ 
                     x: ['-100%', '200%'],
                   }}
                   transition={{ 
-                    duration: 2, 
+                    duration: 2.5, 
                     repeat: Infinity, 
                     ease: "easeInOut",
-                    repeatDelay: 1
+                    repeatDelay: 1.5
                   }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-12 z-0"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 z-0"
                 />
               </GoldButton>
             </div>
