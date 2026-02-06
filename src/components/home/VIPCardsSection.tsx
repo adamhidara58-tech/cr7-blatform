@@ -19,6 +19,15 @@ const ronaldoImages: Record<number, string> = {
   5: vip5,
 };
 
+// Original Stadium backgrounds restored
+const stadiumBackgrounds: Record<number, string> = {
+  1: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh4mOmSgoCoctyIOJyLKCbocZpRqFB29IhBd4Q9fbAyKP_c7XasCLMGfeSX6sKXNbEkfh7nLyYGF1yPV42ja1jzEohg432ABmQIkRFdCsd3Pv_r32EMJ81R-REcV_go9r-sQYSp9shEIuHgxEgEY-SoZ33udIoVxr3q-ac-jbDkfibNaXvftpNCjsLMGoY/s1600/IMG_2560.png',
+  2: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjo0TFuiXxehVTorQw5zImbrMGPa6kaKZF2YxvaHiVqMaJIoIHcxfW95PX-juwZ3rKDJokReHPA3eLmTeWSryfyDTsfdmLv_KrtGsn1koOB1rvpp4nCUGDcZnzotZSDGWJeOA6K1nqh4MZ3L9MW1c2cOIcYTZEnuUVThMTfAstcHjL1KORXgBMfMfDZtns/s1600/IMG_2562.jpeg',
+  3: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_cd6NYjdWfvpHXCplBWhkZndYiF1_w73CqlsyzWfPH5-9m488YEUE_YWmVu9rZ2pNphLxo-aEMKGRvaX7ESSctmWvuudxkPoXk7Q95WUvzlV2FWQUg_c4PHFKqfB37_BIJxxCC9JBs-_XqYK5EDuX9PeAbAy2tFFtCiyvd3PyyE-3oIywAUMebKIuf08/s1600/IMG_2558.png',
+  4: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSgxijf0Qsz757uduMUR9pjq6F1ILmbdTImLqNs62EXOFjVMLzNUaldV5_gWrjOAMdPjUNDquu6OZSQaw1yZl0eQU314cLrcls67H7V53yt7Dj2Z6cUdeLvumaOTOnwcAztNVxMgoGY5TjEk0QPY0jnar28qxN-YHwQIobRbsXW5KYbB0VSWr3yQIbxN4/s1600/IMG_2559.png',
+  5: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhmsHqltpEzmafR80EfvGx5Jcicbx3cRB7dgnFFKfNIsvQ9CdAPmU38ANrD8X8w6waTEjVS_orRm88-qGMJ03pjPCSTwtS8_9t_mudx8ui2zalEEB7isMEx4b3Dkk4ijloeZKSy_xC_uZaGnpuhgfdVPc14ZMxz5VmmwIU3ccP8nBVI3ljaWSupAE0V6TA/s1600/IMG_2557.png',
+};
+
 const levelStyles: Record<number, { border: string, overlay: string, bgGradient: string }> = {
   1: { border: 'border-blue-500/20', overlay: 'bg-blue-950/40', bgGradient: 'from-blue-950 via-blue-900/20 to-transparent' },
   2: { border: 'border-slate-400/20', overlay: 'bg-slate-900/40', bgGradient: 'from-slate-900 via-slate-800/20 to-transparent' },
@@ -71,7 +80,10 @@ export const VIPCardsSection = () => {
               className={`relative h-44 rounded-[2rem] overflow-hidden border ${style.border} cursor-pointer group transition-all duration-500 shadow-2xl bg-black`}
             >
               {/* Stadium Background */}
-              <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-10 grayscale group-hover:grayscale-0 transition-all duration-700" />
+              <div 
+                className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
+                style={{ backgroundImage: `url(${stadiumBackgrounds[level.level]})` }} 
+              />
               
               {/* Overlay */}
               <div className={`absolute inset-0 z-[1] ${style.overlay} backdrop-blur-[1px]`} />
@@ -83,6 +95,9 @@ export const VIPCardsSection = () => {
                   src={ronaldoImages[level.level]} 
                   alt={`VIP ${level.level}`}
                   className="h-[110%] w-auto object-contain object-bottom drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] group-hover:scale-110 transition-transform duration-700 ease-out origin-bottom"
+                  style={{
+                    scale: level.level === 2 ? 1.2 : 1 // Adjusted VIP 2 scale
+                  }}
                 />
               </div>
 
