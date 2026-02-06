@@ -27,14 +27,14 @@ const players: Record<number, string> = {
   5: player5,
 };
 
-// FIFA Stadium backgrounds with night atmosphere
+// Using the same background as main page cards
 const stadiumBackgrounds: Record<number, string> = {
-  0: 'url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=2070&auto=format&fit=crop") center/cover no-repeat',
-  1: 'url("https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=2071&auto=format&fit=crop") center/cover no-repeat',
-  2: 'url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2093&auto=format&fit=crop") center/cover no-repeat',
-  3: 'url("https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=2069&auto=format&fit=crop") center/cover no-repeat',
-  4: 'url("https://images.unsplash.com/photo-1518091043644-c1d4457512c6?q=80&w=2070&auto=format&fit=crop") center/cover no-repeat',
-  5: 'url("https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=2070&auto=format&fit=crop") center/cover no-repeat',
+  0: 'linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%))',
+  1: 'linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%))',
+  2: 'linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%))',
+  3: 'linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%))',
+  4: 'linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%))',
+  5: 'linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%))',
 };
 
 // Spotlight lighting effects for each level
@@ -74,22 +74,13 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
       onClick={handleAction}
-      className="relative w-full max-w-md mx-auto aspect-[1.2/1] rounded-[2.5rem] overflow-hidden border-2 border-[#D4AF37]/40 p-5 flex flex-col mb-6 cursor-pointer shadow-2xl transition-all duration-500 hover:scale-[1.02] group"
+      className="relative w-full max-w-md mx-auto aspect-[1.2/1] rounded-[2.5rem] overflow-hidden border border-white/10 p-5 flex flex-col mb-6 cursor-pointer shadow-2xl transition-all duration-500 hover:scale-[1.02] group bg-gradient-card"
     >
-      {/* Background with Overlay */}
-      <div 
-        className="absolute inset-0 z-0"
-        style={{ 
-          background: stadiumBackgrounds[vipLevel.level],
-          filter: 'brightness(0.3) contrast(1.2)'
-        }} 
-      />
-      
       {/* FIFA Stadium Night Atmosphere - Spotlight Effect */}
       <div className={`absolute inset-0 z-1 ${spotlight.intensity} pointer-events-none`} style={{ background: `radial-gradient(ellipse 50% 70% at 50% 40%, ${spotlight.color}, transparent)` }} />
       
       {/* Additional depth layer */}
-      <div className="absolute inset-0 z-2 bg-gradient-to-b from-black/20 via-transparent to-black/80 pointer-events-none" />
+      <div className="absolute inset-0 z-2 bg-gradient-to-b from-black/10 via-transparent to-black/60 pointer-events-none" />
 
       {/* Header Row */}
       <div className="flex justify-between items-start z-20 relative">
@@ -127,53 +118,51 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       {/* Main Content Area */}
       <div className="flex-1 flex mt-4 z-10 items-end justify-between">
         {/* Left Side: Player Image - SCALED UP & FOCUSED */}
-        <div className="w-[55%] relative flex items-end h-[115%] -ml-10 overflow-visible">
+        <div className="w-[50%] relative flex items-end h-[110%] -ml-6 overflow-visible">
           <img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
-            className="h-[150%] w-auto object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.95)] transition-all duration-700 group-hover:scale-110 group-hover:-translate-y-2 origin-bottom z-30"
+            className="h-[145%] w-auto object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.95)] transition-all duration-700 group-hover:scale-105 origin-bottom z-30"
           />
         </div>
 
-        {/* Right Side: Stats Grid - IMPROVED SPACING & RTL */}
-        <div className="w-[45%] grid grid-cols-2 gap-2.5 pb-2 z-40" dir="rtl">
+        {/* Right Side: Stats Grid - PROFESSIONAL & BALANCED */}
+        <div className="w-[50%] grid grid-cols-2 gap-3 pb-4 z-40" dir="rtl">
           {/* Stat 1: Daily Tasks */}
-          <div className="bg-black/60 backdrop-blur-xl rounded-2xl p-3 flex flex-col items-center justify-center border border-white/10 shadow-[0_8px_16px_rgba(0,0,0,0.4)]">
-            <Calendar className="w-4 h-4 text-orange-400 mb-1.5" />
-            <div className="flex items-center gap-1">
-              <span className="text-lg font-black text-white leading-none">{vipLevel.dailyChallengeLimit}</span>
-            </div>
-            <span className="text-[9px] text-zinc-400 font-bold mt-1 uppercase tracking-wider">مهمات</span>
+          <div className="bg-secondary/40 backdrop-blur-md rounded-2xl p-3.5 flex flex-col items-center justify-center border border-white/5 shadow-lg transition-transform hover:scale-105">
+            <Calendar className="w-5 h-5 text-orange-400 mb-2" />
+            <span className="text-xl font-black text-white leading-none">{vipLevel.dailyChallengeLimit}</span>
+            <span className="text-[10px] text-zinc-400 font-bold mt-1.5 uppercase tracking-tighter">مهمات</span>
           </div>
 
           {/* Stat 2: Simple Interest */}
-          <div className="bg-black/60 backdrop-blur-xl rounded-2xl p-3 flex flex-col items-center justify-center border border-white/10 shadow-[0_8px_16px_rgba(0,0,0,0.4)]">
-            <TrendingUp className="w-4 h-4 text-emerald-400 mb-1.5" />
+          <div className="bg-secondary/40 backdrop-blur-md rounded-2xl p-3.5 flex flex-col items-center justify-center border border-white/5 shadow-lg transition-transform hover:scale-105">
+            <TrendingUp className="w-5 h-5 text-emerald-400 mb-2" />
             <div className="flex items-center gap-0.5">
-              <span className="text-lg font-black text-white leading-none">{vipLevel.simpleInterest}</span>
+              <span className="text-xl font-black text-white leading-none">{vipLevel.simpleInterest}</span>
               <span className="text-xs font-bold text-emerald-400">%</span>
             </div>
-            <span className="text-[9px] text-zinc-400 font-bold mt-1 uppercase tracking-wider">عائد</span>
+            <span className="text-[10px] text-zinc-400 font-bold mt-1.5 uppercase tracking-tighter">عائد</span>
           </div>
 
           {/* Stat 3: Daily Profit */}
-          <div className="bg-black/60 backdrop-blur-xl rounded-2xl p-3 flex flex-col items-center justify-center border border-white/10 shadow-[0_8px_16px_rgba(0,0,0,0.4)]">
-            <DollarSign className="w-4 h-4 text-yellow-500 mb-1.5" />
+          <div className="bg-secondary/40 backdrop-blur-md rounded-2xl p-3.5 flex flex-col items-center justify-center border border-white/5 shadow-lg transition-transform hover:scale-105">
+            <DollarSign className="w-5 h-5 text-yellow-500 mb-2" />
             <div className="flex items-center gap-0.5">
               <span className="text-xs font-bold text-yellow-500">$</span>
-              <span className="text-sm font-black text-white leading-none">{formatNumber(vipLevel.dailyProfit).split('.')[0]}</span>
+              <span className="text-base font-black text-white leading-none">{formatNumber(vipLevel.dailyProfit).split('.')[0]}</span>
             </div>
-            <span className="text-[9px] text-zinc-400 font-bold mt-1 uppercase tracking-wider">يومي</span>
+            <span className="text-[10px] text-zinc-400 font-bold mt-1.5 uppercase tracking-tighter">يومي</span>
           </div>
 
           {/* Stat 4: Total Profit */}
-          <div className="bg-black/60 backdrop-blur-xl rounded-2xl p-3 flex flex-col items-center justify-center border border-white/10 shadow-[0_8px_16px_rgba(0,0,0,0.4)]">
-            <Coins className="w-4 h-4 text-yellow-600 mb-1.5" />
+          <div className="bg-secondary/40 backdrop-blur-md rounded-2xl p-3.5 flex flex-col items-center justify-center border border-white/5 shadow-lg transition-transform hover:scale-105">
+            <Coins className="w-5 h-5 text-yellow-600 mb-2" />
             <div className="flex items-center gap-0.5">
               <span className="text-xs font-bold text-yellow-600">$</span>
-              <span className="text-sm font-black text-white leading-none">{formatNumber(vipLevel.totalProfit).split('.')[0]}</span>
+              <span className="text-base font-black text-white leading-none">{formatNumber(vipLevel.totalProfit).split('.')[0]}</span>
             </div>
-            <span className="text-[9px] text-zinc-400 font-bold mt-1 uppercase tracking-wider">إجمالي</span>
+            <span className="text-[10px] text-zinc-400 font-bold mt-1.5 uppercase tracking-tighter">إجمالي</span>
           </div>
         </div>
       </div>
