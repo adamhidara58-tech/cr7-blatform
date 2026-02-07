@@ -25,7 +25,13 @@ export const Header = () => {
             transition={{ duration: 0.5 }}
           >
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#141419] border border-gold/20 flex items-center justify-center shadow-gold overflow-hidden">
-              <img src={logoNew} alt="CR7 Logo" className="w-full h-full object-cover scale-110" />
+              <img 
+                src={logoNew} 
+                alt="CR7 Logo" 
+                loading="eager"
+                decoding="async"
+                className="w-full h-full object-cover scale-110 will-change-transform" 
+              />
             </div>
             <div className="hidden xs:block">
               <h1 className="font-bold text-base sm:text-lg text-gradient-gold leading-none tracking-tight">CR7 ELITE</h1>

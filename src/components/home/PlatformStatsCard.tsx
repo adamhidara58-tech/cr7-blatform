@@ -17,6 +17,7 @@ const AnimatedCounter = ({ end, duration = 2, prefix = '', suffix = '', decimals
     let startTime: number;
     const startValue = 0;
 
+    let frameId: number;
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / (duration * 1000), 1);
@@ -24,14 +25,19 @@ const AnimatedCounter = ({ end, duration = 2, prefix = '', suffix = '', decimals
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       const currentValue = startValue + (end - startValue) * easeOutQuart;
       
-      setCount(currentValue);
+      // Only update state if value changed significantly to save CPU
+      setCount(prev => {
+        if (Math.abs(prev - currentValue) < 0.1 && progress < 1) return prev;
+        return currentValue;
+      });
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        frameId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    frameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameId);
   }, [end, duration]);
 
   const formatNumber = (num: number) => {

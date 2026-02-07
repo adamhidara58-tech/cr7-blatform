@@ -71,11 +71,12 @@ export const FakeWithdrawals = () => {
             {withdrawals.map((withdrawal) => (
               <motion.div
                 key={withdrawal.id}
-                initial={{ opacity: 0, x: -10, height: 0 }}
-                animate={{ opacity: 1, x: 0, height: 'auto' }}
-                exit={{ opacity: 0, x: 10, height: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="flex items-center justify-between py-3 px-4 bg-white/[0.02] border border-white/[0.03] rounded-2xl group hover:bg-white/[0.05] transition-colors"
+                layout
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="flex items-center justify-between py-3 px-4 bg-white/[0.02] border border-white/[0.03] rounded-2xl group hover:bg-white/[0.05] transition-colors will-change-transform"
               >
                 <span className="text-[10px] font-medium text-white/30">{withdrawal.timeAgo}</span>
                 <div className="flex items-center gap-3">

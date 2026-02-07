@@ -234,7 +234,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
     >
       {/* Background */}
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110" 
+        className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 will-change-transform" 
         style={{ 
           backgroundImage: `url(${stadiumBg})`,
           backgroundSize: 'cover',
@@ -310,7 +310,9 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
           <motion.img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
-            className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-all duration-700 group-hover:scale-105 origin-bottom"
+            loading={index < 2 ? "eager" : "lazy"}
+            decoding="async"
+            className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-all duration-700 group-hover:scale-105 origin-bottom will-change-transform"
           />
         </div>
 
