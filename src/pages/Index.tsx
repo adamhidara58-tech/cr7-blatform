@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Crown, Wallet, TrendingUp, Target, Users, Copy, Share2, LogOut } from 'lucide-react';
+import { Crown, Wallet, TrendingUp, Target, Users, Copy, Share2 } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,7 +21,7 @@ const LoadingSpinner = () => (
 );
 
 const Index = () => {
-  const { profile, loading, signOut } = useAuth();
+  const { profile, loading } = useAuth();
   const { count: referralCount } = useReferrals();
   const { toast } = useToast();
 
@@ -46,40 +46,11 @@ const Index = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !profile) {
     return (
       <PageLayout>
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-smooth-spin" />
-        </div>
-      </PageLayout>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <PageLayout showHeader={false}>
-        <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center bg-[#050505]">
-          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
-            <Target className="w-8 h-8 text-red-500" />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">لم يتم العثور على ملفك الشخصي</h2>
-          <p className="text-white/40 mb-6 max-w-xs">يرجى المحاولة مرة أخرى أو التأكد من إعدادات قاعدة البيانات. قد تحتاج لتسجيل الدخول مجدداً.</p>
-          <div className="flex flex-col gap-3 w-full max-w-xs">
-            <button 
-              onClick={() => window.location.reload()} 
-              className="bg-gradient-gold text-black px-6 py-3 rounded-xl font-bold w-full"
-            >
-              إعادة تحميل الصفحة
-            </button>
-            <button 
-              onClick={() => signOut()} 
-              className="bg-white/5 text-white border border-white/10 px-6 py-3 rounded-xl font-bold w-full flex items-center justify-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              تسجيل الخروج
-            </button>
-          </div>
         </div>
       </PageLayout>
     );
