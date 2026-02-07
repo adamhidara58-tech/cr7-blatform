@@ -69,13 +69,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       try {
         console.log('Auth: Initializing...');
-        // Force loading false after 100ms regardless of supabase state to prevent infinite loading
+        // Force loading false after 500ms regardless of supabase state to prevent infinite loading
         const timeoutId = setTimeout(() => {
           if (mounted) {
             console.log('Auth: Forced loading false');
             setLoading(false);
           }
-        }, 100);
+        }, 500);
 
         const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
         
