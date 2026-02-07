@@ -2,17 +2,25 @@ import { motion } from 'framer-motion';
 import { Crown, Wallet, TrendingUp, Target, Users, Copy, Share2 } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { StatCard } from '@/components/cards/StatCard';
-import { FakeWithdrawals } from '@/components/home/FakeWithdrawals';
-import { PlatformStatsCard } from '@/components/home/PlatformStatsCard';
-import { VIPCardsSection } from '@/components/home/VIPCardsSection';
 import { useAuth } from '@/hooks/useAuth';
 import { useReferrals } from '@/hooks/useReferrals';
 import { useToast } from '@/hooks/use-toast';
 import { vipLevels } from '@/data/mockData';
 import heroBg from '@/assets/hero-bg.jpg';
+import React, { Suspense, lazy } from 'react';
+
+// Lazy load heavy components for better initial load speed
+const VIPCardsSection = lazy(() => import('@/components/home/VIPCardsSection').then(module => ({ default: module.VIPCardsSection })));
+const PlatformStatsCard = lazy(() => import('@/components/home/PlatformStatsCard').then(module => ({ default: module.PlatformStatsCard })));
+const FakeWithdrawals = lazy(() => import('@/components/home/FakeWithdrawals').then(module => ({ default: module.FakeWithdrawals })));
+
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const Index = () => {
-  // Update triggered on Feb 06, 2026 for VIP page enhancements
   const { profile, loading } = useAuth();
   const { count: referralCount } = useReferrals();
   const { toast } = useToast();
@@ -191,16 +199,22 @@ const Index = () => {
         >
           إحصائيات المنصة
         </motion.h3>
-        <PlatformStatsCard />
+        <Suspense fallback={<LoadingSpinner />}>
+          <PlatformStatsCard />
+        </Suspense>
       </section>
 
       {/* Live Withdrawals - Fake Data */}
       <section className="px-4 mb-8">
-        <FakeWithdrawals />
+        <Suspense fallback={<LoadingSpinner />}>
+          <FakeWithdrawals />
+        </Suspense>
       </section>
 
       {/* VIP Cards Section */}
-      <VIPCardsSection />
+      <Suspense fallback={<LoadingSpinner />}>
+        <VIPCardsSection />
+      </Suspense>
     </PageLayout>
   );
 };
