@@ -5,12 +5,12 @@ import { VIPLevel } from '@/data/mockData';
 import React, { useMemo } from 'react';
 
 // Import New Player Images
-import player0 from '@/assets/vip-final/players/vip0.png';
-import player1 from '@/assets/vip-final/players/vip1_new.png'; // Updated image for VIP1
-import player2 from '@/assets/vip-final/players/vip2.png';
-import player3 from '@/assets/vip-final/players/vip3.png';
-import player4 from '@/assets/vip-final/players/vip4.png';
-import player5 from '@/assets/vip-final/players/vip5.png';
+import player0 from '@/assets/vip-final/players/vip0.webp';
+import player1 from '@/assets/vip-final/players/vip1_new.webp';
+import player2 from '@/assets/vip-final/players/vip2.webp';
+import player3 from '@/assets/vip-final/players/vip3.webp';
+import player4 from '@/assets/vip-final/players/vip4.webp';
+import player5 from '@/assets/vip-final/players/vip5.webp';
 import stadiumBg from '@/assets/vip-final/stadium-bg.jpg';
 
 interface VIPCardProps {
