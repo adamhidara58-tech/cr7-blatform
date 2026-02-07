@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Crown, Mail, Lock, User, UserPlus, LogIn, Eye, EyeOff, Users } from 'lucide-react';
+import { Mail, Lock, User, UserPlus, LogIn, Eye, EyeOff, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import logoNew from '@/assets/logo-new.png';
 
 const signUpSchema = z.object({
   username: z.string().trim().min(3, 'الاسم يجب أن يكون 3 أحرف على الأقل').max(50, 'الاسم طويل جداً'),
@@ -125,47 +126,47 @@ const Auth = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col selection:bg-gold/30">
       {/* Header */}
-      <div className="pt-10 pb-6 px-4 text-center">
+      <div className="pt-12 pb-8 px-4 text-center">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col items-center gap-3"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex flex-col items-center gap-4"
         >
-          <div className="w-20 h-20 rounded-full bg-gradient-gold flex items-center justify-center shadow-gold">
-            <Crown className="w-10 h-10 text-primary-foreground" />
+          <div className="w-24 h-24 rounded-full bg-[#141419] border border-gold/20 flex items-center justify-center shadow-[0_0_30px_-5px_hsla(45,63%,53%,0.3)] overflow-hidden">
+            <img src={logoNew} alt="CR7 Logo" className="w-full h-full object-cover scale-110" />
           </div>
           <div>
-            <h1 className="font-display text-3xl text-gradient-gold">CR7 ELITE</h1>
-            <p className="text-muted-foreground text-sm mt-1">منصة النخبة للربح</p>
+            <h1 className="font-bold text-4xl text-gradient-gold tracking-tight">CR7 ELITE</h1>
+            <p className="text-white/40 text-sm mt-2 font-medium">منصة النخبة للربح</p>
           </div>
         </motion.div>
       </div>
 
       {/* Form Card */}
-      <div className="flex-1 px-4 pb-8">
+      <div className="flex-1 px-4 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-gradient-card border border-border rounded-3xl p-6 max-w-md mx-auto"
+          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+          className="glass-card border border-white/5 rounded-[2.5rem] p-7 max-w-md mx-auto"
         >
           {/* Tabs */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex p-1.5 bg-black/40 rounded-2xl mb-8 border border-white/5">
             <button
               onClick={() => setIsSignUp(false)}
-              className={`flex-1 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 rounded-xl font-bold transition-all duration-500 flex items-center justify-center gap-2 ${
                 !isSignUp 
-                  ? 'bg-gradient-gold text-primary-foreground shadow-gold' 
-                  : 'bg-secondary text-muted-foreground'
+                  ? 'bg-gradient-gold text-primary-foreground shadow-gold scale-[1.02]' 
+                  : 'text-white/40 hover:text-white/60'
               }`}
             >
               <LogIn className="w-4 h-4" />
@@ -173,10 +174,10 @@ const Auth = () => {
             </button>
             <button
               onClick={() => setIsSignUp(true)}
-              className={`flex-1 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 rounded-xl font-bold transition-all duration-500 flex items-center justify-center gap-2 ${
                 isSignUp 
-                  ? 'bg-gradient-gold text-primary-foreground shadow-gold' 
-                  : 'bg-secondary text-muted-foreground'
+                  ? 'bg-gradient-gold text-primary-foreground shadow-gold scale-[1.02]' 
+                  : 'text-white/40 hover:text-white/60'
               }`}
             >
               <UserPlus className="w-4 h-4" />
@@ -185,16 +186,16 @@ const Auth = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {isSignUp && (
-              <div className="relative">
-                <User className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <div className="relative group">
+                <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
                 <Input
                   type="text"
                   placeholder="اسم المستخدم"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="pr-11 text-right bg-secondary/50 border-border h-12 rounded-xl"
+                  className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
                   dir="rtl"
                   required
                   minLength={3}
@@ -203,27 +204,27 @@ const Auth = () => {
               </div>
             )}
 
-            <div className="relative">
-              <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <div className="relative group">
+              <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
               <Input
                 type="email"
                 placeholder="البريد الإلكتروني"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pr-11 text-right bg-secondary/50 border-border h-12 rounded-xl"
+                className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
                 dir="rtl"
                 required
               />
             </div>
 
-            <div className="relative">
-              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <div className="relative group">
+              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
               <Input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="كلمة السر"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pr-11 pl-11 text-right bg-secondary/50 border-border h-12 rounded-xl"
+                className="pr-12 pl-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
                 dir="rtl"
                 required
                 minLength={6}
@@ -231,21 +232,21 @@ const Auth = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-gold transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
 
             {isSignUp && (
-              <div className="relative">
-                <Users className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <div className="relative group">
+                <Users className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
                 <Input
                   type="text"
                   placeholder="رمز الإحالة (اختياري)"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                  className="pr-11 text-right bg-secondary/50 border-border h-12 rounded-xl"
+                  className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
                   dir="rtl"
                   maxLength={20}
                 />
@@ -256,11 +257,11 @@ const Auth = () => {
               type="submit"
               variant="primary"
               size="lg"
-              className="w-full mt-6"
+              className="w-full h-14 mt-4 rounded-2xl font-bold text-lg shadow-[0_10px_20px_-5px_rgba(212,175,55,0.3)]"
               disabled={isLoading}
             >
               {isLoading ? (
-                <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
               ) : isSignUp ? (
                 <span className="flex items-center justify-center gap-2">
                   <UserPlus className="w-5 h-5" />
@@ -276,7 +277,7 @@ const Auth = () => {
           </form>
 
           {/* Footer */}
-          <p className="text-center text-xs text-muted-foreground mt-6">
+          <p className="text-center text-xs text-white/30 mt-8 font-medium">
             {isSignUp ? (
               <>بإنشاء حساب، أنت توافق على شروط الاستخدام وسياسة الخصوصية</>
             ) : (

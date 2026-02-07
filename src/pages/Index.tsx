@@ -16,7 +16,7 @@ const FakeWithdrawals = lazy(() => import('@/components/home/FakeWithdrawals').t
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center p-8">
-    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
   </div>
 );
 
@@ -50,7 +50,7 @@ const Index = () => {
     return (
       <PageLayout>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
         </div>
       </PageLayout>
     );
@@ -63,22 +63,22 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-20"
+          className="absolute inset-0 bg-cover bg-center opacity-[0.15]"
           style={{ backgroundImage: `url(${heroBg})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
         
-        <div className="relative px-4 pt-6 pb-8">
+        <div className="relative px-5 pt-8 pb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-6"
+            className="text-center mb-8"
           >
-            <h2 className="font-display text-3xl text-gradient-gold mb-2">
+            <h2 className="text-3xl font-black text-gradient-gold mb-2 tracking-tight">
               مرحباً، {profile.username}
             </h2>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-white/40 text-sm font-medium">
               استمر في التحديات واربح المزيد مع الدون
             </p>
           </motion.div>
@@ -88,11 +88,11 @@ const Index = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex justify-center mb-6"
+            className="flex justify-center mb-8"
           >
-            <div className="bg-gradient-gold rounded-full px-6 py-2 shadow-gold glow-gold flex items-center gap-2">
-              <Crown className="w-5 h-5 text-primary-foreground" />
-              <span className="font-bold text-primary-foreground uppercase tracking-tight">
+            <div className="bg-gradient-gold rounded-full px-8 py-2.5 shadow-[0_10px_20px_-5px_rgba(212,175,55,0.4)] flex items-center gap-2.5 group hover:scale-105 transition-transform">
+              <Crown className="w-5 h-5 text-black" />
+              <span className="font-black text-black text-sm uppercase tracking-tight">
                 VIP {profile.vip_level} - {currentVipLevel.nameAr}
               </span>
             </div>
@@ -103,31 +103,33 @@ const Index = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="glass-section rounded-2xl p-4 mb-4"
+            className="glass-card rounded-3xl p-6 mb-5 border border-white/5 shadow-2xl"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex gap-2">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex gap-2.5">
                 <button 
                   onClick={shareReferralLink}
-                  className="p-2 rounded-xl glass-card border border-border/30 hover:border-primary/50 transition-colors"
+                  className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-gold/30 transition-all text-gold"
                 >
-                  <Share2 className="w-4 h-4 text-primary" />
+                  <Share2 className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={copyReferralCode}
-                  className="p-2 rounded-xl glass-card border border-border/30 hover:border-primary/50 transition-colors"
+                  className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-gold/30 transition-all text-gold"
                 >
-                  <Copy className="w-4 h-4 text-primary" />
+                  <Copy className="w-4 h-4" />
                 </button>
               </div>
-              <span className="text-xs text-muted-foreground">رمز الإحالة الخاص بك</span>
+              <span className="text-xs font-bold text-white/30">رمز الإحالة الخاص بك</span>
             </div>
             <div className="text-center">
-              <span className="text-lg font-bold text-gradient-gold tracking-wider">
-                {profile.referral_code}
-              </span>
-              <p className="text-xs text-muted-foreground mt-1">
-                احصل على 10% عمولة من كل إيداع يقوم به صديقك!
+              <div className="bg-black/20 rounded-2xl py-3 border border-white/5 mb-3">
+                <span className="text-2xl font-black text-gradient-gold tracking-[0.2em]">
+                  {profile.referral_code}
+                </span>
+              </div>
+              <p className="text-[11px] font-medium text-white/40">
+                احصل على <span className="text-gold font-bold">10% عمولة</span> من كل إيداع يقوم به صديقك!
               </p>
             </div>
           </motion.div>
@@ -137,20 +139,20 @@ const Index = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="glass-section rounded-2xl p-4 mb-6"
+            className="glass-card rounded-2xl p-5 mb-4 border border-white/5"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">التحديات اليومية</span>
-              <span className="text-sm font-semibold text-foreground">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-white/30">التحديات اليومية</span>
+              <span className="text-sm font-black text-white">
                 {profile.daily_challenges_completed}/2
               </span>
             </div>
-            <div className="h-2 bg-secondary/50 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-black/40 rounded-full overflow-hidden p-0.5 border border-white/5">
               <motion.div
-                className="h-full bg-gradient-gold rounded-full"
+                className="h-full bg-gradient-gold rounded-full shadow-[0_0_10px_rgba(212,175,55,0.5)]"
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min((profile.daily_challenges_completed / 2) * 100, 100)}%` }}
-                transition={{ duration: 1, delay: 0.5 }}
+                transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
               />
             </div>
           </motion.div>
@@ -158,8 +160,8 @@ const Index = () => {
       </section>
 
       {/* Stats Grid */}
-      <section className="px-4 mb-8">
-        <div className="grid grid-cols-2 gap-3">
+      <section className="px-4 mb-10">
+        <div className="grid grid-cols-2 gap-4">
           <StatCard
             icon={Wallet}
             label="رصيدك الحالي"
@@ -190,22 +192,15 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Platform Stats - Fake Data */}
-      <section className="px-4 mb-8">
-        <motion.h3
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="font-display text-lg text-foreground mb-4 text-right"
-        >
-          إحصائيات المنصة
-        </motion.h3>
+      {/* Platform Stats */}
+      <section className="px-4 mb-10">
         <Suspense fallback={<LoadingSpinner />}>
           <PlatformStatsCard />
         </Suspense>
       </section>
 
-      {/* Live Withdrawals - Fake Data */}
-      <section className="px-4 mb-8">
+      {/* Live Withdrawals */}
+      <section className="px-4 mb-10">
         <Suspense fallback={<LoadingSpinner />}>
           <FakeWithdrawals />
         </Suspense>

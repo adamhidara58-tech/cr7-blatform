@@ -12,39 +12,41 @@ interface StatCardProps {
 
 export const StatCard = ({ icon: Icon, label, value, subValue, index, variant = 'default' }: StatCardProps) => {
   const variants = {
-    default: 'glass-card border-border/30',
-    gold: 'glass-card border-primary/30 glow-gold',
-    accent: 'glass-card border-accent/30',
+    default: 'glass-card border-white/5',
+    gold: 'glass-card border-gold/20 shadow-[0_10px_30px_-10px_rgba(212,175,55,0.2)]',
+    accent: 'glass-card border-accent/20',
   };
 
   const iconVariants = {
-    default: 'bg-secondary/50 text-foreground',
-    gold: 'bg-primary/20 text-primary',
-    accent: 'bg-accent/20 text-accent',
+    default: 'bg-white/5 text-white/70',
+    gold: 'bg-gold/10 text-gold',
+    accent: 'bg-accent/10 text-accent',
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
-      className={`${variants[variant]} border rounded-2xl p-4 relative overflow-hidden`}
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      className={`${variants[variant]} rounded-3xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all`}
     >
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary/5 pointer-events-none" />
+      {/* Glow Effect */}
+      <div className={`absolute -bottom-12 -left-12 w-24 h-24 blur-3xl rounded-full opacity-20 transition-opacity group-hover:opacity-40 ${variant === 'gold' ? 'bg-gold' : 'bg-white'}`} />
       
-      <div className="flex items-start justify-between relative z-10">
-        <div className="text-right flex-1">
-          <p className="text-xs text-muted-foreground mb-1">{label}</p>
-          <p className={`text-xl font-bold ${variant === 'gold' ? 'text-primary' : 'text-foreground'}`}>
+      <div className="flex flex-col items-end relative z-10">
+        <div className={`${iconVariants[variant]} p-3 rounded-2xl mb-4 border border-white/5 transition-transform group-hover:scale-110`}>
+          <Icon className="w-5 h-5" />
+        </div>
+        
+        <div className="text-right w-full">
+          <p className="text-[11px] font-bold text-white/30 mb-1 uppercase tracking-wider">{label}</p>
+          <p className={`text-xl font-black tracking-tight ${variant === 'gold' ? 'text-gradient-gold' : 'text-white'}`}>
             {value}
           </p>
           {subValue && (
-            <p className="text-xs text-muted-foreground mt-1">{subValue}</p>
+            <p className="text-[10px] font-bold text-white/20 mt-1">{subValue}</p>
           )}
-        </div>
-        <div className={`${iconVariants[variant]} p-2.5 rounded-xl backdrop-blur-sm`}>
-          <Icon className="w-5 h-5" />
         </div>
       </div>
     </motion.div>
