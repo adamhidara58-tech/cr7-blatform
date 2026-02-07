@@ -23,7 +23,7 @@ export const BottomNavigation = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-header border-t border-white/5 pb-safe pt-2">
-      <div className="flex items-center justify-around px-2 max-w-lg mx-auto h-16 sm:h-14">
+      <div className="flex items-center justify-around px-2 max-w-lg mx-auto h-16">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
@@ -32,33 +32,32 @@ export const BottomNavigation = () => {
             <motion.button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`relative flex flex-col items-center justify-center flex-1 transition-colors duration-200 ${
+              className={`relative flex flex-col items-center justify-center flex-1 transition-all duration-300 ${
                 isActive ? 'text-gold' : 'text-white/30'
               }`}
               whileTap={{ scale: 0.9 }}
             >
-              <div className={`relative p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-gold/10' : ''}`}>
+              <div className={`relative p-2 rounded-xl transition-all duration-500 ${isActive ? 'bg-gold/10' : ''}`}>
                 <Icon
-                  className={`w-5 h-5 sm:w-5.5 sm:h-5.5 transition-colors duration-200 ${
+                  className={`w-5.5 h-5.5 transition-all duration-300 ${
                     isActive ? 'text-gold' : ''
                   }`}
                 />
                 {isActive && (
                   <motion.div
                     layoutId="activeGlow"
-                    className="absolute inset-0 bg-gold/20 blur-lg rounded-full"
+                    className="absolute inset-0 bg-gold/20 blur-xl rounded-full"
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
                 )}
               </div>
-              <span className={`text-[9px] font-bold mt-1 transition-colors duration-200 ${isActive ? 'text-gold' : ''}`}>
+              <span className={`text-[10px] font-bold mt-1 transition-colors duration-300 ${isActive ? 'text-gold' : ''}`}>
                 {item.labelAr}
               </span>
               {isActive && (
                 <motion.div
-                  className="absolute -bottom-1 w-1 h-1 bg-gold rounded-full shadow-[0_0_6px_#D4AF37]"
+                  className="absolute -bottom-1 w-1 h-1 bg-gold rounded-full shadow-[0_0_8px_#D4AF37]"
                   layoutId="activeIndicator"
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 />
               )}
             </motion.button>
