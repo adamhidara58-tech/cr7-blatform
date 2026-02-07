@@ -21,9 +21,18 @@ const LoadingSpinner = () => (
 );
 
 const Index = () => {
-  const { profile, loading, signOut } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   const { count: referralCount } = useReferrals();
   const { toast } = useToast();
+  const navigate = React.useMemo(() => {
+    // We use a safe way to get navigate if needed, but we'll use Navigate component for redirect
+    return null;
+  }, []);
+
+  // Redirect to auth if no user and not loading
+  if (!loading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   const copyReferralCode = () => {
     if (profile?.referral_code) {
