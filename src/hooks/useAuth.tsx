@@ -42,7 +42,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
-    console.log('Auth: Fetching profile for user:', userId);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -50,13 +49,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', userId)
         .maybeSingle();
       
-      if (error) {
-        console.error('Auth: Error fetching profile:', error);
-        return null;
-      }
+      if (error) return null;
       return data as Profile | null;
     } catch (err) {
-      console.error('Auth: Unexpected error fetching profile:', err);
       return null;
     }
   };
@@ -74,6 +69,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       try {
         console.log('Auth: Initializing...');
+        // Force loading false after 1 second regardless of supabase state
+        setTimeout(() => {
+          if (mounted) {
+            console.log('Auth: Forced loading false');
+            setLoading(false);
+          }
+        }, 1000);
+
         const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) throw sessionError;
@@ -89,13 +92,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setLoading(false);
           }
         } else {
-          console.log('Auth: No initial session found');
           setLoading(false);
         }
       } catch (err: any) {
         console.error('Auth: Initialization error:', err);
         if (mounted) {
-          setError(err.message || 'فشل الاتصال بخادم المصادقة');
+          setError(err.message);
           setLoading(false);
         }
       }
@@ -103,22 +105,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     initializeAuth();
 
-    // Safety timeout - reduced to 4s for better UX
-    const safetyTimeout = setTimeout(() => {
-      if (mounted && loading) {
-        console.warn('Auth: Safety timeout reached, forcing loading to false');
-        setLoading(false);
-      }
-    }, 4000);
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log('Auth: State changed:', event);
         if (!mounted) return;
-
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
-        
         if (currentSession?.user) {
           const profileData = await fetchProfile(currentSession.user.id);
           if (mounted) setProfile(profileData);
@@ -131,7 +122,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       mounted = false;
-      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -140,9 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { username, referral_code: referralCode || null }
-      }
+      options: { data: { username, referral_code: referralCode || null } }
     });
     return { error };
   };
