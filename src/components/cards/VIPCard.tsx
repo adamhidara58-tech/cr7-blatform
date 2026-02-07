@@ -74,16 +74,16 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
       onClick={handleAction}
-      className={`relative w-full max-w-md mx-auto aspect-[1.15/1] rounded-[2rem] overflow-hidden border border-white/10 p-4 flex flex-col mb-6 cursor-pointer group shadow-2xl bg-zinc-950`}
+      className={`relative w-full max-w-md mx-auto aspect-[1.15/1] rounded-[2rem] border border-white/10 p-4 flex flex-col mb-6 cursor-pointer group shadow-2xl bg-zinc-950`}
     >
       {/* Background */}
-      <div className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110" style={{ backgroundImage: `url(${stadiumBg})` }} />
-      <div className="absolute inset-0 z-[1] bg-black/60" />
-      <div className="absolute inset-0 z-[2] opacity-40" style={{ background: `radial-gradient(circle at 50% 40%, ${colors.glow}, transparent 70%)` }} />
+      <div className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 rounded-[2rem]" style={{ backgroundImage: `url(${stadiumBg})` }} />
+      <div className="absolute inset-0 z-[1] bg-black/60 rounded-[2rem]" />
+      <div className="absolute inset-0 z-[2] opacity-40 rounded-[2rem]" style={{ background: `radial-gradient(circle at 50% 40%, ${colors.glow}, transparent 70%)` }} />
 
       {/* Particles for VIP3-5 */}
       {vipLevel.level >= 3 && (
-        <div className="absolute inset-0 z-[2] pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 z-[2] pointer-events-none overflow-hidden rounded-[2rem]">
           {[...Array(10)].map((_, i) => <Particle key={i} color={colors.particle} />)}
         </div>
       )}
@@ -128,10 +128,10 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 relative z-10 overflow-hidden">
-        {/* Player Image - Positioned absolute to not affect layout */}
-        <div className="absolute left-0 bottom-0 w-[48%] h-[115%] flex items-end z-10 pointer-events-none">
+      {/* Main Content Area - Removed overflow-hidden to prevent head cutting */}
+      <div className="flex-1 relative z-10">
+        {/* Player Image - Independent Layer, Above BG, Below Stats */}
+        <div className="absolute left-0 bottom-0 w-[50%] h-[120%] flex items-end z-[15] pointer-events-none">
           <motion.img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
@@ -139,8 +139,8 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
           />
         </div>
 
-        {/* Info Boxes Grid - Fixed position and size */}
-        <div className="absolute right-0 bottom-1 w-[52%] grid grid-cols-2 gap-1.5 z-20" dir="rtl">
+        {/* Info Boxes Grid - Centered Vertically on the Right */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[52%] grid grid-cols-2 gap-1.5 z-20" dir="rtl">
           {/* Daily Tasks */}
           <div className="bg-white/10 backdrop-blur-2xl rounded-2xl p-1.5 flex flex-col items-center justify-center border border-white/20 shadow-xl h-[70px] transition-colors hover:bg-white/15">
             <Calendar className={`w-3.5 h-3.5 ${colors.text} mb-1`} />
