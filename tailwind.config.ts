@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Montserrat', 'sans-serif'],
-        display: ['Bebas Neue', 'sans-serif'],
+        sans: ['Cairo', 'Tajawal', 'sans-serif'],
+        display: ['Cairo', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -98,6 +98,9 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "smooth-spin": {
+          "to": { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -105,6 +108,11 @@ export default {
         shimmer: "shimmer 2s infinite linear",
         pulse: "pulse 2s ease-in-out infinite",
         float: "float 3s ease-in-out infinite",
+        "smooth-spin": "smooth-spin 1s linear infinite",
+      },
+      transitionDuration: {
+        "200": "200ms",
+        "300": "300ms",
       },
     },
   },
