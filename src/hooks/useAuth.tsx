@@ -38,88 +38,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  // FORCE LOADING FALSE IMMEDIATELY
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-      
-      if (error) return null;
-      return data as Profile | null;
-    } catch (err) {
-      return null;
-    }
-  };
-
-  const refreshProfile = async () => {
-    if (user) {
-      const profileData = await fetchProfile(user.id);
-      setProfile(profileData);
-    }
-  };
 
   useEffect(() => {
     let mounted = true;
-
     const initializeAuth = async () => {
       try {
-        console.log('Auth: Initializing...');
-        // Force loading false after 1 second regardless of supabase state
-        setTimeout(() => {
-          if (mounted) {
-            console.log('Auth: Forced loading false');
-            setLoading(false);
-          }
-        }, 1000);
-
-        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) throw sessionError;
-
-        if (!mounted) return;
-
-        if (initialSession) {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        if (mounted && initialSession) {
           setSession(initialSession);
           setUser(initialSession.user);
-          const profileData = await fetchProfile(initialSession.user.id);
-          if (mounted) {
-            setProfile(profileData);
-            setLoading(false);
-          }
-        } else {
-          setLoading(false);
+          const { data: profileData } = await supabase.from('profiles').select('*').eq('id', initialSession.user.id).maybeSingle();
+          if (mounted) setProfile(profileData as Profile);
         }
-      } catch (err: any) {
-        console.error('Auth: Initialization error:', err);
-        if (mounted) {
-          setError(err.message);
-          setLoading(false);
-        }
-      }
+      } catch (err) {}
     };
-
     initializeAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        if (!mounted) return;
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        if (currentSession?.user) {
-          const profileData = await fetchProfile(currentSession.user.id);
-          if (mounted) setProfile(profileData);
-        } else {
-          setProfile(null);
-        }
-        setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      if (!mounted) return;
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      if (currentSession?.user) {
+        const { data: profileData } = await supabase.from('profiles').select('*').eq('id', currentSession.user.id).maybeSingle();
+        if (mounted) setProfile(profileData as Profile);
+      } else {
+        setProfile(null);
       }
-    );
-
+    });
     return () => {
       mounted = false;
       subscription.unsubscribe();
@@ -127,19 +74,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, username: string, referralCode?: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { username, referral_code: referralCode || null } }
-    });
+    const { error } = await supabase.auth.signUp({ email, password, options: { data: { username, referral_code: referralCode || null } } });
     return { error };
   };
-
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
-
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -148,17 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      profile,
-      loading,
-      error,
-      signUp,
-      signIn,
-      signOut,
-      refreshProfile
-    }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, error, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
@@ -166,8 +97,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
