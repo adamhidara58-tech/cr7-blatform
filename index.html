@@ -47,16 +47,47 @@
         background-color: #050505;
         direction: ltr !important;
         unicode-bidi: isolate;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
       }
       /* Ensure Arabic text is readable and aligned correctly within its containers */
       [lang="ar"], .arabic-text {
         font-family: 'Cairo', 'Tajawal', sans-serif;
       }
+      #fallback-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #050505;
+        color: #D4AF37;
+        font-family: sans-serif;
+        z-index: 9999;
+      }
     </style>
   </head>
 
   <body>
+    <div id="fallback-loading">جاري تحميل منصة النخبة...</div>
     <div id="root"></div>
+    <script type="module">
+      window.onload = () => {
+        const fallback = document.getElementById('fallback-loading');
+        if (fallback) {
+          setTimeout(() => {
+            // Only hide if root has content
+            if (document.getElementById('root').innerHTML !== "") {
+              fallback.style.display = 'none';
+            } else {
+              fallback.innerHTML = "خطأ في تحميل التطبيق. يرجى تحديث الصفحة.";
+            }
+          }, 5000);
+        }
+      };
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
