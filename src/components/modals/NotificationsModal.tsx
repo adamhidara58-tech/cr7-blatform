@@ -77,10 +77,10 @@ export const NotificationsModal = ({ open, onOpenChange }: NotificationsModalPro
             >
               <div className="flex items-start gap-3">
                 <div className="mt-0.5">{getIcon(notification.type)}</div>
-                <div className="flex-1">
+                <div className="flex-1 text-right">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-foreground">{notification.title}</h4>
                     <span className="text-xs text-muted-foreground">{notification.time}</span>
+                    <h4 className="font-semibold text-foreground">{notification.title}</h4>
                   </div>
                   <p className="text-sm text-muted-foreground">{notification.message}</p>
                 </div>

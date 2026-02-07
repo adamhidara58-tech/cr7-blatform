@@ -148,22 +148,3 @@
     }
   }
 }
-
-/* Force LTR Layout */
-html, body {
-  direction: ltr !important;
-  text-align: left;
-}
-
-/* Arabic Text Helper Class */
-.arabic-text {
-  direction: rtl;
-  display: inline-block;
-  text-align: right;
-  unicode-bidi: isolate;
-}
-
-/* Ensure specific UI components that should remain RTL (like form inputs for Arabic) are handled */
-input[dir="rtl"], textarea[dir="rtl"] {
-  text-align: right;
-}

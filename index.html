@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="ltr">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes" />
@@ -43,14 +43,8 @@
 
     <!-- Prevent FOUC -->
     <style>
-      html, body {
+      html {
         background-color: #050505;
-        direction: ltr !important;
-        unicode-bidi: isolate;
-      }
-      /* Ensure Arabic text is readable and aligned correctly within its containers */
-      [lang="ar"], .arabic-text {
-        font-family: 'Cairo', 'Tajawal', sans-serif;
       }
     </style>
   </head>

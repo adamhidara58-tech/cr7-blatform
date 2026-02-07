@@ -315,7 +315,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         </div>
 
         {/* Info Boxes Grid - Centered Vertically on the Right */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[52%] grid grid-cols-2 gap-1.5 z-20" >
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[52%] grid grid-cols-2 gap-1.5 z-20" dir="rtl">
           {/* Daily Tasks */}
           <div className="bg-white/10 backdrop-blur-2xl rounded-2xl p-1.5 flex flex-col items-center justify-center border border-white/20 shadow-xl h-[70px] transition-colors hover:bg-white/15">
             <Calendar className={`w-3.5 h-3.5 ${colors.text} mb-1`} />

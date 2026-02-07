@@ -196,7 +196,7 @@ const Auth = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
-                  
+                  dir="rtl"
                   required
                   minLength={3}
                   maxLength={50}
@@ -212,7 +212,7 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
-                
+                dir="rtl"
                 required
               />
             </div>
@@ -225,7 +225,7 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="pr-12 pl-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
-                
+                dir="rtl"
                 required
                 minLength={6}
               />
@@ -247,7 +247,7 @@ const Auth = () => {
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
                   className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
-                  
+                  dir="rtl"
                   maxLength={20}
                 />
               </div>
