@@ -11,20 +11,14 @@ import React from 'react';
 const queryClient = new QueryClient();
 
 const SimpleAuthCheck = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading, error } = useAuth();
-  console.log("CR7-DEBUG: SimpleAuthCheck - User:", user?.id, "Loading:", loading, "Error:", error);
+  const { user, loading } = useAuth();
+  console.log("CR7-DEBUG: SimpleAuthCheck - User:", user?.id, "Loading:", loading);
   
-  if (loading) {
-    return (
-      <div style={{ background: '#050505', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#D4AF37' }}>
-        <div className="animate-spin" style={{ width: '40px', height: '40px', border: '4px solid gold', borderTopColor: 'transparent', borderRadius: '50%' }}></div>
-        <span style={{ marginTop: '15px', fontWeight: 'bold' }}>جاري التحميل...</span>
-        {error && <p style={{ color: 'red', marginTop: '10px', fontSize: '12px' }}>{error}</p>}
-      </div>
-    );
-  }
+  // We remove the blocking loading state to ensure the app renders
+  // If there's no user and we're not loading, redirect to auth
+  if (!loading && !user) return <Navigate to="/auth" replace />;
   
-  if (!user) return <Navigate to="/auth" replace />;
+  // Otherwise, show children (Index) which has its own loading handling
   return <>{children}</>;
 };
 
