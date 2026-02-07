@@ -69,13 +69,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       try {
         console.log('Auth: Initializing...');
-        // Force loading false after 500ms regardless of supabase state to prevent infinite loading
-        const timeoutId = setTimeout(() => {
+        // Force loading false after 1 second regardless of supabase state
+        setTimeout(() => {
           if (mounted) {
             console.log('Auth: Forced loading false');
             setLoading(false);
           }
-        }, 500);
+        }, 1000);
 
         const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
         
@@ -105,9 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     initializeAuth();
 
-    let subscription: any;
-    try {
-      const { data } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!mounted) return;
         setSession(currentSession);
@@ -124,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       mounted = false;
-      if (subscription) subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
