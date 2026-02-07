@@ -6,7 +6,7 @@ import React, { useMemo } from 'react';
 
 // Import New Player Images
 import player0 from '@/assets/vip-final/players/vip0.png';
-import player1 from '@/assets/vip-final/players/vip1.png';
+import player1 from '@/assets/vip-final/players/vip1_new.png'; // Updated image for VIP1
 import player2 from '@/assets/vip-final/players/vip2.png';
 import player3 from '@/assets/vip-final/players/vip3.png';
 import player4 from '@/assets/vip-final/players/vip4.png';
@@ -28,19 +28,75 @@ const players: Record<number, string> = {
   5: player5,
 };
 
-const vipColors: Record<number, { main: string, text: string, glow: string, border: string, particle: string }> = {
-  0: { main: 'from-zinc-400 to-zinc-600', text: 'text-zinc-300', glow: 'rgba(200, 200, 200, 0.2)', border: 'border-zinc-500/30', particle: 'bg-zinc-400/20' },
-  1: { main: 'from-yellow-600 to-yellow-800', text: 'text-yellow-600', glow: 'rgba(202, 138, 4, 0.2)', border: 'border-yellow-600/30', particle: 'bg-yellow-600/20' },
-  2: { main: 'from-[#D4AF37] to-[#FBF5B7]', text: 'text-[#D4AF37]', glow: 'rgba(212, 175, 55, 0.3)', border: 'border-[#D4AF37]/40', particle: 'bg-[#D4AF37]/30' },
-  3: { main: 'from-purple-500 to-purple-800', text: 'text-purple-400', glow: 'rgba(168, 85, 247, 0.4)', border: 'border-purple-500/40', particle: 'bg-purple-400/40' },
-  4: { main: 'from-blue-500 to-indigo-800', text: 'text-blue-400', glow: 'rgba(59, 130, 246, 0.5)', border: 'border-blue-500/50', particle: 'bg-blue-400/40' },
-  5: { main: 'from-cyan-400 to-blue-600', text: 'text-cyan-400', glow: 'rgba(34, 211, 238, 0.6)', border: 'border-cyan-400/60', particle: 'bg-cyan-400/50' },
+const vipColors: Record<number, { 
+  main: string, 
+  text: string, 
+  glow: string, 
+  border: string, 
+  particle: string,
+  depth: string,
+  shine: boolean
+}> = {
+  0: { 
+    main: 'from-zinc-500 to-zinc-700', 
+    text: 'text-zinc-400', 
+    glow: 'rgba(100, 100, 100, 0.1)', 
+    border: 'border-zinc-600/20', 
+    particle: 'bg-zinc-500/10',
+    depth: 'shadow-none',
+    shine: false
+  },
+  1: { 
+    main: 'from-zinc-400 to-zinc-600', 
+    text: 'text-zinc-300', 
+    glow: 'rgba(200, 200, 200, 0.15)', 
+    border: 'border-zinc-400/30', 
+    particle: 'bg-zinc-400/15',
+    depth: 'shadow-lg',
+    shine: false
+  },
+  2: { 
+    main: 'from-[#D4AF37] to-[#FBF5B7]', 
+    text: 'text-[#D4AF37]', 
+    glow: 'rgba(212, 175, 55, 0.25)', 
+    border: 'border-[#D4AF37]/40', 
+    particle: 'bg-[#D4AF37]/20',
+    depth: 'shadow-[0_0_15px_rgba(212,175,55,0.2)]',
+    shine: true
+  },
+  3: { 
+    main: 'from-purple-500 to-purple-800', 
+    text: 'text-purple-400', 
+    glow: 'rgba(168, 85, 247, 0.35)', 
+    border: 'border-purple-500/50', 
+    particle: 'bg-purple-400/30',
+    depth: 'shadow-[0_0_25px_rgba(168,85,247,0.3)]',
+    shine: true
+  },
+  4: { 
+    main: 'from-blue-600 to-indigo-900', 
+    text: 'text-blue-400', 
+    glow: 'rgba(59, 130, 246, 0.45)', 
+    border: 'border-blue-500/60', 
+    particle: 'bg-blue-400/40',
+    depth: 'shadow-[0_0_35px_rgba(59,130,246,0.4)]',
+    shine: true
+  },
+  5: { 
+    main: 'from-cyan-400 via-blue-500 to-indigo-600', 
+    text: 'text-cyan-300', 
+    glow: 'rgba(34, 211, 238, 0.6)', 
+    border: 'border-cyan-400/70', 
+    particle: 'bg-white/50',
+    depth: 'shadow-[0_0_50px_rgba(34,211,238,0.5)]',
+    shine: true
+  },
 };
 
-const Particle = ({ color }: { color: string }) => {
+const Particle = ({ color, level }: { color: string, level: number }) => {
   const randomX = useMemo(() => Math.random() * 100, []);
   const randomDelay = useMemo(() => Math.random() * 5, []);
-  const randomDuration = useMemo(() => 3 + Math.random() * 4, []);
+  const randomDuration = useMemo(() => (level === 5 ? 4 : 6) + Math.random() * 4, [level]);
 
   return (
     <motion.div
@@ -51,6 +107,19 @@ const Particle = ({ color }: { color: string }) => {
     />
   );
 };
+
+const LightSweep = () => (
+  <motion.div
+    className="absolute inset-0 z-[3] pointer-events-none"
+    initial={{ x: '-100%' }}
+    animate={{ x: '200%' }}
+    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 3 }}
+    style={{
+      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)',
+      width: '50%'
+    }}
+  />
+);
 
 export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
   const navigate = useNavigate();
@@ -72,11 +141,12 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={vipLevel.level >= 3 ? { y: -5, scale: 1.01 } : {}}
       transition={{ delay: index * 0.1 }}
       onClick={handleAction}
-      className={`relative w-full max-w-md mx-auto aspect-[1.15/1] rounded-[2rem] overflow-hidden border border-white/10 p-4 flex flex-col mb-6 cursor-pointer group shadow-2xl bg-zinc-950`}
+      className={`relative w-full max-w-md mx-auto aspect-[1.15/1] rounded-[2rem] overflow-hidden border border-white/10 p-4 flex flex-col mb-6 cursor-pointer group ${colors.depth} bg-zinc-950 transition-all duration-500`}
     >
-      {/* Background - Fixed with cover and center */}
+      {/* Background */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110" 
         style={{ 
@@ -86,12 +156,19 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         }} 
       />
       <div className="absolute inset-0 z-[1] bg-black/60" />
+      
+      {/* Level-based Glow */}
       <div className="absolute inset-0 z-[2] opacity-40" style={{ background: `radial-gradient(circle at 50% 40%, ${colors.glow}, transparent 70%)` }} />
+
+      {/* Light Sweep for VIP2+ */}
+      {colors.shine && <LightSweep />}
 
       {/* Particles for VIP3-5 */}
       {vipLevel.level >= 3 && (
         <div className="absolute inset-0 z-[2] pointer-events-none overflow-hidden">
-          {[...Array(10)].map((_, i) => <Particle key={i} color={colors.particle} />)}
+          {[...Array(vipLevel.level === 5 ? 15 : 8)].map((_, i) => (
+            <Particle key={i} color={colors.particle} level={vipLevel.level} />
+          ))}
         </div>
       )}
 
@@ -187,11 +264,17 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         </div>
       </div>
 
-      {/* Animated Glow */}
+      {/* Animated Glow Border */}
       <motion.div 
         className="absolute inset-0 z-[5] pointer-events-none rounded-[2rem]"
-        animate={{ boxShadow: [`inset 0 0 20px ${colors.glow}`, `inset 0 0 40px ${colors.glow}`, `inset 0 0 20px ${colors.glow}`] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ 
+          boxShadow: [
+            `inset 0 0 15px ${colors.glow}`, 
+            `inset 0 0 30px ${colors.glow}`, 
+            `inset 0 0 15px ${colors.glow}`
+          ] 
+        }}
+        transition={{ duration: vipLevel.level === 5 ? 2 : 4, repeat: Infinity, ease: "easeInOut" }}
       />
     </motion.div>
   );
