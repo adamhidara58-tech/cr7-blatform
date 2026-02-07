@@ -38,6 +38,40 @@ const levelStyles: Record<number, { color: string, intensity: string, glow: stri
   5: { color: 'rgba(0, 150, 255, 0.5)', intensity: 'opacity-60', glow: 'shadow-[0_0_50px_rgba(0,150,255,0.5)]', crownColor: '#3B82F6' }, // Electric Blue GOAT
 };
 
+// Particle Effect Component for VIP3-VIP5
+const Particles = ({ color }: { color: string }) => {
+  return (
+    <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
+      {[...Array(12)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            backgroundColor: color,
+            width: Math.random() * 4 + 2 + 'px',
+            height: Math.random() * 4 + 2 + 'px',
+            left: Math.random() * 100 + '%',
+            top: Math.random() * 100 + '%',
+            opacity: 0.4,
+          }}
+          animate={{
+            y: [0, -100],
+            x: [0, (Math.random() - 0.5) * 50],
+            opacity: [0, 0.6, 0],
+            scale: [0, 1.5, 0],
+          }}
+          transition={{
+            duration: Math.random() * 3 + 2,
+            repeat: Infinity,
+            delay: Math.random() * 5,
+            ease: "linear"
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
   const navigate = useNavigate();
   const isUnlocked = vipLevel.level <= currentLevel;
@@ -74,6 +108,9 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         className={`absolute inset-0 z-2 ${style.intensity} pointer-events-none`} 
         style={{ background: `radial-gradient(circle at 50% 40%, ${style.color}, transparent 70%)` }} 
       />
+
+      {/* Particle Effects for VIP3-VIP5 */}
+      {vipLevel.level >= 3 && <Particles color={style.crownColor} />}
 
       {/* Header Row: Crown & Level Info */}
       <div className="flex justify-between items-start z-20 relative">
@@ -116,20 +153,20 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
 
       {/* Main Content Area: Player & Info Boxes */}
       <div className="flex-1 flex mt-2 sm:mt-4 z-10 items-end justify-between relative overflow-visible">
-        {/* Player Image: LARGE, filling the card, VIP5 x2 */}
-        <div className="w-[48%] relative flex items-end h-[110%] sm:h-[120%] -mb-4 sm:-mb-6 overflow-visible">
+        {/* Player Image: Balanced size, not too large */}
+        <div className="w-[48%] relative flex items-end h-[100%] sm:h-[110%] -mb-2 sm:-mb-4 overflow-visible">
           <motion.img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
             className={`w-auto max-w-none object-contain object-bottom drop-shadow-[0_15px_40px_rgba(0,0,0,0.9)] z-30 transition-all duration-500 ${
-              vipLevel.level === 5 ? 'h-[160%] sm:h-[180%] scale-125 origin-bottom' : 'h-[130%] sm:h-[145%] scale-110 origin-bottom'
+              vipLevel.level === 5 ? 'h-[135%] sm:h-[150%] scale-110 origin-bottom' : 'h-[115%] sm:h-[125%] scale-100 origin-bottom'
             }`}
-            whileHover={{ scale: 1.15 }}
+            whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 200 }}
           />
         </div>
 
-        {/* Info Boxes: Positioned at bottom right as in the reference image */}
+        {/* Info Boxes: Positioned at bottom right */}
         <div className="w-[50%] grid grid-cols-2 gap-2 sm:gap-3 pb-4 sm:pb-6 z-40" dir="rtl">
           {/* Yield/Return */}
           <div className="bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-2 sm:p-3 flex flex-col items-center justify-center border border-white/10 shadow-2xl min-h-[70px] sm:min-h-[90px]">
@@ -147,29 +184,25 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
             <span className="text-[8px] sm:text-[10px] text-zinc-400 font-bold mt-1 uppercase text-center">المهام اليومية</span>
           </div>
 
-          {/* Total Profit (Only for VIP1+) */}
-          {vipLevel.level > 0 && (
-            <div className="bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-2 sm:p-3 flex flex-col items-center justify-center border border-white/10 shadow-2xl min-h-[70px] sm:min-h-[90px]">
-              <Coins className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-600 mb-1" />
-              <div className="flex flex-col items-center">
-                <span className="text-sm sm:text-xl font-black text-white leading-none">{formatNumber(vipLevel.totalProfit).split('.')[0]}</span>
-                <span className="text-[8px] sm:text-[10px] font-bold text-yellow-600">USDT</span>
-              </div>
-              <span className="text-[8px] sm:text-[10px] text-zinc-400 font-bold mt-1 uppercase text-center">إجمالي الربح</span>
+          {/* Total Profit (Always show for all levels including VIP0 to fix layout) */}
+          <div className="bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-2 sm:p-3 flex flex-col items-center justify-center border border-white/10 shadow-2xl min-h-[70px] sm:min-h-[90px]">
+            <Coins className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-600 mb-1" />
+            <div className="flex flex-col items-center">
+              <span className="text-sm sm:text-xl font-black text-white leading-none">{formatNumber(vipLevel.totalProfit).split('.')[0]}</span>
+              <span className="text-[8px] sm:text-[10px] font-bold text-yellow-600">USDT</span>
             </div>
-          )}
+            <span className="text-[8px] sm:text-[10px] text-zinc-400 font-bold mt-1 uppercase text-center">إجمالي الربح</span>
+          </div>
 
-          {/* Daily Profit (Only for VIP1+) */}
-          {vipLevel.level > 0 && (
-            <div className="bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-2 sm:p-3 flex flex-col items-center justify-center border border-white/10 shadow-2xl min-h-[70px] sm:min-h-[90px]">
-              <DollarSign className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-500 mb-1" />
-              <div className="flex flex-col items-center">
-                <span className="text-sm sm:text-xl font-black text-white leading-none">{formatNumber(vipLevel.dailyProfit)}</span>
-                <span className="text-[8px] sm:text-[10px] font-bold text-yellow-500">USDT</span>
-              </div>
-              <span className="text-[8px] sm:text-[10px] text-zinc-400 font-bold mt-1 uppercase text-center">الربح اليومي</span>
+          {/* Daily Profit (Always show for all levels including VIP0 to fix layout) */}
+          <div className="bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-2 sm:p-3 flex flex-col items-center justify-center border border-white/10 shadow-2xl min-h-[70px] sm:min-h-[90px]">
+            <DollarSign className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-500 mb-1" />
+            <div className="flex flex-col items-center">
+              <span className="text-sm sm:text-xl font-black text-white leading-none">{formatNumber(vipLevel.dailyProfit)}</span>
+              <span className="text-[8px] sm:text-[10px] font-bold text-yellow-500">USDT</span>
             </div>
-          )}
+            <span className="text-[8px] sm:text-[10px] text-zinc-400 font-bold mt-1 uppercase text-center">الربح اليومي</span>
+          </div>
         </div>
       </div>
 

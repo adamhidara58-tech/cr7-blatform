@@ -1,43 +1,66 @@
 import { motion } from 'framer-motion';
-import { Crown, TrendingUp, Target, ChevronLeft } from 'lucide-react';
+import { Crown, TrendingUp, Calendar, DollarSign, Coins, ChevronLeft } from 'lucide-react';
 import { vipLevels } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
-// Import New VIP Images
-import vip0 from '@/assets/vip-v3/players/vip0.png';
-import vip1 from '@/assets/vip-v3/players/vip1.png';
-import vip2 from '@/assets/vip-v3/players/vip2.png';
-import vip3 from '@/assets/vip-v3/players/vip3.png';
-import vip4 from '@/assets/vip-v3/players/vip4.png';
-import vip5 from '@/assets/vip-v3/players/vip5.png';
+// Import Optimized Large Player Images
+import player0 from '@/assets/vip-final/players/vip0_large.png';
+import player1 from '@/assets/vip-final/players/vip1_large.png';
+import player2 from '@/assets/vip-final/players/vip2_large.png';
+import player3 from '@/assets/vip-final/players/vip3_large.png';
+import player4 from '@/assets/vip-final/players/vip4_large.png';
+import player5 from '@/assets/vip-final/players/vip5_large.png';
+import stadiumBg from '@/assets/vip-final/stadium-bg.jpg';
 
-const ronaldoImages: Record<number, string> = {
-  0: vip0,
-  1: vip1,
-  2: vip2,
-  3: vip3,
-  4: vip4,
-  5: vip5,
+const players: Record<number, string> = {
+  0: player0,
+  1: player1,
+  2: player2,
+  3: player3,
+  4: player4,
+  5: player5,
 };
 
-// Stadium backgrounds
-const stadiumBackgrounds: Record<number, string> = {
-  0: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh4mOmSgoCoctyIOJyLKCbocZpRqFB29IhBd4Q9fbAyKP_c7XasCLMGfeSX6sKXNbEkfh7nLyYGF1yPV42ja1jzEohg432ABmQIkRFdCsd3Pv_r32EMJ81R-REcV_go9r-sQYSp9shEIuHgxEgEY-SoZ33udIoVxr3q-ac-jbDkfibNaXvftpNCjsLMGoY/s1600/IMG_2560.png',
-  1: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh4mOmSgoCoctyIOJyLKCbocZpRqFB29IhBd4Q9fbAyKP_c7XasCLMGfeSX6sKXNbEkfh7nLyYGF1yPV42ja1jzEohg432ABmQIkRFdCsd3Pv_r32EMJ81R-REcV_go9r-sQYSp9shEIuHgxEgEY-SoZ33udIoVxr3q-ac-jbDkfibNaXvftpNCjsLMGoY/s1600/IMG_2560.png',
-  2: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjo0TFuiXxehVTorQw5zImbrMGPa6kaKZF2YxvaHiVqMaJIoIHcxfW95PX-juwZ3rKDJokReHPA3eLmTeWSryfyDTsfdmLv_KrtGsn1koOB1rvpp4nCUGDcZnzotZSDGWJeOA6K1nqh4MZ3L9MW1c2cOIcYTZEnuUVThMTfAstcHjL1KORXgBMfMfDZtns/s1600/IMG_2562.jpeg',
-  3: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_cd6NYjdWfvpHXCplBWhkZndYiF1_w73CqlsyzWfPH5-9m488YEUE_YWmVu9rZ2pNphLxo-aEMKGRvaX7ESSctmWvuudxkPoXk7Q95WUvzlV2FWQUg_c4PHFKqfB37_BIJxxCC9JBs-_XqYK5EDuX9PeAbAy2tFFtCiyvd3PyyE-3oIywAUMebKIuf08/s1600/IMG_2558.png',
-  4: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSgxijf0Qsz757uduMUR9pjq6F1ILmbdTImLqNs62EXOFjVMLzNUaldV5_gWrjOAMdPjUNDquu6OZSQaw1yZl0eQU314cLrcls67H7V53yt7Dj2Z6cUdeLvumaOTOnwcAztNVxMgoGY5TjEk0QPY0jnar28qxN-YHwQIobRbsXW5KYbB0VSWr3yQIbxN4/s1600/IMG_2559.png',
-  5: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhmsHqltpEzmafR80EfvGx5Jcicbx3cRB7dgnFFKfNIsvQ9CdAPmU38ANrD8X8w6waTEjVS_orRm88-qGMJ03pjPCSTwtS8_9t_mudx8ui2zalEEB7isMEx4b3Dkk4ijloeZKSy_xC_uZaGnpuhgfdVPc14ZMxz5VmmwIU3ccP8nBVI3ljaWSupAE0V6TA/s1600/IMG_2557.png',
+const levelStyles: Record<number, { color: string, intensity: string, glow: string, crownColor: string }> = {
+  0: { color: 'rgba(255, 255, 255, 0.1)', intensity: 'opacity-20', glow: 'shadow-[0_0_15px_rgba(255,255,255,0.1)]', crownColor: '#A1A1AA' },
+  1: { color: 'rgba(255, 255, 255, 0.2)', intensity: 'opacity-30', glow: 'shadow-[0_0_20px_rgba(255,255,255,0.2)]', crownColor: '#D4AF37' },
+  2: { color: 'rgba(255, 215, 0, 0.3)', intensity: 'opacity-40', glow: 'shadow-[0_0_25px_rgba(212,175,55,0.3)]', crownColor: '#FFD700' },
+  3: { color: 'rgba(212, 175, 55, 0.4)', intensity: 'opacity-50', glow: 'shadow-[0_0_30px_rgba(184,134,11,0.4)]', crownColor: '#DAA520' },
+  4: { color: 'rgba(163, 33, 255, 0.4)', intensity: 'opacity-50', glow: 'shadow-[0_0_35px_rgba(163,33,255,0.4)]', crownColor: '#A855F7' },
+  5: { color: 'rgba(0, 150, 255, 0.5)', intensity: 'opacity-60', glow: 'shadow-[0_0_50px_rgba(0,150,255,0.5)]', crownColor: '#3B82F6' },
 };
 
-const levelStyles: Record<number, { border: string, overlay: string, bgGradient: string }> = {
-  0: { border: 'border-zinc-500/20', overlay: 'bg-zinc-950/40', bgGradient: 'from-zinc-950 via-zinc-900/20 to-transparent' },
-  1: { border: 'border-red-500/20', overlay: 'bg-red-950/40', bgGradient: 'from-red-950 via-red-900/20 to-transparent' },
-  2: { border: 'border-yellow-400/20', overlay: 'bg-zinc-900/40', bgGradient: 'from-zinc-900 via-zinc-800/20 to-transparent' },
-  3: { border: 'border-yellow-600/20', overlay: 'bg-zinc-900/40', bgGradient: 'from-zinc-900 via-zinc-800/20 to-transparent' },
-  4: { border: 'border-purple-500/20', overlay: 'bg-purple-950/40', bgGradient: 'from-purple-950 via-purple-900/20 to-transparent' },
-  5: { border: 'border-blue-400/30', overlay: 'bg-blue-950/20', bgGradient: 'from-blue-950 via-blue-900/40 to-transparent' },
+const Particles = ({ color }: { color: string }) => {
+  return (
+    <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            backgroundColor: color,
+            width: Math.random() * 3 + 1 + 'px',
+            height: Math.random() * 3 + 1 + 'px',
+            left: Math.random() * 100 + '%',
+            top: Math.random() * 100 + '%',
+            opacity: 0.3,
+          }}
+          animate={{
+            y: [0, -60],
+            opacity: [0, 0.5, 0],
+            scale: [0, 1.2, 0],
+          }}
+          transition={{
+            duration: Math.random() * 3 + 2,
+            repeat: Infinity,
+            delay: Math.random() * 5,
+            ease: "linear"
+          }}
+        />
+      ))}
+    </div>
+  );
 };
 
 export const VIPCardsSection = () => {
@@ -45,7 +68,6 @@ export const VIPCardsSection = () => {
   const { profile } = useAuth();
   const currentLevel = profile?.vip_level || 0;
 
-  // Show VIP 0-5
   const mainVipLevels = vipLevels.filter(v => v.level >= 0 && v.level <= 5);
 
   const formatNumber = (num: number) => {
@@ -68,10 +90,8 @@ export const VIPCardsSection = () => {
         </h3>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-6">
         {mainVipLevels.map((level, index) => {
-          const isUnlocked = level.level <= currentLevel;
-          const isCurrentLevel = level.level === currentLevel;
           const style = levelStyles[level.level] || levelStyles[0];
 
           return (
@@ -81,66 +101,65 @@ export const VIPCardsSection = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
               onClick={() => navigate('/vip')}
-              className={`relative h-44 rounded-[2rem] overflow-hidden border ${style.border} cursor-pointer group transition-all duration-500 shadow-2xl bg-black`}
+              className={`relative h-48 rounded-[2.5rem] overflow-hidden border border-white/10 cursor-pointer group transition-all duration-500 shadow-2xl bg-black ${style.glow}`}
             >
-              {/* Stadium Background */}
+              {/* Background */}
               <div 
                 className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
-                style={{ backgroundImage: `url(${stadiumBackgrounds[level.level]})` }} 
+                style={{ backgroundImage: `url(${stadiumBg})` }} 
               />
-              
-              {/* Overlay */}
-              <div className={`absolute inset-0 z-[1] ${style.overlay} backdrop-blur-[1px]`} />
-              <div className={`absolute inset-0 z-[1] bg-gradient-to-l ${style.bgGradient}`} />
+              <div className="absolute inset-0 z-1 bg-black/50" />
+              <div 
+                className={`absolute inset-0 z-2 ${style.intensity} pointer-events-none`} 
+                style={{ background: `radial-gradient(circle at 50% 40%, ${style.color}, transparent 70%)` }} 
+              />
 
-              {/* Ronaldo Image */}
-              <div className="absolute left-[-5%] bottom-0 h-full w-[45%] flex items-end justify-center z-[2] pointer-events-none overflow-visible">
+              {/* Particles for VIP3-VIP5 */}
+              {level.level >= 3 && <Particles color={style.crownColor} />}
+
+              {/* Player Image */}
+              <div className="absolute left-[-2%] bottom-0 h-full w-[45%] flex items-end justify-center z-[6] pointer-events-none overflow-visible">
                 <img 
-                  src={ronaldoImages[level.level]} 
+                  src={players[level.level]} 
                   alt={`VIP ${level.level}`}
-                  className="h-[110%] w-auto object-contain object-bottom drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] group-hover:scale-110 transition-transform duration-700 ease-out origin-bottom"
+                  className={`w-auto object-contain object-bottom drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)] transition-all duration-700 ease-out origin-bottom ${
+                    level.level === 5 ? 'h-[130%] scale-110' : 'h-[115%] scale-100'
+                  }`}
                 />
               </div>
 
               {/* Content */}
-              <div className="relative h-full p-5 ml-auto w-[60%] flex flex-col justify-between z-[3] text-right">
+              <div className="relative h-full p-5 ml-auto w-[55%] flex flex-col justify-between z-[10] text-right">
                 <div className="flex flex-col items-end">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="text-[10px] text-yellow-500 font-black uppercase tracking-widest">{level.nameAr}</p>
-                    <Crown className={`w-4 h-4 ${level.level >= 5 ? 'text-yellow-400' : 'text-zinc-400'}`} />
+                    <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: style.crownColor }}>{level.nameAr}</p>
+                    <Crown className="w-4 h-4" style={{ color: style.crownColor }} />
                   </div>
                   <h4 className="font-display text-3xl font-bold text-white leading-none italic">
                     VIP {level.level}
                   </h4>
                 </div>
 
-                <div className="flex items-end justify-between">
-                  <div className="flex flex-col items-end gap-1">
-                    {isCurrentLevel ? (
-                      <span className="px-3 py-1 bg-primary/20 text-primary text-[10px] font-black rounded-lg border border-primary/30 uppercase">
-                        ACTIVE
-                      </span>
-                    ) : isUnlocked ? (
-                      <span className="px-3 py-1 bg-green-500/20 text-green-400 text-[10px] font-black rounded-lg border border-green-500/30 uppercase">
-                        UNLOCKED
-                      </span>
-                    ) : (
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-zinc-500 line-through decoration-red-500/50">${formatNumber(level.price)}</span>
-                        <span className="text-xl font-display font-bold text-white">${formatNumber(level.referralPrice)}</span>
-                      </div>
-                    )}
+                <div className="grid grid-cols-2 gap-2" dir="rtl">
+                  <div className="bg-zinc-900/60 backdrop-blur-md rounded-xl p-1.5 border border-white/5 flex flex-col items-center">
+                    <TrendingUp className="w-3 h-3 text-emerald-400 mb-0.5" />
+                    <span className="text-xs font-black text-white leading-none">%{level.simpleInterest}</span>
+                    <span className="text-[7px] text-zinc-400 font-bold uppercase">العائد</span>
                   </div>
-
-                  <div className="space-y-0.5">
-                    <div className="flex items-center justify-end gap-2">
-                      <span className="text-[10px] text-zinc-300 font-bold">${formatNumber(level.dailyProfit)}</span>
-                      <TrendingUp className="w-3 h-3 text-green-400" />
-                    </div>
-                    <div className="flex items-center justify-end gap-2">
-                      <span className="text-[10px] text-zinc-300 font-bold">{level.dailyChallengeLimit} Tasks</span>
-                      <Target className="w-3 h-3 text-yellow-500" />
-                    </div>
+                  <div className="bg-zinc-900/60 backdrop-blur-md rounded-xl p-1.5 border border-white/5 flex flex-col items-center">
+                    <Calendar className="w-3 h-3 text-orange-400 mb-0.5" />
+                    <span className="text-xs font-black text-white leading-none">{level.dailyChallengeLimit}</span>
+                    <span className="text-[7px] text-zinc-400 font-bold uppercase">المهام</span>
+                  </div>
+                  <div className="bg-zinc-900/60 backdrop-blur-md rounded-xl p-1.5 border border-white/5 flex flex-col items-center">
+                    <DollarSign className="w-3 h-3 text-yellow-500 mb-0.5" />
+                    <span className="text-[9px] font-black text-white leading-none">{formatNumber(level.dailyProfit)}</span>
+                    <span className="text-[7px] text-zinc-400 font-bold uppercase">يومي</span>
+                  </div>
+                  <div className="bg-zinc-900/60 backdrop-blur-md rounded-xl p-1.5 border border-white/5 flex flex-col items-center">
+                    <Coins className="w-3 h-3 text-yellow-600 mb-0.5" />
+                    <span className="text-[9px] font-black text-white leading-none">{formatNumber(level.totalProfit).split('.')[0]}</span>
+                    <span className="text-[7px] text-zinc-400 font-bold uppercase">إجمالي</span>
                   </div>
                 </div>
               </div>
