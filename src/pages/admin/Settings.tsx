@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  Key, 
   ShieldCheck, 
   Bell, 
   Save,
   ArrowDownCircle,
   Loader2,
-  Zap,
-  DollarSign,
-  Clock
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,24 +15,22 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 
-interface AdminSetting {
-  key: string;
-  value: number | boolean | string;
-}
-
 const Settings = () => {
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
-  
-  // Settings state
-  const [minWithdrawal, setMinWithdrawal] = useState('5');
+  const [saving, setSaving] = useState(false);
+  const [minWithdrawal, setMinWithdrawal] = useState('10');
   const [maxWithdrawal, setMaxWithdrawal] = useState('1000');
   const [autoPayoutThreshold, setAutoPayoutThreshold] = useState('10');
-  const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
-  const [cooldownHours, setCooldownHours] = useState('24');
+  const [autoWithdrawal, setAutoWithdrawal] = useState(false);
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    fetchSettings();
+    const getSession = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      setSession(currentSession);
+      fetchSettings();
+    };
+    getSession();
   }, []);
 
   const fetchSettings = async () => {
@@ -41,30 +38,25 @@ const Settings = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('admin_settings')
-        .select('key, value');
+        .select('*');
       
       if (error) throw error;
 
       if (data) {
-        data.forEach((setting: AdminSetting) => {
-          switch (setting.key) {
-            case 'min_withdrawal':
-              setMinWithdrawal(String(setting.value));
-              break;
-            case 'max_withdrawal':
-              setMaxWithdrawal(String(setting.value));
-              break;
-            case 'auto_payout_threshold':
-              setAutoPayoutThreshold(String(setting.value));
-              break;
-            case 'withdrawals_enabled':
-              setWithdrawalsEnabled(setting.value === true || setting.value === 'true');
-              break;
-            case 'withdrawal_cooldown_hours':
-              setCooldownHours(String(setting.value));
-              break;
-          }
-        });
+        const limits = data.find(s => s.key === 'withdrawal_limits')?.value as { min?: string; max?: string } | undefined;
+        const threshold = data.find(s => s.key === 'auto_payout_threshold')?.value as { amount?: string } | undefined;
+
+        if (limits) {
+          setMinWithdrawal(String(limits.min || '10'));
+          setMaxWithdrawal(String(limits.max || '1000'));
+        }
+        if (threshold) {
+          setAutoPayoutThreshold(String(threshold.amount || '10'));
+        }
+        const security = data.find(s => s.key === 'security_settings')?.value as { auto_withdrawal?: boolean } | undefined;
+        if (security) {
+          setAutoWithdrawal(security.auto_withdrawal || false);
+        }
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -74,38 +66,42 @@ const Settings = () => {
     }
   };
 
-  const saveSetting = async (key: string, value: string | number | boolean) => {
+  const saveSetting = async (key: string, value: any) => {
     try {
-      setSaving(key);
+      setSaving(true);
       
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
 
-      if (!session?.access_token) {
-        toast.error('يرجى تسجيل الدخول مجدداً');
-        return;
+      if (!currentSession?.access_token) {
+        throw new Error('لم يتم العثور على جلسة نشطة. يرجى تسجيل الدخول مجدداً.');
       }
 
       const { data, error } = await supabase.functions.invoke('update-admin-settings', {
         body: { key, value },
         headers: {
-          Authorization: `Bearer ${session.access_token}`
+          Authorization: `Bearer ${currentSession.access_token}`
         }
       });
 
       if (error) throw error;
-      
       if (data?.success) {
-        toast.success('تم حفظ الإعداد بنجاح');
+        toast.success('تم الحفظ بنجاح');
       } else {
         throw new Error(data?.error || 'خطأ في الحفظ');
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Save error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'فشل الحفظ';
-      toast.error(errorMessage);
+      toast.error(error.message || 'فشل الحفظ');
     } finally {
-      setSaving(null);
+      setSaving(false);
     }
+  };
+
+  const handleSaveLimits = () => saveSetting('withdrawal_limits', { min: minWithdrawal, max: maxWithdrawal });
+  const handleSaveAutoThreshold = () => saveSetting('auto_payout_threshold', { amount: autoPayoutThreshold });
+  const handleToggleAutoWithdrawal = (checked: boolean) => {
+    setAutoWithdrawal(checked);
+    saveSetting('security_settings', { auto_withdrawal: checked });
   };
 
   if (loading) {
@@ -119,173 +115,91 @@ const Settings = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold text-gradient-gold mb-2">إعدادات النظام</h2>
-        <p className="text-muted-foreground">إدارة حدود السحب وإعدادات الدفع</p>
+        <h2 className="text-3xl font-bold text-gradient-gold mb-2">الإعدادات العامة</h2>
+        <p className="text-muted-foreground">إدارة حدود السحب وإعدادات الدفع التلقائي</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Minimum Withdrawal */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Withdrawal Limits */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-6 rounded-2xl border border-border/50"
+          className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
         >
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 border-b border-border/50 pb-4">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <DollarSign className="w-5 h-5" />
+              <ArrowDownCircle className="w-5 h-5" />
             </div>
-            <h3 className="font-bold">الحد الأدنى للسحب</h3>
+            <h3 className="font-bold">حدود السحب</h3>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Input 
-                type="number" 
-                value={minWithdrawal}
-                onChange={(e) => setMinWithdrawal(e.target.value)}
-                className="glass-card flex-1"
-                min="0"
-              />
-              <span className="text-muted-foreground">$</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">الحد الأدنى ($)</label>
+                <Input 
+                  type="number" 
+                  value={minWithdrawal}
+                  onChange={(e) => setMinWithdrawal(e.target.value)}
+                  className="glass-card"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">الحد الأقصى ($)</label>
+                <Input 
+                  type="number" 
+                  value={maxWithdrawal}
+                  onChange={(e) => setMaxWithdrawal(e.target.value)}
+                  className="glass-card"
+                />
+              </div>
             </div>
-            <Button 
-              className="w-full" 
-              onClick={() => saveSetting('min_withdrawal', Number(minWithdrawal))} 
-              disabled={saving === 'min_withdrawal'}
-            >
-              {saving === 'min_withdrawal' ? (
-                <Loader2 className="w-4 h-4 animate-spin ml-2" />
-              ) : (
-                <Save className="w-4 h-4 ml-2" />
-              )}
-              حفظ
+            <Button className="w-full" onClick={handleSaveLimits} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              حفظ حدود السحب
             </Button>
           </div>
         </motion.div>
 
-        {/* Maximum Withdrawal */}
+        {/* Auto Payout Settings */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card p-6 rounded-2xl border border-border/50"
+          className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
         >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
-              <ArrowDownCircle className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold">الحد الأقصى للسحب</h3>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Input 
-                type="number" 
-                value={maxWithdrawal}
-                onChange={(e) => setMaxWithdrawal(e.target.value)}
-                className="glass-card flex-1"
-                min="0"
-              />
-              <span className="text-muted-foreground">$</span>
-            </div>
-            <Button 
-              className="w-full" 
-              onClick={() => saveSetting('max_withdrawal', Number(maxWithdrawal))} 
-              disabled={saving === 'max_withdrawal'}
-            >
-              {saving === 'max_withdrawal' ? (
-                <Loader2 className="w-4 h-4 animate-spin ml-2" />
-              ) : (
-                <Save className="w-4 h-4 ml-2" />
-              )}
-              حفظ
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Auto Payout Threshold */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass-card p-6 rounded-2xl border border-border/50"
-        >
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 border-b border-border/50 pb-4">
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
               <Zap className="w-5 h-5" />
             </div>
-            <h3 className="font-bold">حد الدفع التلقائي</h3>
+            <h3 className="font-bold">الدفع التلقائي</h3>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">حد الدفع التلقائي ($)</label>
               <Input 
                 type="number" 
                 value={autoPayoutThreshold}
                 onChange={(e) => setAutoPayoutThreshold(e.target.value)}
-                className="glass-card flex-1"
-                min="0"
+                className="glass-card"
               />
-              <span className="text-muted-foreground">$</span>
+              <p className="text-[10px] text-muted-foreground">
+                طلبات السحب التي تساوي أو أقل من هذا المبلغ ستتم معالجتها تلقائياً
+              </p>
             </div>
+            
             <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
               <p className="text-xs text-blue-400">
                 💡 السحب ≤ ${autoPayoutThreshold} → تلقائي
                 <br />
-                💼 السحب &gt; ${autoPayoutThreshold} → يتطلب موافقة
+                💼 السحب &gt; ${autoPayoutThreshold} → يتطلب موافقة يدوية
               </p>
             </div>
-            <Button 
-              className="w-full" 
-              onClick={() => saveSetting('auto_payout_threshold', Number(autoPayoutThreshold))} 
-              disabled={saving === 'auto_payout_threshold'}
-            >
-              {saving === 'auto_payout_threshold' ? (
-                <Loader2 className="w-4 h-4 animate-spin ml-2" />
-              ) : (
-                <Save className="w-4 h-4 ml-2" />
-              )}
-              حفظ
-            </Button>
-          </div>
-        </motion.div>
 
-        {/* Cooldown Hours */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="glass-card p-6 rounded-2xl border border-border/50"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
-              <Clock className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold">فترة الانتظار بين السحوبات</h3>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Input 
-                type="number" 
-                value={cooldownHours}
-                onChange={(e) => setCooldownHours(e.target.value)}
-                className="glass-card flex-1"
-                min="0"
-              />
-              <span className="text-muted-foreground">ساعة</span>
-            </div>
-            <Button 
-              className="w-full" 
-              onClick={() => saveSetting('withdrawal_cooldown_hours', Number(cooldownHours))} 
-              disabled={saving === 'withdrawal_cooldown_hours'}
-            >
-              {saving === 'withdrawal_cooldown_hours' ? (
-                <Loader2 className="w-4 h-4 animate-spin ml-2" />
-              ) : (
-                <Save className="w-4 h-4 ml-2" />
-              )}
-              حفظ
+            <Button className="w-full" onClick={handleSaveAutoThreshold} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              حفظ إعدادات الدفع التلقائي
             </Button>
           </div>
         </motion.div>
@@ -294,41 +208,68 @@ const Settings = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="glass-card p-6 rounded-2xl border border-border/50 lg:col-span-2"
+          transition={{ delay: 0.2 }}
+          className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
         >
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 border-b border-border/50 pb-4">
             <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h3 className="font-bold">إعدادات الأمان</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-border/30">
-              <div className="space-y-1">
-                <span className="text-sm font-medium">تفعيل السحب</span>
-                <p className="text-xs text-muted-foreground">السماح للمستخدمين بإنشاء طلبات سحب جديدة</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border/30">
+              <div className="space-y-0.5">
+                <span className="text-sm font-medium">تفعيل السحب التلقائي</span>
+                <p className="text-[10px] text-muted-foreground">تنفيذ عمليات السحب فور طلبها دون مراجعة يدوية</p>
               </div>
               <Switch 
-                checked={withdrawalsEnabled} 
-                onCheckedChange={(checked) => {
-                  setWithdrawalsEnabled(checked);
-                  saveSetting('withdrawals_enabled', checked);
-                }}
-                disabled={saving === 'withdrawals_enabled'}
+                checked={autoWithdrawal} 
+                onCheckedChange={handleToggleAutoWithdrawal}
+                disabled={saving}
               />
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-border/30">
-              <div className="space-y-1">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border/30">
+              <div className="space-y-0.5">
+                <span className="text-sm font-medium">تفعيل IP Whitelist</span>
+                <p className="text-[10px] text-muted-foreground">السماح بالدخول من عناوين IP محددة فقط</p>
+              </div>
+              <Switch checked={false} disabled />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border/30">
+              <div className="space-y-0.5">
+                <span className="text-sm font-medium">تفعيل 2FA للمدراء</span>
+                <p className="text-[10px] text-muted-foreground">فرض المصادقة الثنائية لجميع حسابات الإدارة</p>
+              </div>
+              <Switch checked={false} disabled />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* System Notifications */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
+        >
+          <div className="flex items-center gap-3 border-b border-border/50 pb-4">
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+              <Bell className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold">إشعارات النظام</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border/30">
+              <div className="space-y-0.5">
                 <span className="text-sm font-medium">إشعارات البريد</span>
-                <p className="text-xs text-muted-foreground">إرسال بريد عند طلب سحب جديد</p>
+                <p className="text-[10px] text-muted-foreground">إرسال بريد عند وصول طلب سحب جديد</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">قريباً</span>
-              </div>
+              <Switch checked={true} disabled />
             </div>
           </div>
         </motion.div>
