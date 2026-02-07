@@ -10,6 +10,18 @@ import React from 'react';
 
 const queryClient = new QueryClient();
 
+const SimpleAuthCheck = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  console.log("CR7-DEBUG: SimpleAuthCheck - User:", user?.id, "Loading:", loading);
+  
+  // We remove the blocking loading state to ensure the app renders
+  // If there's no user and we're not loading, redirect to auth
+  if (!loading && !user) return <Navigate to="/auth" replace />;
+  
+  // Otherwise, show children (Index) which has its own loading handling
+  return <>{children}</>;
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -20,7 +32,7 @@ const App = () => {
           <AuthProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<SimpleAuthCheck><Index /></SimpleAuthCheck>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AuthProvider>
