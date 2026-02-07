@@ -25,23 +25,31 @@ import AdminSettings from "./pages/admin/Settings";
 import AdminVIP from "./pages/admin/VIP";
 import AdminChallenges from "./pages/admin/Challenges";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
-  console.log('ProtectedRoute - User:', user?.id, 'Loading:', loading);
+  console.log('ProtectedRoute - User ID:', user?.id, 'Loading State:', loading);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+        <p className="ml-3 text-gold font-bold">جاري التحميل...</p>
       </div>
     );
   }
   
   if (!user) {
-    console.log('ProtectedRoute - No user, redirecting to /auth');
+    console.log('ProtectedRoute - No user found, redirecting to /auth');
     return <Navigate to="/auth" replace />;
   }
   
@@ -50,7 +58,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   useEffect(() => {
-    console.log('AppRoutes mounted');
+    console.log('AppRoutes Component Mounted');
   }, []);
 
   return (
@@ -81,7 +89,11 @@ const AppRoutes = () => {
 
 const App = () => {
   useEffect(() => {
-    console.log('App component rendered');
+    console.log('App Root Component Rendered');
+    window.onerror = (msg, url, lineNo, columnNo, error) => {
+      console.error('Global Error Caught:', msg, 'at', url, ':', lineNo, ':', columnNo, error);
+      return false;
+    };
   }, []);
 
   return (
