@@ -75,7 +75,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         style={{ background: `radial-gradient(circle at 50% 40%, ${lighting.color}, transparent 70%)` }} 
       />
 
-      {/* 2️⃣ VIP Crown Icon: Consistent across all cards */}
+      {/* 2️⃣ VIP Crown Icon: Consistent across all cards based on VIP0 */}
       <div className="flex justify-between items-start z-20 relative">
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 bg-black/40 rounded-2xl flex items-center justify-center border border-[#D4AF37]/30 backdrop-blur-md">
@@ -114,55 +114,58 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex mt-4 z-10 items-end justify-between">
+      <div className="flex-1 flex mt-4 z-10 items-end justify-between relative">
         {/* 1️⃣ Player Image: PNG, No Background, High Quality, Large but not touching edges */}
         <div className="w-[45%] relative flex items-end h-full overflow-visible">
           <motion.img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
-            className="w-full h-[90%] object-contain object-bottom drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-30"
-            whileHover={{ scale: 1.05 }}
+            className={`w-full object-contain object-bottom drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-30 transition-all duration-500 ${
+              vipLevel.level === 5 ? 'h-[110%] scale-110' : 'h-[105%] scale-105'
+            }`}
+            whileHover={{ scale: 1.1 }}
             transition={{ type: "spring", stiffness: 300 }}
           />
         </div>
 
         {/* 3️⃣ Info Boxes: Glass effect, Rounded corners, Light shadow, RTL Alignment */}
-        <div className="w-[52%] grid grid-cols-2 gap-2 pb-2 z-40" dir="rtl">
+        {/* Adjusted width and padding to ensure they stay inside the card */}
+        <div className="w-[52%] grid grid-cols-2 gap-2 pb-4 z-40 pr-1" dir="rtl">
           {/* Daily Tasks */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-2.5 flex flex-col items-center justify-center border border-white/10 shadow-sm">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 flex flex-col items-center justify-center border border-white/10 shadow-sm min-h-[65px]">
             <Calendar className="w-4 h-4 text-orange-400 mb-1" />
             <span className="text-lg font-black text-white leading-none">{vipLevel.dailyChallengeLimit}</span>
-            <span className="text-[9px] text-zinc-300 font-bold mt-1 uppercase">المهام اليومية</span>
+            <span className="text-[8px] text-zinc-300 font-bold mt-1 uppercase text-center">المهام اليومية</span>
           </div>
 
           {/* Yield/Return */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-2.5 flex flex-col items-center justify-center border border-white/10 shadow-sm">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 flex flex-col items-center justify-center border border-white/10 shadow-sm min-h-[65px]">
             <TrendingUp className="w-4 h-4 text-emerald-400 mb-1" />
             <div className="flex items-center gap-0.5">
               <span className="text-lg font-black text-white leading-none">{vipLevel.simpleInterest}</span>
               <span className="text-xs font-bold text-emerald-400">%</span>
             </div>
-            <span className="text-[9px] text-zinc-300 font-bold mt-1 uppercase">العائد</span>
+            <span className="text-[8px] text-zinc-300 font-bold mt-1 uppercase text-center">العائد</span>
           </div>
 
-          {/* Daily Profit */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-2.5 flex flex-col items-center justify-center border border-white/10 shadow-sm">
+          {/* Daily Profit - Restored Decimals */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 flex flex-col items-center justify-center border border-white/10 shadow-sm min-h-[65px]">
             <DollarSign className="w-4 h-4 text-yellow-500 mb-1" />
-            <div className="flex items-center gap-0.5">
-              <span className="text-sm font-black text-white leading-none">{formatNumber(vipLevel.dailyProfit).split('.')[0]}</span>
-              <span className="text-[10px] font-bold text-yellow-500">USDT</span>
+            <div className="flex flex-col items-center">
+              <span className="text-sm font-black text-white leading-none">{formatNumber(vipLevel.dailyProfit)}</span>
+              <span className="text-[8px] font-bold text-yellow-500">USDT</span>
             </div>
-            <span className="text-[9px] text-zinc-300 font-bold mt-1 uppercase">الربح اليومي</span>
+            <span className="text-[8px] text-zinc-300 font-bold mt-1 uppercase text-center">الربح اليومي</span>
           </div>
 
-          {/* Total Profit */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-2.5 flex flex-col items-center justify-center border border-white/10 shadow-sm">
+          {/* Total Profit - Restored Decimals */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 flex flex-col items-center justify-center border border-white/10 shadow-sm min-h-[65px]">
             <Coins className="w-4 h-4 text-yellow-600 mb-1" />
-            <div className="flex items-center gap-0.5">
+            <div className="flex flex-col items-center">
               <span className="text-sm font-black text-white leading-none">{formatNumber(vipLevel.totalProfit).split('.')[0]}</span>
-              <span className="text-[10px] font-bold text-yellow-600">USDT</span>
+              <span className="text-[8px] font-bold text-yellow-600">USDT</span>
             </div>
-            <span className="text-[9px] text-zinc-300 font-bold mt-1 uppercase">إجمالي الربح</span>
+            <span className="text-[8px] text-zinc-300 font-bold mt-1 uppercase text-center">إجمالي الربح</span>
           </div>
         </div>
       </div>
