@@ -11,8 +11,13 @@ import {
   LogOut,
   Shield,
   HelpCircle,
-  ChevronLeft
+  ChevronLeft,
+  Camera,
+  Lock,
+  Loader2
 } from 'lucide-react';
+import { ChangePasswordModal } from '@/components/modals/ChangePasswordModal';
+import { useToast } from '@/hooks/use-toast';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -53,6 +58,10 @@ const Profile = () => {
   const location = useLocation();
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     if (location.state && (location.state as any).openDeposit) {
@@ -60,6 +69,50 @@ const Profile = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location]);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !profile) return;
+
+    // Basic validation
+    if (!file.type.startsWith('image/')) {
+      toast({ variant: 'destructive', title: 'خطأ', description: 'يرجى اختيار ملف صورة' });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${profile.id}/${Math.random()}.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update Profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+
+      await refreshProfile();
+      toast({ title: 'تم بنجاح', description: 'تم تحديث الصورة الشخصية' });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'خطأ', description: error.message });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const { data: transactions = [], isLoading: isTransactionsLoading } = useQuery({
     queryKey: ['transactions', profile?.id],
@@ -90,9 +143,8 @@ const Profile = () => {
   };
 
   const menuItems = [
-    { icon: Shield, label: 'الأمان والخصوصية', href: '#' },
-    { icon: HelpCircle, label: 'المساعدة والدعم', href: '#' },
-    { icon: Settings, label: 'الإعدادات', href: '#' },
+    { icon: Lock, label: 'تغيير كلمة المرور', onClick: () => setIsPasswordModalOpen(true) },
+    { icon: HelpCircle, label: 'المساعدة والدعم', href: '/team' },
   ];
 
   if (isProfileLoading && !profile) {
@@ -114,9 +166,30 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center mb-6"
         >
-          <div className="w-20 h-20 rounded-full bg-gradient-gold flex items-center justify-center mb-3 shadow-gold relative">
-            <User className="w-10 h-10 text-primary-foreground" />
-            <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-background border-2 border-gold rounded-full flex items-center justify-center">
+          <div className="relative group">
+            <div className="w-24 h-24 rounded-full bg-gradient-gold p-1 shadow-gold relative overflow-hidden">
+              <div className="w-full h-full rounded-full bg-[#141419] flex items-center justify-center overflow-hidden">
+                {profile.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt={profile.username} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="w-12 h-12 text-gold/50" />
+                )}
+              </div>
+              {isUploading && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
+                  <Loader2 className="w-6 h-6 text-gold animate-spin" />
+                </div>
+              )}
+            </div>
+            <label className="absolute bottom-0 right-0 w-8 h-8 bg-gold rounded-full flex items-center justify-center cursor-pointer border-2 border-[#141419] hover:scale-110 transition-transform">
+              <Camera className="w-4 h-4 text-black" />
+              <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={isUploading} />
+            </label>
+            <div className="absolute -top-1 -left-1 w-8 h-8 bg-background border-2 border-gold rounded-full flex items-center justify-center shadow-lg">
               <span className="text-[10px] font-bold text-gold">V{profile.vip_level}</span>
             </div>
           </div>
@@ -246,6 +319,7 @@ const Profile = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + index * 0.1 }}
+              onClick={item.onClick}
               className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors ${
                 index < menuItems.length - 1 ? 'border-b border-white/5' : ''
               }`}
@@ -277,6 +351,7 @@ const Profile = () => {
       {/* Modals */}
       <DepositModal isOpen={isDepositOpen} onClose={() => setIsDepositOpen(false)} />
       <WithdrawalModal isOpen={isWithdrawalOpen} onClose={() => setIsWithdrawalOpen(false)} />
+      <ChangePasswordModal open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen} />
     </PageLayout>
   );
 };

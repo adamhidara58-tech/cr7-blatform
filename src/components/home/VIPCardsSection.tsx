@@ -80,50 +80,50 @@ const VIPCard = memo(({ level, currentLevel, index, navigate }: any) => {
       )}
 
       {/* Player Image - Optimized Loading */}
-      <div className="absolute left-[-5%] bottom-0 h-[110%] w-[45%] flex items-end justify-center z-[10] pointer-events-none overflow-visible">
+      <div className="absolute right-[-5%] bottom-0 h-[110%] w-[45%] flex items-end justify-center z-[10] pointer-events-none overflow-visible">
         <img 
           src={ronaldoImages[level.level]} 
           alt={`VIP ${level.level}`}
-          loading={index < 2 ? "eager" : "lazy"}
-          fetchPriority={index < 2 ? "high" : "low"}
+          loading="eager"
+          fetchPriority="high"
           decoding="async"
           className="h-full w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform duration-700 ease-out origin-bottom"
         />
       </div>
 
       {/* Content Area */}
-      <div className="relative h-full p-6 ml-auto w-[65%] flex flex-col justify-between z-[20] text-right">
-        <div className="flex flex-col items-end">
+      <div className="relative h-full p-6 mr-auto w-[65%] flex flex-col justify-between z-[20] text-left">
+        <div className="flex flex-col items-start">
           <div className="flex items-center gap-2 mb-1.5">
-            <p className={`text-[10px] ${colors.text} font-bold uppercase tracking-widest opacity-80`}>{level.nameAr}</p>
             <div className={`w-1.5 h-1.5 rounded-full ${colors.particle} animate-pulse`} />
+            <p className={`text-[10px] ${colors.text} font-bold uppercase tracking-widest opacity-80`}>{level.nameAr}</p>
           </div>
           <h4 className="text-3xl font-black text-white italic tracking-tighter">VIP {level.level}</h4>
         </div>
 
         <div className="flex items-end justify-between gap-3">
-          <div className="flex flex-col items-end gap-1.5">
+          <div className="space-y-2 shrink-0">
+            <div className="flex items-center justify-start gap-2 bg-black/40 px-3 py-1 rounded-lg border border-white/5">
+              <DollarSign className="w-3.5 h-3.5 text-gold" />
+              <span className="text-xs text-white font-bold">${formatNumber(level.dailyProfit)}</span>
+            </div>
+            <div className="flex items-center justify-start gap-2 bg-black/40 px-3 py-1 rounded-lg border border-white/5">
+              <Calendar className={`w-3.5 h-3.5 ${colors.text}`} />
+              <span className="text-xs text-white/70 font-bold">{level.dailyChallengeLimit} مهام</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-start gap-1.5">
             {isCurrentLevel ? (
               <span className={`px-4 py-1.5 bg-gradient-gold text-black text-[10px] font-black rounded-full shadow-[0_5px_15px_rgba(212,175,55,0.3)]`}>نشط حالياً</span>
             ) : isUnlocked ? (
               <span className="px-4 py-1.5 bg-white/10 text-white text-[10px] font-black rounded-full border border-white/10">مفتوح</span>
             ) : (
-              <div className="flex flex-col items-end">
+              <div className="flex flex-col items-start">
                 <span className="text-[10px] text-white/20 line-through decoration-red-500/50">${formatNumber(level.price)}</span>
                 <span className={`text-xl font-black ${colors.text} drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]`}>${formatNumber(level.referralPrice)}</span>
               </div>
             )}
-          </div>
-
-          <div className="space-y-2 shrink-0">
-            <div className="flex items-center justify-end gap-2 bg-black/40 px-3 py-1 rounded-lg border border-white/5">
-              <span className="text-xs text-white font-bold">${formatNumber(level.dailyProfit)}</span>
-              <DollarSign className="w-3.5 h-3.5 text-gold" />
-            </div>
-            <div className="flex items-center justify-end gap-2 bg-black/40 px-3 py-1 rounded-lg border border-white/5">
-              <span className="text-xs text-white/70 font-bold">{level.dailyChallengeLimit} مهام</span>
-              <Calendar className={`w-3.5 h-3.5 ${colors.text}`} />
-            </div>
           </div>
         </div>
       </div>

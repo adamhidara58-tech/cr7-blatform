@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Challenges from "./pages/Challenges";
 import Team from "./pages/Team";
@@ -88,7 +89,22 @@ const AppRoutes = () => (
   </Routes>
 );
 
-const App = () => (
+const App = () => {
+  useEffect(() => {
+    // Preload critical images
+    const criticalImages = [
+      '/src/assets/logo-new.png',
+      '/src/assets/hero-bg.webp',
+      '/src/assets/vip-final/stadium-bg.jpg'
+    ];
+    
+    criticalImages.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -100,6 +116,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;

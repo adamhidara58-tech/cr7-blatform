@@ -41,7 +41,7 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, delay }: any) =
     {trend && (
       <div className="mt-4 flex items-center gap-2">
         <span className={`flex items-center text-xs font-medium ${trend === 'up' ? 'text-emerald-500' : 'text-rose-500'}`}>
-          {trend === 'up' ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
+          {trend === 'up' ? <ArrowUpRight className="w-3 h-3 ml-1" /> : <ArrowDownRight className="w-3 h-3 ml-1" />}
           {trendValue}%
         </span>
         <span className="text-muted-foreground text-[10px]">مقارنة بالشهر الماضي</span>

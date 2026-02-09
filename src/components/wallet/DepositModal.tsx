@@ -186,7 +186,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                             <button
                               key={currency.currency}
                               onClick={() => handleSelectCurrency(currency.currency)}
-                              className="p-3 rounded-xl bg-secondary hover:bg-secondary/80 border border-border hover:border-primary transition-all text-right"
+                              className="p-3 rounded-xl bg-secondary hover:bg-secondary/80 border border-border hover:border-primary transition-all text-left"
                             >
                               <p className="font-semibold">{currency.currency.toUpperCase()}</p>
                               <p className="text-xs text-muted-foreground">{currency.network}</p>

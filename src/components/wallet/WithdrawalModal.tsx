@@ -260,7 +260,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                           <button
                             key={currency.currency}
                             onClick={() => setSelectedCurrency(currency.currency)}
-                            className={`p-3 rounded-xl border transition-all text-right ${
+                            className={`p-3 rounded-xl border transition-all text-left ${
                               selectedCurrency === currency.currency
                                 ? 'bg-primary/20 border-primary'
                                 : 'bg-secondary border-border hover:border-primary/50'

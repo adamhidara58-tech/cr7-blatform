@@ -119,21 +119,21 @@ const Index = () => {
             className="glass-card rounded-3xl p-6 mb-5 border border-white/5 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-bold text-white/30">رمز الإحالة الخاص بك</span>
               <div className="flex gap-2.5">
-                <button 
-                  onClick={shareReferralLink}
-                  className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-gold/30 transition-all text-gold"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
                 <button 
                   onClick={copyReferralCode}
                   className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-gold/30 transition-all text-gold"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
+                <button 
+                  onClick={shareReferralLink}
+                  className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-gold/30 transition-all text-gold"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
               </div>
-              <span className="text-xs font-bold text-white/30">رمز الإحالة الخاص بك</span>
             </div>
             <div className="text-center">
               <div className="bg-black/20 rounded-2xl py-3 border border-white/5 mb-3">

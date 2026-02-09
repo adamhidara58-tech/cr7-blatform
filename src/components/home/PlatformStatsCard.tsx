@@ -111,7 +111,7 @@ export const PlatformStatsCard = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-bold text-white/80 px-1 text-right">إحصائيات المنصة</h3>
+      <h3 className="text-lg font-bold text-white/80 px-1 text-left">إحصائيات المنصة</h3>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -133,15 +133,15 @@ export const PlatformStatsCard = () => {
               <div className={`absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br ${item.color} blur-3xl group-hover:opacity-100 transition-opacity opacity-50`} />
               
               <div className="relative z-10">
-                <div className="flex items-center justify-end gap-2.5 mb-3">
-                  <span className="text-[11px] font-bold text-white/40">{item.label}</span>
+                <div className="flex items-center justify-start gap-2.5 mb-3">
                   <div className={`w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform`}>
                     <Icon className={`w-4 h-4 ${item.iconColor}`} />
                   </div>
+                  <span className="text-[11px] font-bold text-white/40">{item.label}</span>
                 </div>
                 
-                <div className="text-right">
-                  <p className="text-xl font-black text-white flex items-center justify-end gap-1.5">
+                <div className="text-left">
+                  <p className="text-xl font-black text-white flex items-center justify-start gap-1.5">
                     {item.live && (
                       <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_#4ade80]" />
                     )}

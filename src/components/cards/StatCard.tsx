@@ -34,12 +34,12 @@ export const StatCard = ({ icon: Icon, label, value, subValue, index, variant = 
       {/* Glow Effect */}
       <div className={`absolute -bottom-12 -left-12 w-24 h-24 blur-3xl rounded-full opacity-20 transition-opacity group-hover:opacity-40 ${variant === 'gold' ? 'bg-gold' : 'bg-white'}`} />
       
-      <div className="flex flex-col items-end relative z-10">
+      <div className="flex flex-col items-start relative z-10">
         <div className={`${iconVariants[variant]} p-3 rounded-2xl mb-4 border border-white/5 transition-transform group-hover:scale-110`}>
           <Icon className="w-5 h-5" />
         </div>
         
-        <div className="text-right w-full">
+        <div className="text-left w-full">
           <p className="text-[11px] font-bold text-white/30 mb-1 uppercase tracking-wider">{label}</p>
           <p className={`text-xl font-black tracking-tight ${variant === 'gold' ? 'text-gradient-gold' : 'text-white'}`}>
             {value}

@@ -43,16 +43,16 @@ export const ChallengeCard = ({ challenge, userVipLevel, index }: ChallengeCardP
       <div className="p-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground text-base mb-1 text-right">
-              {challenge.titleAr}
-            </h3>
-            <p className="text-xs text-muted-foreground text-right line-clamp-2">
-              {challenge.descriptionAr}
-            </p>
-          </div>
           <div className={`${difficulty.bgColor} ${difficulty.color} px-2 py-1 rounded-full text-xs font-medium mr-3`}>
             {difficulty.label}
+          </div>
+          <div className="flex-1 text-left">
+            <h3 className="font-semibold text-foreground text-base mb-1">
+              {challenge.titleAr}
+            </h3>
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              {challenge.descriptionAr}
+            </p>
           </div>
         </div>
 

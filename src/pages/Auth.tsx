@@ -189,14 +189,14 @@ const Auth = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignUp && (
               <div className="relative group">
-                <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
                 <Input
                   type="text"
                   placeholder="اسم المستخدم"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
-                  dir="rtl"
+                  className="pl-12 text-left bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
+                  dir="ltr"
                   required
                   minLength={3}
                   maxLength={50}
@@ -205,34 +205,34 @@ const Auth = () => {
             )}
 
             <div className="relative group">
-              <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
               <Input
                 type="email"
                 placeholder="البريد الإلكتروني"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
-                dir="rtl"
+                className="pl-12 text-left bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
+                dir="ltr"
                 required
               />
             </div>
 
             <div className="relative group">
-              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
               <Input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="كلمة السر"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pr-12 pl-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
-                dir="rtl"
+                className="pl-12 pr-12 text-left bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
+                dir="ltr"
                 required
                 minLength={6}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-gold transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-gold transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -240,14 +240,14 @@ const Auth = () => {
 
             {isSignUp && (
               <div className="relative group">
-                <Users className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
+                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
                 <Input
                   type="text"
                   placeholder="رمز الإحالة (اختياري)"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                  className="pr-12 text-right bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
-                  dir="rtl"
+                  className="pl-12 text-left bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
+                  dir="ltr"
                   maxLength={20}
                 />
               </div>

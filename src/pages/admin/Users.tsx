@@ -117,7 +117,7 @@ const Users = () => {
 
       <div className="glass-card rounded-2xl border border-border/50 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-right">
+          <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border/50 bg-white/5">
                 <th className="px-6 py-4 text-sm font-semibold">المستخدم</th>

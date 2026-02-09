@@ -79,6 +79,26 @@
     @apply font-bold;
     font-family: 'Cairo', sans-serif;
   }
+
+  /* Force LTR globally */
+  html, body {
+    direction: ltr !important;
+    text-align: left !important;
+  }
+
+  /* Fix common RTL-biased elements */
+  .text-right {
+    text-align: left !important;
+  }
+  
+  .flex-row-reverse {
+    flex-direction: row !important;
+  }
+
+  /* Ensure Arabic text still looks good but follows LTR flow */
+  p, span, h1, h2, h3, h4, h5, h6 {
+    unicode-bidi: plaintext;
+  }
 }
 
 @layer utilities {

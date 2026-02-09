@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Wallet, LogOut, Shield, Eye } from 'lucide-react';
+import { Bell, Wallet, LogOut, Shield, Eye, EyeOff, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationsModal } from '@/components/modals/NotificationsModal';
@@ -12,6 +12,16 @@ export const Header = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [securityOpen, setSecurityOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [showBalance, setShowBalance] = useState(() => {
+    const saved = localStorage.getItem('showBalance');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  const toggleBalance = () => {
+    const newState = !showBalance;
+    setShowBalance(newState);
+    localStorage.setItem('showBalance', JSON.stringify(newState));
+  };
 
   return (
     <>
@@ -50,29 +60,34 @@ export const Header = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold" />
-              <span className="text-xs sm:text-sm font-bold text-gold">
-                ${profile ? Number(profile.balance).toLocaleString() : '0'}
+              <span className="text-xs sm:text-sm font-bold text-gold min-w-[60px]">
+                {showBalance 
+                  ? `$${profile ? Number(profile.balance).toLocaleString() : '0'}`
+                  : '••••••'}
               </span>
+              <button 
+                onClick={toggleBalance}
+                className="p-1 hover:bg-white/5 rounded-full transition-colors"
+              >
+                {showBalance ? (
+                  <Eye className="w-3.5 h-3.5 text-white/40" />
+                ) : (
+                  <EyeOff className="w-3.5 h-3.5 text-white/40" />
+                )}
+              </button>
             </motion.div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Privacy */}
-              <motion.button
-                onClick={() => setPrivacyOpen(true)}
+              {/* Support Button */}
+              <motion.a
+                href="https://t.me/c7r_support"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-full bg-[#141419] border border-white/5 hover:border-gold/30 transition-all shrink-0"
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.9 }}
               >
-                <Eye className="w-4 h-4 text-white/70" />
-              </motion.button>
-
-              {/* Security */}
-              <motion.button
-                onClick={() => setSecurityOpen(true)}
-                className="p-2 rounded-full bg-[#141419] border border-white/5 hover:border-gold/30 transition-all shrink-0"
-                whileTap={{ scale: 0.95 }}
-              >
-                <Shield className="w-4 h-4 text-white/70" />
-              </motion.button>
+                <MessageCircle className="w-4 h-4 text-white/70" />
+              </motion.a>
 
               {/* Notifications */}
               <motion.button
@@ -87,10 +102,10 @@ export const Header = () => {
               {/* Logout */}
               <motion.button
                 onClick={signOut}
-                className="p-2 rounded-full bg-[#141419] border border-white/5 hover:border-red-500/30 hover:bg-red-500/5 transition-all shrink-0"
+                className="p-2 rounded-full bg-[#141419] border border-red-500/20 hover:border-red-500/30 hover:bg-red-500/5 transition-all shrink-0"
                 whileTap={{ scale: 0.95 }}
               >
-                <LogOut className="w-4 h-4 text-white/70" />
+                <LogOut className="w-4 h-4 text-red-500/70" />
               </motion.button>
             </div>
           </div>

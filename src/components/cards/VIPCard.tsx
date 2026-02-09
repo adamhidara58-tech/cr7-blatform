@@ -306,18 +306,18 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       {/* Main Content Area */}
       <div className="flex-1 relative z-10">
         {/* Player Image - Moved Down to Avoid Text Overlap */}
-        <div className="absolute left-0 bottom-0 w-[50%] h-[110%] flex items-end z-[15] pointer-events-none translate-y-2">
+        <div className="absolute right-0 bottom-0 w-[50%] h-[110%] flex items-end z-[15] pointer-events-none translate-y-2">
           <motion.img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
-            loading={index < 2 ? "eager" : "lazy"}
+            loading="eager"
             decoding="async"
             className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-all duration-700 group-hover:scale-105 origin-bottom will-change-transform"
           />
         </div>
 
-        {/* Info Boxes Grid - Centered Vertically on the Right */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[52%] grid grid-cols-2 gap-1.5 z-20" dir="rtl">
+        {/* Info Boxes Grid - Centered Vertically on the Left */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[52%] grid grid-cols-2 gap-1.5 z-20" dir="ltr">
           {/* Daily Tasks */}
           <div className="bg-white/10 backdrop-blur-2xl rounded-2xl p-1.5 flex flex-col items-center justify-center border border-white/20 shadow-xl h-[70px] transition-colors hover:bg-white/15">
             <Calendar className={`w-3.5 h-3.5 ${colors.text} mb-1`} />

@@ -119,7 +119,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-foreground flex overflow-hidden">
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-border/50 bg-card/50 backdrop-blur-xl">
+      <aside className="hidden md:flex flex-col w-64 border-r border-border/50 bg-card/50 backdrop-blur-xl" dir="ltr">
         <div className="p-6 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center shadow-gold">
             <ShieldCheck className="w-6 h-6 text-primary-foreground" />
@@ -193,10 +193,11 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm md:hidden"
             />
             <motion.aside
-              initial={{ x: '100%' }}
+              initial={{ x: '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              className="fixed inset-y-0 right-0 z-50 w-72 bg-card border-l border-border/50 p-6 md:hidden"
+              exit={{ x: '-100%' }}
+              className="fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border/50 p-6 md:hidden"
+              dir="ltr"
             >
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-2">

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Users, Link, Copy, TrendingUp, UserPlus, Gift, CheckCircle, Share2 } from 'lucide-react';
+import { Users, Link, Copy, TrendingUp, UserPlus, Gift, CheckCircle, Share2, MessageCircle, ExternalLink } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { GoldButton } from '@/components/ui/GoldButton';
@@ -176,9 +176,76 @@ const Team = () => {
         </motion.div>
       </section>
 
+      {/* Support Section */}
+      <section className="px-4 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-[#141419] border border-white/5 rounded-2xl p-6 text-center"
+        >
+          <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MessageCircle className="w-8 h-8 text-gold" />
+          </div>
+          <h3 className="text-lg font-bold text-white mb-2">الدعم الفني</h3>
+          <p className="text-sm text-white/60 mb-6">
+            إذا واجهت أي مشكلة لا تتردد في التواصل معنا عبر تيليغرام
+          </p>
+          
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-white/40 text-left px-1">الدعم الخاص:</p>
+              <div className="flex items-center gap-2 bg-black/40 p-3 rounded-xl border border-white/5">
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText('https://t.me/c7r_support');
+                    toast({ title: 'تم النسخ', description: 'تم نسخ رابط الدعم' });
+                  }}
+                  className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  <Copy className="w-4 h-4 text-gold" />
+                </button>
+                <a 
+                  href="https://t.me/c7r_support" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-1 text-sm text-gold font-medium text-left truncate"
+                >
+                  t.me/c7r_support
+                </a>
+                <ExternalLink className="w-4 h-4 text-white/20" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-white/40 text-left px-1">مجموعة تيليغرام:</p>
+              <div className="flex items-center gap-2 bg-black/40 p-3 rounded-xl border border-white/5">
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText('https://t.me/cr7rsafcd');
+                    toast({ title: 'تم النسخ', description: 'تم نسخ رابط المجموعة' });
+                  }}
+                  className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  <Copy className="w-4 h-4 text-gold" />
+                </button>
+                <a 
+                  href="https://t.me/cr7rsafcd" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-1 text-sm text-gold font-medium text-left truncate"
+                >
+                  t.me/cr7rsafcd
+                </a>
+                <ExternalLink className="w-4 h-4 text-white/20" />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
       {/* Referrals List */}
       <section className="px-4 pb-6">
-        <h3 className="font-display text-lg text-foreground mb-4 text-right">الإحالات الأخيرة</h3>
+        <h3 className="font-display text-lg text-foreground mb-4 text-left">الإحالات الأخيرة</h3>
         
         {loading ? (
           <div className="flex items-center justify-center py-8">

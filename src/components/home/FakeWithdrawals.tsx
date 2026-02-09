@@ -49,14 +49,14 @@ export const FakeWithdrawals = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between px-1">
-        <button className="flex items-center gap-1 text-[10px] text-white/30 font-bold hover:text-gold transition-colors">
-          <ChevronLeft className="w-3.5 h-3.5" />
-          عرض الكل
-        </button>
         <h3 className="text-lg font-bold text-white/80 flex items-center gap-2">
           <Wallet className="w-4.5 h-4.5 text-gold" />
           آخر السحوبات
         </h3>
+        <button className="flex items-center gap-1 text-[10px] text-white/30 font-bold hover:text-gold transition-colors">
+          عرض الكل
+          <ChevronLeft className="w-3.5 h-3.5 rotate-180" />
+        </button>
       </div>
 
       <motion.div
@@ -78,16 +78,16 @@ export const FakeWithdrawals = () => {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="flex items-center justify-between py-3 px-4 bg-white/[0.02] border border-white/[0.03] rounded-2xl group hover:bg-white/[0.05] transition-colors will-change-transform"
               >
-                <span className="text-[10px] font-medium text-white/30">{withdrawal.timeAgo}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-black text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.2)]">
-                    +${withdrawal.amount.toFixed(2)}
-                  </span>
-                  <span className="text-sm font-bold text-white/80">{withdrawal.username}</span>
                   <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/10">
                     <ArrowDownRight className="w-3.5 h-3.5 text-green-400" />
                   </div>
+                  <span className="text-sm font-bold text-white/80">{withdrawal.username}</span>
+                  <span className="text-sm font-black text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.2)]">
+                    +${withdrawal.amount.toFixed(2)}
+                  </span>
                 </div>
+                <span className="text-[10px] font-medium text-white/30">{withdrawal.timeAgo}</span>
               </motion.div>
             ))}
           </AnimatePresence>

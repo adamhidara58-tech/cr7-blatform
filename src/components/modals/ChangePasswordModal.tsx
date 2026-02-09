@@ -1,0 +1,131 @@
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Lock, Loader2 } from 'lucide-react';
+import { GoldButton } from '@/components/ui/GoldButton';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+interface ChangePasswordModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const ChangePasswordModal = ({ open, onOpenChange }: ChangePasswordModalProps) => {
+  const [loading, setLoading] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const { toast } = useToast();
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        variant: 'destructive',
+        title: 'خطأ',
+        description: 'كلمات المرور غير متطابقة',
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        variant: 'destructive',
+        title: 'خطأ',
+        description: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'تم بنجاح',
+        description: 'تم تغيير كلمة المرور بنجاح',
+      });
+      onOpenChange(false);
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'خطأ',
+        description: error.message || 'حدث خطأ أثناء تغيير كلمة المرور',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="glass-modal max-w-md border-border/50">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl font-display text-gradient-gold">
+            <Lock className="w-5 h-5 text-primary" />
+            تغيير كلمة المرور
+          </DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleUpdatePassword} className="space-y-4 mt-4">
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground block text-left">كلمة المرور القديمة</label>
+            <input
+              type="password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              className="w-full bg-[#141419] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 outline-none transition-all"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground block text-left">كلمة المرور الجديدة</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full bg-[#141419] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 outline-none transition-all"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground block text-left">تأكيد كلمة المرور الجديدة</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full bg-[#141419] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 outline-none transition-all"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <GoldButton 
+            type="submit"
+            variant="primary" 
+            className="w-full py-6 mt-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              'تحديث كلمة المرور'
+            )}
+          </GoldButton>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};

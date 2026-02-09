@@ -158,8 +158,11 @@ const Challenges = () => {
             </div>
 
             {/* Middle: Content */}
-            <div className="flex-1 text-right">
-              <div className="flex items-center justify-end gap-2 mb-1">
+            <div className="flex-1 text-left">
+              <div className="flex items-center justify-start gap-2 mb-1">
+                <h3 className="font-semibold text-foreground text-base">
+                  {challenge.titleAr}
+                </h3>
                 {challenge.type === 'daily_login' && challenge.vipLevel > 0 && (
                   <span className={`text-xs px-2 py-0.5 rounded-full bg-gradient-to-r ${getLevelColor(challenge.vipLevel)} text-white`}>
                     VIP {challenge.vipLevel}
@@ -170,9 +173,6 @@ const Challenges = () => {
                     مستواك
                   </span>
                 )}
-                <h3 className="font-semibold text-foreground text-base">
-                  {challenge.titleAr}
-                </h3>
               </div>
               <p className="text-xs text-muted-foreground line-clamp-2">
                 {challenge.descriptionAr}
@@ -180,7 +180,7 @@ const Challenges = () => {
             </div>
 
             {/* Right: Reward */}
-            <div className="text-left flex-shrink-0">
+            <div className="text-right flex-shrink-0">
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-primary fill-primary" />
                 <span className="font-bold text-primary text-lg">

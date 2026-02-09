@@ -104,7 +104,7 @@ export const TransactionsHistory = () => {
             </div>
           </div>
 
-          <div className="text-right flex-1 mx-3">
+          <div className="text-left flex-1 mx-3">
             <p className="font-medium">
               {tx.type === 'deposit' ? 'إيداع' : 'سحب'} {tx.currency}
             </p>
@@ -113,7 +113,7 @@ export const TransactionsHistory = () => {
             </p>
           </div>
 
-          <div className="text-left">
+          <div className="text-right">
             <p className={`font-bold ${tx.type === 'deposit' ? 'text-green-500' : 'text-primary'}`}>
               {tx.type === 'deposit' ? '+' : '-'}${tx.amount.toFixed(2)}
             </p>
