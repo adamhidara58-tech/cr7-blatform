@@ -80,21 +80,58 @@ const Profile = () => {
       return;
     }
 
+    // File size validation (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'خطأ', description: 'حجم الصورة يجب أن يكون أقل من 5 ميجابايت' });
+      return;
+    }
+
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const filePath = `${profile.id}/${Math.random()}.${fileExt}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${profile.id}/${fileName}`;
+
+      // First, check if bucket exists by trying to list buckets
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error('Error listing buckets:', bucketsError);
+      }
+
+      const avatarsBucket = buckets?.find(b => b.name === 'avatars');
+      
+      if (!avatarsBucket) {
+        throw new Error('مساحة التخزين "avatars" غير موجودة. يرجى التواصل مع الدعم الفني.');
+      }
+
+      // Delete old avatar if exists
+      if (profile.avatar_url) {
+        try {
+          const oldPath = profile.avatar_url.split('/').slice(-2).join('/');
+          await supabase.storage.from('avatars').remove([oldPath]);
+        } catch (e) {
+          console.log('Could not delete old avatar:', e);
+        }
+      }
 
       // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, { 
+          cacheControl: '3600',
+          upsert: false 
+        });
 
       if (uploadError) {
+        console.error('Upload error:', uploadError);
         if (uploadError.message.includes('Bucket not found')) {
-          throw new Error('لم يتم العثور على مساحة التخزين "avatars". يرجى التأكد من إنشائها في Supabase Storage.');
+          throw new Error('مساحة التخزين "avatars" غير متاحة. يرجى التأكد من إعدادات Supabase.');
         }
-        throw uploadError;
+        if (uploadError.message.includes('not allowed')) {
+          throw new Error('ليس لديك صلاحية رفع الملفات. يرجى التحقق من إعدادات الأمان في Supabase.');
+        }
+        throw new Error(uploadError.message || 'فشل رفع الصورة');
       }
 
       // Get Public URL
@@ -108,12 +145,20 @@ const Profile = () => {
         .update({ avatar_url: publicUrl })
         .eq('id', profile.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        throw new Error('فشل تحديث الملف الشخصي');
+      }
 
       await refreshProfile();
-      toast({ title: 'تم بنجاح', description: 'تم تحديث الصورة الشخصية' });
+      toast({ title: 'تم بنجاح', description: 'تم تحديث الصورة الشخصية بنجاح' });
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'خطأ', description: error.message });
+      console.error('Avatar upload error:', error);
+      toast({ 
+        variant: 'destructive', 
+        title: 'خطأ في رفع الصورة', 
+        description: error.message || 'حدث خطأ غير متوقع'
+      });
     } finally {
       setIsUploading(false);
     }
