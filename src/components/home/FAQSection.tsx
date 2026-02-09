@@ -1,0 +1,156 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, HelpCircle } from 'lucide-react';
+
+interface FAQItemProps {
+  question: string;
+  answer: React.ReactNode;
+  icon: string;
+  isOpen: boolean;
+  onClick: () => void;
+}
+
+const FAQItem = ({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
+  return (
+    <motion.div 
+      initial={false}
+      className={`glass-card rounded-2xl border transition-all duration-300 overflow-hidden mb-4 ${
+        isOpen ? 'border-gold/40 shadow-[0_0_20px_rgba(212,175,55,0.15)] bg-white/5' : 'border-white/5 hover:border-white/10'
+      }`}
+    >
+      <button
+        onClick={onClick}
+        className="w-full px-5 py-5 flex items-center justify-between gap-4 text-right"
+      >
+        <div className="flex items-center gap-4 flex-1">
+          <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{icon}</span>
+          <span className={`font-bold text-sm md:text-base transition-colors ${isOpen ? 'text-gold' : 'text-white/90'}`}>
+            {question}
+          </span>
+        </div>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className={`${isOpen ? 'text-gold' : 'text-white/30'}`}
+        >
+          <ChevronDown className="w-5 h-5" />
+        </motion.div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+          >
+            <div className="px-5 pb-6 pt-0">
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-4" />
+              <div className="text-white/70 text-sm leading-relaxed font-medium whitespace-pre-line">
+                {answer}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+export const FAQSection = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const faqs = [
+    {
+      question: "ما هي هذه المنصة؟",
+      icon: "💎",
+      answer: "هذه المنصة هي تجربة رقمية متطورة مستوحاة من مسيرة النجاح والانضباط التي جسّدها كريستيانو رونالدو. تم تصميمها لتقديم نظام عضويات VIP ذكي، حيث يمثّل كل مستوى مرحلة من مراحل التقدم والنمو. تعتمد المنصة على استراتيجيات الأصول الرقمية وتقنيات البلوكشين الحديثة بهدف تحقيق عوائد يومية بطريقة منظمة، شفافة، وآمنة."
+    },
+    {
+      question: "كيف تعمل المنصة؟",
+      icon: "⚡",
+      answer: "عند تفعيل أي عضوية VIP، يتم دمج مساهمتك ضمن محفظة أصول رقمية مُدارة باحتراف. تقوم المنصة بتشغيل استراتيجيات رقمية متقدمة لتوليد العوائد عبر تقنيات البلوكشين، ويتم احتساب الأرباح بشكل يومي وإضافتها مباشرة إلى حسابك داخل لوحة التحكم، مع عرض تفصيلي لكل العمليات بشفافية تامة."
+    },
+    {
+      question: "كيف تتم عمليات الإيداع والسحب؟",
+      icon: "🔒",
+      answer: `تعتمد المنصة على العملات الرقمية لضمان معاملات سريعة، آمنة، وعابرة للحدود دون تعقيدات.
+
+• الإيداع: يتم بشكل فوري تقريبًا، ويظهر الرصيد مباشرة في حسابك بعد التأكيد.
+• السحب: متاح مرة واحدة يوميًا خلال الفترة (12:00 – 13:30 بتوقيت UTC) لضمان إدارة مالية منظمة وآمنة لجميع المستخدمين عالميًا.
+
+في حال عدم السحب خلال هذه الفترة، يمكن سحب الرصيد كاملًا في نفس الفترة من اليوم التالي بسهولة.
+هذا النظام يضمن تنظيم العمليات، حماية السيولة، وتوفير تجربة موثوقة وواضحة لجميع الأعضاء.`
+    },
+    {
+      question: "هل يمكنني متابعة أرباحي وعمليّاتي؟",
+      icon: "📊",
+      answer: `نعم، توفر المنصة لوحة تحكم متكاملة تتيح لك متابعة كل شيء لحظة بلحظة، بما في ذلك:
+• الرصيد الإجمالي
+• الأرباح اليومية
+• سجل الإيداع والسحب
+• حالة طلبات السحب
+• مستوى VIP الحالي وتطوره
+
+كل البيانات تُعرض بشفافية وسهولة لضمان تجربة استخدام احترافية.`
+    },
+    {
+      question: "ما هي مستويات VIP والأرباح اليومية؟",
+      icon: "🏆",
+      answer: `توفر المنصة عدة مستويات VIP لتناسب مختلف المستخدمين، وكل مستوى يمنح عائدًا يوميًا مختلفًا:
+• VIP 1 — تفعيل: 30$ → ربح يومي: 2.5$
+• VIP 2 — تفعيل: 58$ → ربح يومي: 9.5$
+• VIP 3 — تفعيل: 120$ → ربح يومي: 18.75$
+• VIP 4 — تفعيل: 358$ → ربح يومي: 93.75$
+• VIP 5 — تفعيل: 535$ → ربح يومي: 168.75$
+
+🎁 جميع العضويات تتضمن خصم ترحيبي بقيمة 20$ عند التفعيل`
+    }
+  ];
+
+  return (
+    <section className="px-4 mb-20 relative">
+      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-full h-40 bg-gold/5 blur-[100px] pointer-events-none" />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="text-center mb-10"
+      >
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 mb-4">
+          <HelpCircle className="w-4 h-4 text-gold" />
+          <span className="text-[10px] font-black text-gold uppercase tracking-widest">الأسئلة الشائعة</span>
+        </div>
+        <h2 className="text-2xl font-black text-white mb-3">لديك استفسار؟</h2>
+        <p className="text-white/40 text-sm max-w-[280px] mx-auto leading-relaxed">
+          كل ما تحتاج معرفته عن المنصة وكيفية تحقيق أقصى استفادة منها
+        </p>
+      </motion.div>
+
+      <div className="max-w-2xl mx-auto">
+        {faqs.map((faq, index) => (
+          <FAQItem
+            key={index}
+            question={faq.question}
+            answer={faq.answer}
+            icon={faq.icon}
+            isOpen={openIndex === index}
+            onClick={() => setOpenIndex(openIndex === index ? null : index)}
+          />
+        ))}
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        className="mt-10 text-center"
+      >
+        <p className="text-white/20 text-[11px] font-medium">
+          © 2026 CR7 ELITE PLATFORM • نظام آمن وموثوق
+        </p>
+      </motion.div>
+    </section>
+  );
+};

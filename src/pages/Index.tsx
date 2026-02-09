@@ -11,6 +11,7 @@ import React, { Suspense, lazy, useMemo, useCallback } from 'react';
 
 // Lazy load heavy components for better initial load speed
 const VIPCardsSection = lazy(() => import('@/components/home/VIPCardsSection').then(module => ({ default: module.VIPCardsSection })));
+const FAQSection = lazy(() => import('@/components/home/FAQSection').then(module => ({ default: module.FAQSection })));
 const PlatformStatsCard = lazy(() => import('@/components/home/PlatformStatsCard').then(module => ({ default: module.PlatformStatsCard })));
 const FakeWithdrawals = lazy(() => import('@/components/home/FakeWithdrawals').then(module => ({ default: module.FakeWithdrawals })));
 
@@ -222,6 +223,11 @@ const Index = () => {
       {/* VIP Cards Section */}
       <Suspense fallback={<LoadingSpinner />}>
         <VIPCardsSection />
+      </Suspense>
+
+      {/* FAQ Section */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <FAQSection />
       </Suspense>
     </PageLayout>
   );
