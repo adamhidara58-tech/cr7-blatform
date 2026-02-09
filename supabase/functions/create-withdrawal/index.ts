@@ -322,13 +322,14 @@ serve(async (req) => {
       const chatId = settings.telegram_chat_id;
 
       if (botToken && chatId) {
+        const siteUrl = Deno.env.get('SITE_URL') || 'https://cr7-blatform.vercel.app';
         const message = `🔔 *طلب سحب جديد*\n\n` +
           `👤 المستخدم: ${user.email}\n` +
           `💰 المبلغ: $${amount}\n` +
           `🪙 العملة: ${currency.toUpperCase()}\n` +
           `🌐 الشبكة: ${network || 'TRC20'}\n` +
           `🏦 المحفظة: \`${walletAddress}\`\n\n` +
-          `يرجى مراجعة لوحة التحكم للموافقة أو الرفض.`;
+          `🔗 [إدارة السحوبات في لوحة التحكم](${siteUrl}/admin/withdrawals)`;
 
         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
           method: 'POST',
@@ -337,6 +338,7 @@ serve(async (req) => {
             chat_id: chatId,
             text: message,
             parse_mode: 'Markdown',
+            disable_web_page_preview: true
           }),
         });
       }

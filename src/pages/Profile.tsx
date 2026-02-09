@@ -90,7 +90,12 @@ const Profile = () => {
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        if (uploadError.message.includes('Bucket not found')) {
+          throw new Error('لم يتم العثور على مساحة التخزين "avatars". يرجى التأكد من إنشائها في Supabase Storage.');
+        }
+        throw uploadError;
+      }
 
       // Get Public URL
       const { data: { publicUrl } } = supabase.storage
