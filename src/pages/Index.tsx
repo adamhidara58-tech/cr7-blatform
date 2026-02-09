@@ -20,8 +20,18 @@ const LoadingSpinner = () => (
   </div>
 );
 
+const IndexSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="h-64 bg-secondary/20 rounded-b-[3rem] mb-8" />
+    <div className="px-4 grid grid-cols-2 gap-4 mb-10">
+      {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-secondary/20 rounded-2xl" />)}
+    </div>
+    <div className="px-4 h-40 bg-secondary/20 rounded-2xl mb-10" />
+  </div>
+);
+
 const Index = () => {
-  const { profile, loading } = useAuth();
+  const { profile, isProfileLoading } = useAuth();
   const { count: referralCount } = useReferrals();
   const { toast } = useToast();
 
@@ -46,15 +56,15 @@ const Index = () => {
     }
   };
 
-  if (loading || !profile) {
+  if (isProfileLoading && !profile) {
     return (
       <PageLayout>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
-        </div>
+        <IndexSkeleton />
       </PageLayout>
     );
   }
+
+  if (!profile) return null;
 
   const currentVipLevel = vipLevels.find(v => v.level === profile.vip_level) || vipLevels[0];
 

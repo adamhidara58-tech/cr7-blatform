@@ -24,21 +24,40 @@ import AdminSettings from "./pages/admin/Settings";
 import AdminVIP from "./pages/admin/VIP";
 import AdminChallenges from "./pages/admin/Challenges";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isProfileLoading, profile } = useAuth();
   
+  // Only show loading if we are checking auth session
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
       </div>
     );
   }
   
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // If we have a user but profile is still loading, we can either show a loader 
+  // or let the page handle it with skeletons. For better UX, we'll show a loader
+  // only if the profile is absolutely required and not yet available.
+  if (isProfileLoading && !profile) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
+      </div>
+    );
   }
   
   return <>{children}</>;

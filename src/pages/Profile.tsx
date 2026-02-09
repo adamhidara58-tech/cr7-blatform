@@ -19,7 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DepositModal } from '@/components/wallet/DepositModal';
 import { WithdrawalModal } from '@/components/wallet/WithdrawalModal';
-import { TransactionsHistory } from '@/components/wallet/TransactionsHistory';
+import { useQuery } from '@tanstack/react-query';
 
 interface Transaction {
   id: string;
@@ -30,26 +30,41 @@ interface Transaction {
   created_at: string;
 }
 
+const ProfileSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="flex flex-col items-center mb-6 pt-6">
+      <div className="w-20 h-20 rounded-full bg-secondary/50 mb-3" />
+      <div className="h-6 w-32 bg-secondary/50 rounded mb-2" />
+      <div className="h-4 w-48 bg-secondary/50 rounded" />
+    </div>
+    <div className="px-4 mb-6">
+      <div className="h-48 bg-secondary/30 rounded-2xl border border-white/5" />
+    </div>
+    <div className="px-4 space-y-3">
+      <div className="h-12 bg-secondary/30 rounded-xl" />
+      <div className="h-12 bg-secondary/30 rounded-xl" />
+      <div className="h-12 bg-secondary/30 rounded-xl" />
+    </div>
+  </div>
+);
+
 const Profile = () => {
-  const { profile, signOut } = useAuth();
+  const { profile, isProfileLoading, signOut } = useAuth();
   const location = useLocation();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
 
   useEffect(() => {
     if (location.state && (location.state as any).openDeposit) {
       setIsDepositOpen(true);
-      // Clear state to prevent reopening on refresh
       window.history.replaceState({}, document.title);
     }
   }, [location]);
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!profile) return;
-
+  const { data: transactions = [], isLoading: isTransactionsLoading } = useQuery({
+    queryKey: ['transactions', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
@@ -57,31 +72,20 @@ const Profile = () => {
         .order('created_at', { ascending: false })
         .limit(4);
 
-      if (error) {
-        console.error('Error fetching transactions:', error);
-      } else {
-        setTransactions(data || []);
-      }
-      setLoading(false);
-    };
-
-    fetchTransactions();
-  }, [profile]);
+      if (error) throw error;
+      return data as Transaction[];
+    },
+    enabled: !!profile?.id,
+  });
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
-      case 'deposit':
-        return <ArrowDownCircle className="w-5 h-5 text-green-500" />;
-      case 'withdrawal':
-        return <ArrowUpCircle className="w-5 h-5 text-accent" />;
-      case 'challenge':
-        return <ArrowDownCircle className="w-5 h-5 text-primary" />;
-      case 'commission':
-        return <ArrowDownCircle className="w-5 h-5 text-green-500" />;
-      case 'vip_upgrade':
-        return <ArrowUpCircle className="w-5 h-5 text-primary" />;
-      default:
-        return <History className="w-5 h-5 text-muted-foreground" />;
+      case 'deposit': return <ArrowDownCircle className="w-5 h-5 text-green-500" />;
+      case 'withdrawal': return <ArrowUpCircle className="w-5 h-5 text-accent" />;
+      case 'challenge': return <ArrowDownCircle className="w-5 h-5 text-primary" />;
+      case 'commission': return <ArrowDownCircle className="w-5 h-5 text-green-500" />;
+      case 'vip_upgrade': return <ArrowUpCircle className="w-5 h-5 text-primary" />;
+      default: return <History className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
@@ -91,15 +95,15 @@ const Profile = () => {
     { icon: Settings, label: 'الإعدادات', href: '#' },
   ];
 
-  if (!profile) {
+  if (isProfileLoading && !profile) {
     return (
       <PageLayout>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
+        <ProfileSkeleton />
       </PageLayout>
     );
   }
+
+  if (!profile) return null;
 
   return (
     <PageLayout>
@@ -110,8 +114,11 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center mb-6"
         >
-          <div className="w-20 h-20 rounded-full bg-gradient-gold flex items-center justify-center mb-3 shadow-gold">
+          <div className="w-20 h-20 rounded-full bg-gradient-gold flex items-center justify-center mb-3 shadow-gold relative">
             <User className="w-10 h-10 text-primary-foreground" />
+            <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-background border-2 border-gold rounded-full flex items-center justify-center">
+              <span className="text-[10px] font-bold text-gold">V{profile.vip_level}</span>
+            </div>
           </div>
           <h2 className="font-display text-xl text-foreground">{profile.username}</h2>
           <p className="text-sm text-muted-foreground">{profile.email}</p>
@@ -128,7 +135,7 @@ const Profile = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-card border border-primary/30 rounded-2xl p-5"
+          className="bg-gradient-card border border-primary/30 rounded-2xl p-5 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         >
           <div className="flex items-center justify-between mb-4">
             <Wallet className="w-6 h-6 text-primary" />
@@ -138,7 +145,7 @@ const Profile = () => {
           <div className="text-center mb-6">
             <p className="text-xs text-muted-foreground mb-1">الرصيد المتاح</p>
             <p className="text-3xl font-bold text-gradient-gold">
-              ${Number(profile.balance).toLocaleString()}
+              ${Number(profile.balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-muted-foreground mt-1">USDT</p>
           </div>
@@ -184,12 +191,12 @@ const Profile = () => {
         </div>
 
         <div className="space-y-2">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          {isTransactionsLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => <div key={i} className="h-16 bg-secondary/20 rounded-xl animate-pulse" />)}
             </div>
           ) : transactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground bg-secondary/10 rounded-xl border border-dashed border-white/5">
               لا توجد معاملات حتى الآن
             </div>
           ) : (
@@ -199,11 +206,11 @@ const Profile = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-secondary/30 rounded-xl p-3 flex items-center justify-between"
+                className="bg-secondary/30 border border-white/5 rounded-xl p-3 flex items-center justify-between hover:bg-secondary/40 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   {getTransactionIcon(transaction.type)}
-                  <span className={`font-semibold ${Number(transaction.amount) >= 0 ? 'text-green-500' : 'text-accent'}`}>
+                  <span className={`font-bold ${Number(transaction.amount) >= 0 ? 'text-green-500' : 'text-accent'}`}>
                     {Number(transaction.amount) >= 0 ? '+' : ''}${Math.abs(Number(transaction.amount)).toFixed(2)}
                   </span>
                 </div>
@@ -215,7 +222,7 @@ const Profile = () => {
                   </p>
                 </div>
                 
-                <span className={`text-xs px-2 py-1 rounded-full ${
+                <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
                   transaction.status === 'completed' 
                     ? 'bg-green-500/20 text-green-500' 
                     : transaction.status === 'pending'
@@ -232,21 +239,21 @@ const Profile = () => {
 
       {/* Menu Items */}
       <section className="px-4 mb-6">
-        <div className="bg-gradient-card border border-border rounded-2xl overflow-hidden">
+        <div className="bg-gradient-card border border-white/5 rounded-2xl overflow-hidden">
           {menuItems.map((item, index) => (
             <motion.button
               key={item.label}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + index * 0.1 }}
-              className={`w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors ${
-                index < menuItems.length - 1 ? 'border-b border-border' : ''
+              className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors ${
+                index < menuItems.length - 1 ? 'border-b border-white/5' : ''
               }`}
             >
               <ChevronLeft className="w-5 h-5 text-muted-foreground" />
               <div className="flex items-center gap-3">
-                <span className="text-foreground">{item.label}</span>
-                <item.icon className="w-5 h-5 text-muted-foreground" />
+                <span className="text-foreground font-medium">{item.label}</span>
+                <item.icon className="w-5 h-5 text-primary" />
               </div>
             </motion.button>
           ))}
@@ -260,10 +267,10 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           onClick={signOut}
-          className="w-full flex items-center justify-center gap-2 py-3 text-accent hover:bg-accent/10 rounded-xl transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-4 text-accent hover:bg-accent/10 rounded-2xl transition-all border border-accent/20"
         >
           <LogOut className="w-5 h-5" />
-          <span className="font-medium">تسجيل الخروج</span>
+          <span className="font-bold">تسجيل الخروج</span>
         </motion.button>
       </section>
 

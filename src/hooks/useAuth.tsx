@@ -1,8 +1,9 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-interface Profile {
+export interface Profile {
   id: string;
   username: string;
   email: string;
@@ -18,6 +19,7 @@ interface Profile {
   created_at: string;
   updated_at: string;
   last_withdrawal_at: string | null;
+  role?: 'user' | 'admin';
 }
 
 interface AuthContextType {
@@ -25,6 +27,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  isProfileLoading: boolean;
   signUp: (email: string, password: string, username: string, referralCode?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -36,62 +39,80 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return null;
-    }
-    return data as Profile | null;
-  };
-
-  const refreshProfile = async () => {
-    if (user) {
-      const profileData = await fetchProfile(user.id);
-      setProfile(profileData);
-    }
-  };
+  // Fetch profile using React Query for caching and performance
+  const { 
+    data: profile, 
+    isLoading: isProfileLoading,
+    refetch: refreshProfile 
+  } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        throw error;
+      }
+      
+      // If profile doesn't exist, we might want to handle it (though trigger should create it)
+      return data as Profile | null;
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
+  });
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+    // Initial session check
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         setUser(session?.user ?? null);
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    initAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         
-        // Defer profile fetch with setTimeout
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id).then(setProfile);
-          }, 0);
-        } else {
-          setProfile(null);
+        if (event === 'SIGNED_IN') {
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
         }
-        setLoading(false);
+        
+        if (event === 'SIGNED_OUT') {
+          setProfileState(null);
+          queryClient.clear();
+        }
+        
+        setIsAuthLoading(false);
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
-      }
-      setLoading(false);
-    });
-
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
+
+  // Helper to clear profile state on logout
+  const setProfileState = (val: any) => {
+    queryClient.setQueryData(['profile', user?.id], val);
+  };
 
   const signUp = async (email: string, password: string, username: string, referralCode?: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -117,6 +138,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password
     });
     
+    if (!error) {
+      // Immediate invalidation to trigger fetch
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    }
+    
     return { error };
   };
 
@@ -124,19 +150,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setProfile(null);
+    queryClient.clear();
   };
 
   return (
     <AuthContext.Provider value={{
       user,
       session,
-      profile,
-      loading,
+      profile: profile ?? null,
+      loading: isAuthLoading,
+      isProfileLoading,
       signUp,
       signIn,
       signOut,
-      refreshProfile
+      refreshProfile: async () => { await refreshProfile(); }
     }}>
       {children}
     </AuthContext.Provider>
