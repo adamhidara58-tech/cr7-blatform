@@ -79,7 +79,13 @@ const Challenges = () => {
         navigate('/vip');
       } else if (challenge.vipLevel === userVipLevel) {
         // Actually claim the reward
-        await claimDailyReward();
+        const success = await claimDailyReward();
+        if (success) {
+          // Force a small delay to allow state updates to propagate
+          setTimeout(() => {
+            // The hook already calls refreshProfile, but we can add extra logic here if needed
+          }, 500);
+        }
       } else if (challenge.vipLevel < userVipLevel) {
         toast({
           title: 'مهمة مستوى أدنى',

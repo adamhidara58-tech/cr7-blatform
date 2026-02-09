@@ -108,31 +108,33 @@ export const useDailyClaim = () => {
         return false;
       }
 
-      // Update user's balance using RPC to ensure atomicity and avoid race conditions
-      const { error: balanceError } = await supabase.rpc('increment_balance', {
-        user_id: user.id,
-        amount: rewardAmount
-      });
+      // Update user's balance
+      // We'll try to update the profile directly first as it's more reliable if RPC is not set up
+      const { data: currentProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('balance, total_earned, daily_challenges_completed')
+        .eq('id', user.id)
+        .single();
 
-      if (balanceError) {
-        console.error('RPC failed, falling back to manual update:', balanceError);
-        // If RPC fails, fallback to manual update (less safe but better than nothing)
-        const { data: currentProfile } = await supabase
-          .from('profiles')
-          .select('balance, total_earned, daily_challenges_completed')
-          .eq('id', user.id)
-          .single();
+      if (fetchError) throw fetchError;
 
-        const { error: manualError } = await supabase
-          .from('profiles')
-          .update({
-            balance: (currentProfile?.balance || profile.balance) + rewardAmount,
-            total_earned: (currentProfile?.total_earned || profile.total_earned) + rewardAmount,
-            daily_challenges_completed: (currentProfile?.daily_challenges_completed || profile.daily_challenges_completed) + 1,
-          })
-          .eq('id', user.id);
-        
-        if (manualError) throw manualError;
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          balance: (currentProfile?.balance || 0) + rewardAmount,
+          total_earned: (currentProfile?.total_earned || 0) + rewardAmount,
+          daily_challenges_completed: (currentProfile?.daily_challenges_completed || 0) + 1,
+        })
+        .eq('id', user.id);
+      
+      if (updateError) {
+        console.error('Manual update failed, trying RPC:', updateError);
+        // Fallback to RPC if manual update fails
+        const { error: rpcError } = await supabase.rpc('increment_balance', {
+          user_id: user.id,
+          amount: rewardAmount
+        });
+        if (rpcError) throw rpcError;
       }
 
       // Create transaction record
@@ -148,12 +150,20 @@ export const useDailyClaim = () => {
 
       if (transactionError) throw transactionError;
 
-      // Update platform stats
-      await supabase
-        .from('platform_stats')
-        .update({
-          total_paid: (await supabase.from('platform_stats').select('total_paid').single()).data?.total_paid + rewardAmount || rewardAmount,
-        });
+      // Update platform stats (swallow error to not fail the whole process)
+      try {
+        const { data: stats } = await supabase.from('platform_stats').select('total_paid').single();
+        if (stats) {
+          await supabase
+            .from('platform_stats')
+            .update({
+              total_paid: (stats.total_paid || 0) + rewardAmount,
+            })
+            .eq('id', 1); // Assuming ID 1 for stats
+        }
+      } catch (e) {
+        console.error('Error updating platform stats:', e);
+      }
 
       // Refresh profile and set today's claim
       await refreshProfile();
