@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { NotificationsModal } from '@/components/modals/NotificationsModal';
 import { SecurityModal } from '@/components/modals/SecurityModal';
 import { PrivacyModal } from '@/components/modals/PrivacyModal';
-import logoNew from '@/assets/logo-new.png';
+import logoNewWebp from '@/assets/logo-new.webp';
 
 export const Header = () => {
   const { profile, signOut } = useAuth();
@@ -26,9 +26,10 @@ export const Header = () => {
           >
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#141419] border border-gold/20 flex items-center justify-center shadow-gold overflow-hidden">
               <img 
-                src={logoNew} 
+                src={logoNewWebp} 
                 alt="CR7 Logo" 
                 loading="eager"
+                fetchPriority="high"
                 decoding="async"
                 className="w-full h-full object-cover scale-110 will-change-transform" 
               />

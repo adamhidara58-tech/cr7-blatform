@@ -6,8 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useReferrals } from '@/hooks/useReferrals';
 import { useToast } from '@/hooks/use-toast';
 import { vipLevels } from '@/data/mockData';
-import heroBg from '@/assets/hero-bg.jpg';
-import React, { Suspense, lazy } from 'react';
+import heroBgWebp from '@/assets/hero-bg.webp';
+import React, { Suspense, lazy, useMemo, useCallback } from 'react';
 
 // Lazy load heavy components for better initial load speed
 const VIPCardsSection = lazy(() => import('@/components/home/VIPCardsSection').then(module => ({ default: module.VIPCardsSection })));
@@ -35,7 +35,7 @@ const Index = () => {
   const { count: referralCount } = useReferrals();
   const { toast } = useToast();
 
-  const copyReferralCode = () => {
+  const copyReferralCode = useCallback(() => {
     if (profile?.referral_code) {
       navigator.clipboard.writeText(profile.referral_code);
       toast({
@@ -43,9 +43,9 @@ const Index = () => {
         description: 'رمز الإحالة تم نسخه',
       });
     }
-  };
+  }, [profile?.referral_code, toast]);
 
-  const shareReferralLink = () => {
+  const shareReferralLink = useCallback(() => {
     if (profile?.referral_code) {
       const link = `${window.location.origin}/auth?ref=${profile.referral_code}`;
       navigator.clipboard.writeText(link);
@@ -54,7 +54,12 @@ const Index = () => {
         description: 'رابط الإحالة تم نسخه',
       });
     }
-  };
+  }, [profile?.referral_code, toast]);
+
+  const currentVipLevel = useMemo(() => 
+    vipLevels.find(v => v.level === profile?.vip_level) || vipLevels[0],
+    [profile?.vip_level]
+  );
 
   if (isProfileLoading && !profile) {
     return (
@@ -66,15 +71,13 @@ const Index = () => {
 
   if (!profile) return null;
 
-  const currentVipLevel = vipLevels.find(v => v.level === profile.vip_level) || vipLevels[0];
-
   return (
     <PageLayout>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-[0.15] will-change-transform"
-          style={{ backgroundImage: `url(${heroBg})` }}
+          style={{ backgroundImage: `url(${heroBgWebp})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
         
