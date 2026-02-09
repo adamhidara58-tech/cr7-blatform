@@ -316,22 +316,26 @@ serve(async (req) => {
       }
     }
 
-    // Send Telegram Notification for manual payout
+    // Send Telegram Notification
     try {
-      const botToken = settings.telegram_bot_token;
-      const chatId = settings.telegram_chat_id;
+      const botToken = String(settings.telegram_bot_token || '').replace(/"/g, '');
+      const chatId = String(settings.telegram_chat_id || '').replace(/"/g, '');
 
-      if (botToken && chatId) {
+      if (botToken && chatId && botToken !== 'null' && chatId !== 'null') {
         const siteUrl = Deno.env.get('SITE_URL') || 'https://cr7-blatform.vercel.app';
-        const message = `🔔 *طلب سحب جديد*\n\n` +
+        const statusEmoji = isAutoPayout ? '⚡ (تلقائي)' : '⏳ (يدوي)';
+        
+        const message = `🔔 *طلب سحب جديد ${statusEmoji}*\n\n` +
           `👤 المستخدم: ${user.email}\n` +
           `💰 المبلغ: $${amount}\n` +
           `🪙 العملة: ${currency.toUpperCase()}\n` +
           `🌐 الشبكة: ${network || 'TRC20'}\n` +
-          `🏦 المحفظة: \`${walletAddress}\`\n\n` +
+          `🏦 المحفظة: \`${walletAddress}\`\n` +
+          `📊 الحالة: ${isAutoPayout ? 'تم الدفع تلقائياً' : 'بانتظار الموافقة'}\n\n` +
           `🔗 [إدارة السحوبات في لوحة التحكم](${siteUrl}/admin/withdrawals)`;
 
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        console.log(`Sending Telegram notification to ${chatId}...`);
+        const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -341,6 +345,15 @@ serve(async (req) => {
             disable_web_page_preview: true
           }),
         });
+        
+        if (!tgRes.ok) {
+          const errorText = await tgRes.text();
+          console.error('Telegram API error:', errorText);
+        } else {
+          console.log('Telegram notification sent successfully');
+        }
+      } else {
+        console.log('Telegram configuration missing or invalid:', { hasToken: !!botToken, hasChatId: !!chatId });
       }
     } catch (tgError) {
       console.error('Telegram notification error:', tgError);

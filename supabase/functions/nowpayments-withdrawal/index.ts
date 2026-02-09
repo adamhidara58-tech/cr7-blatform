@@ -193,10 +193,10 @@ serve(async (req) => {
           const settings: any = {};
           settingsData?.forEach((s: any) => settings[s.key] = s.value);
           
-          const botToken = settings.telegram_bot_token;
-          const chatId = settings.telegram_chat_id;
+          const botToken = String(settings.telegram_bot_token || '').replace(/"/g, '');
+          const chatId = String(settings.telegram_chat_id || '').replace(/"/g, '');
 
-          if (botToken && chatId) {
+          if (botToken && chatId && botToken !== 'null' && chatId !== 'null') {
             const message = `✅ *تمت الموافقة على السحب*\n\n` +
               `💰 المبلغ: $${w.amount_usd}\n` +
               `🪙 العملة: ${w.currency}\n` +
@@ -301,10 +301,10 @@ serve(async (req) => {
         const settings: any = {};
         settingsData?.forEach((s: any) => settings[s.key] = s.value);
         
-        const botToken = settings.telegram_bot_token;
-        const chatId = settings.telegram_chat_id;
+        const botToken = String(settings.telegram_bot_token || '').replace(/"/g, '');
+        const chatId = String(settings.telegram_chat_id || '').replace(/"/g, '');
 
-        if (botToken && chatId) {
+        if (botToken && chatId && botToken !== 'null' && chatId !== 'null') {
           const message = `❌ *تم رفض طلب السحب*\n\n` +
             `💰 المبلغ: $${w.amount_usd}\n` +
             `🪙 العملة: ${w.currency}\n` +
