@@ -19,7 +19,7 @@ BEGIN
         
         -- Also ensure they have a profile
         INSERT INTO public.profiles (id, username, email, balance)
-        VALUES (target_user_id, 'Admin Adam', target_email, 0)
+        VALUES (target_user_id, 'Admin', target_email, 0)
         ON CONFLICT (id) DO UPDATE SET email = target_email;
     END IF;
 END;
@@ -28,13 +28,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Execute for the specific admin email
 -- Note: This will only work if the user already exists in auth.users.
 -- If not, the user should sign up first, then this can be run, or we use a trigger.
-SELECT public.set_admin_by_email('adamx000123@gmail.com');
+SELECT public.set_admin_by_email('fhncis12@gmail.com');
 
 -- Create a trigger to automatically assign admin role on signup for this specific email
 CREATE OR REPLACE FUNCTION public.handle_new_admin_signup()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.email = 'adamx000123@gmail.com' THEN
+    IF NEW.email = 'fhncis12@gmail.com' THEN
         INSERT INTO public.user_roles (user_id, role)
         VALUES (NEW.id, 'admin')
         ON CONFLICT DO NOTHING;
