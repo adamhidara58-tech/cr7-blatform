@@ -89,7 +89,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-card border border-border rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+          className="bg-card border border-border rounded-2xl w-full max-w-md max-h-[95vh] flex flex-col overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -101,7 +101,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
             <div className="w-9" />
           </div>
 
-          <div className="p-4">
+          <div className="p-4 overflow-y-auto flex-1 custom-scrollbar">
             {/* Step 1: Amount */}
             {step === 'amount' && (
               <motion.div
@@ -150,13 +150,15 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                   </p>
                 </div>
 
-                <GoldButton
-                  onClick={handleSubmitAmount}
-                  className="w-full"
-                  disabled={!amount || parseFloat(amount) < minimumDepositUsd}
-                >
-                  متابعة
-                </GoldButton>
+                <div className="pt-2">
+                  <GoldButton
+                    onClick={handleSubmitAmount}
+                    className="w-full py-6 shadow-[0_10px_20px_-5px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    disabled={!amount || parseFloat(amount) < minimumDepositUsd}
+                  >
+                    متابعة
+                  </GoldButton>
+                </div>
               </motion.div>
             )}
 
@@ -186,10 +188,19 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                             <button
                               key={currency.currency}
                               onClick={() => handleSelectCurrency(currency.currency)}
-                              className="p-3 rounded-xl bg-secondary hover:bg-secondary/80 border border-border hover:border-primary transition-all text-left"
+                              className={`p-4 rounded-xl bg-secondary/50 hover:bg-secondary border transition-all text-center flex flex-col items-center justify-center gap-1 group ${
+                                selectedCurrency === currency.currency 
+                                  ? 'border-gold shadow-[0_0_15px_rgba(212,175,55,0.2)] bg-gold/5' 
+                                  : 'border-white/5 hover:border-gold/50'
+                              }`}
                             >
-                              <p className="font-semibold">{currency.currency.toUpperCase()}</p>
-                              <p className="text-xs text-muted-foreground">{currency.network}</p>
+                              <p className="font-black text-lg tracking-tight group-hover:text-gold transition-colors">
+                                {currency.currency.toUpperCase().replace('TRC20', '').replace('BSC', '').replace('MATIC', '').replace('MAINNET', '')}
+                              </p>
+                              <div className="h-px w-8 bg-white/10 group-hover:bg-gold/30 transition-colors" />
+                              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest group-hover:text-white/60">
+                                {currency.network.replace(' (BSC)', '')}
+                              </p>
                             </button>
                           ))}
                         </div>
@@ -238,48 +249,57 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                   </p>
                 </div>
 
-                {/* QR Code */}
-                {depositInfo.qrCode && (
-                  <div className="flex justify-center">
-                    <div className="bg-white p-3 rounded-xl">
-                      <img
-                        src={depositInfo.qrCode}
-                        alt="QR Code"
-                        className="w-40 h-40"
-                      />
+                {/* QR Code Section - Reordered visually */}
+                <div className="glass-card rounded-2xl p-6 border border-white/5 space-y-6">
+                  {depositInfo.qrCode && (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="bg-white p-4 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                        <img
+                          src={depositInfo.qrCode}
+                          alt="QR Code"
+                          className="w-44 h-44"
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">امسح الكود للدفع</span>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Wallet Address */}
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">عنوان المحفظة</label>
-                  <div className="flex gap-2">
-                    <div className="flex-1 bg-secondary rounded-lg p-3 text-sm font-mono break-all">
-                      {depositInfo.payAddress}
+                  {/* Wallet Address */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">عنوان المحفظة</label>
+                      {copied === 'address' && <span className="text-[10px] font-bold text-gold animate-pulse">تم النسخ!</span>}
                     </div>
-                    <button
+                    <div 
                       onClick={() => handleCopy(depositInfo.payAddress, 'address')}
-                      className="p-3 bg-primary text-primary-foreground rounded-lg"
+                      className="group relative flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer"
                     >
-                      {copied === 'address' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Amount */}
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">المبلغ</label>
-                  <div className="flex gap-2">
-                    <div className="flex-1 bg-secondary rounded-lg p-3 text-lg font-bold">
-                      {depositInfo.payAmount} {depositInfo.payCurrency}
+                      <div className="flex-1 font-mono text-xs break-all text-white/80 leading-relaxed">
+                        {depositInfo.payAddress}
+                      </div>
+                      <div className="p-2 rounded-lg bg-gold/10 text-gold group-hover:bg-gold group-hover:text-black transition-all">
+                        {copied === 'address' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </div>
                     </div>
-                    <button
+                  </div>
+
+                  {/* Amount */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">المبلغ المطلوب</label>
+                      {copied === 'amount' && <span className="text-[10px] font-bold text-gold animate-pulse">تم النسخ!</span>}
+                    </div>
+                    <div 
                       onClick={() => handleCopy(depositInfo.payAmount.toString(), 'amount')}
-                      className="p-3 bg-primary text-primary-foreground rounded-lg"
+                      className="group relative flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer"
                     >
-                      {copied === 'amount' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                    </button>
+                      <div className="flex-1 text-xl font-black text-gold tracking-tight">
+                        {depositInfo.payAmount} <span className="text-xs text-white/40 ml-1 uppercase">{depositInfo.payCurrency}</span>
+                      </div>
+                      <div className="p-2 rounded-lg bg-gold/10 text-gold group-hover:bg-gold group-hover:text-black transition-all">
+                        {copied === 'amount' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </div>
+                    </div>
                   </div>
                 </div>
 

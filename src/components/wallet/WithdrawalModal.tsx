@@ -20,7 +20,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
   const [amount, setAmount] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
-  const [limits, setLimits] = useState({ min: 10, max: 1000 });
+  const [limits, setLimits] = useState({ min: 2, max: 1000 });
   const [fetchingLimits, setFetchingLimits] = useState(false);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
       if (data && !error) {
         const val = data.value as { min?: number; max?: number };
         setLimits({
-          min: Number(val?.min || 10),
+          min: Number(val?.min || 2),
           max: Number(val?.max || 1000)
         });
       }
@@ -142,7 +142,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-card border border-border rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+          className="bg-card border border-border rounded-2xl w-full max-w-md max-h-[95vh] flex flex-col overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 border-b border-border">
@@ -153,7 +153,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
             <div className="w-9" />
           </div>
 
-          <div className="p-4">
+          <div className="p-4 overflow-y-auto flex-1 custom-scrollbar">
             {!canWithdraw && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -190,12 +190,15 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     <div className="text-center mb-6">
                       <Wallet className="w-12 h-12 mx-auto text-primary mb-3" />
                       <h3 className="text-lg font-semibold">أدخل مبلغ السحب</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        الرصيد المتاح: <span className="text-primary font-bold">${balance.toFixed(2)}</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        الحدود: ${limits.min} - ${limits.max}
-                      </p>
+                      <div className="glass-card rounded-2xl p-4 border border-white/5 mb-4">
+                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">الرصيد المتاح للسحب</p>
+                        <p className="text-3xl font-black text-gold tracking-tight">${balance.toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center justify-center gap-4 text-[11px] font-bold">
+                        <span className="text-white/40 uppercase tracking-wider">الحد الأدنى: <span className="text-white/80">${limits.min}</span></span>
+                        <div className="w-1 h-1 rounded-full bg-white/10" />
+                        <span className="text-white/40 uppercase tracking-wider">الحد الأقصى: <span className="text-white/80">${limits.max}</span></span>
+                      </div>
                     </div>
 
                     <div className="relative">
@@ -256,18 +259,28 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     <div>
                       <label className="text-sm text-muted-foreground mb-2 block">اختر العملة</label>
                       <div className="grid grid-cols-2 gap-2">
-                        {currencies.map((currency) => (
+                        {[...currencies, { currency: 'usdtaptos', network: 'APTOS', name: 'Tether' }].map((currency) => (
                           <button
                             key={currency.currency}
                             onClick={() => setSelectedCurrency(currency.currency)}
-                            className={`p-3 rounded-xl border transition-all text-left ${
+                            className={`p-4 rounded-xl border transition-all text-center flex flex-col items-center justify-center gap-1 group relative overflow-hidden ${
                               selectedCurrency === currency.currency
-                                ? 'bg-primary/20 border-primary'
-                                : 'bg-secondary border-border hover:border-primary/50'
+                                ? 'bg-gold/10 border-gold shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                                : 'bg-secondary/50 border-white/5 hover:border-gold/50'
                             }`}
                           >
-                            <p className="font-semibold">{currency.currency.toUpperCase()}</p>
-                            <p className="text-xs text-muted-foreground">{currency.network}</p>
+                            {currency.currency === 'usdtaptos' && (
+                              <div className="absolute top-0 right-0 bg-gold text-[8px] font-black text-black px-2 py-0.5 rounded-bl-lg uppercase tracking-tighter">
+                                بدون رسوم
+                              </div>
+                            )}
+                            <p className={`font-black text-lg tracking-tight transition-colors ${selectedCurrency === currency.currency ? 'text-gold' : 'group-hover:text-gold'}`}>
+                              {currency.currency.toUpperCase().replace('TRC20', '').replace('BSC', '').replace('MATIC', '').replace('MAINNET', '').replace('APTOS', '')}
+                            </p>
+                            <div className={`h-px w-8 transition-colors ${selectedCurrency === currency.currency ? 'bg-gold/30' : 'bg-white/10 group-hover:bg-gold/30'}`} />
+                            <p className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${selectedCurrency === currency.currency ? 'text-white/80' : 'text-white/40 group-hover:text-white/60'}`}>
+                              {currency.network.replace(' (BSC)', '')}
+                            </p>
                           </button>
                         ))}
                       </div>
