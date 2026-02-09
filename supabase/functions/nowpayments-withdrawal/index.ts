@@ -187,6 +187,36 @@ serve(async (req) => {
           payout_id: res.data.id
         });
 
+        // Send Telegram Notification for approval
+        try {
+          const { data: settingsData } = await supabaseAdmin.from('admin_settings').select('key, value');
+          const settings: any = {};
+          settingsData?.forEach((s: any) => settings[s.key] = s.value);
+          
+          const botToken = settings.telegram_bot_token;
+          const chatId = settings.telegram_chat_id;
+
+          if (botToken && chatId) {
+            const message = `✅ *تمت الموافقة على السحب*\n\n` +
+              `💰 المبلغ: $${w.amount_usd}\n` +
+              `🪙 العملة: ${w.currency}\n` +
+              `🏦 المحفظة: \`${w.wallet_address}\`\n` +
+              `🔗 المعاملة: [عرض](https://tronscan.org/#/transaction/${res.data.hash || ''})`;
+
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: message,
+                parse_mode: 'Markdown',
+              }),
+            });
+          }
+        } catch (tgError) {
+          console.error('Telegram notification error:', tgError);
+        }
+
         return new Response(JSON.stringify({ 
           success: true, 
           message: 'تم الموافقة والدفع بنجاح' 
@@ -265,6 +295,36 @@ serve(async (req) => {
         refunded: true
       });
       
+      // Send Telegram Notification for rejection
+      try {
+        const { data: settingsData } = await supabaseAdmin.from('admin_settings').select('key, value');
+        const settings: any = {};
+        settingsData?.forEach((s: any) => settings[s.key] = s.value);
+        
+        const botToken = settings.telegram_bot_token;
+        const chatId = settings.telegram_chat_id;
+
+        if (botToken && chatId) {
+          const message = `❌ *تم رفض طلب السحب*\n\n` +
+            `💰 المبلغ: $${w.amount_usd}\n` +
+            `🪙 العملة: ${w.currency}\n` +
+            `🏦 المحفظة: \`${w.wallet_address}\`\n` +
+            `تم إعادة الرصيد إلى حساب المستخدم.`;
+
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: message,
+              parse_mode: 'Markdown',
+            }),
+          });
+        }
+      } catch (tgError) {
+        console.error('Telegram notification error:', tgError);
+      }
+
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'تم الرفض وإعادة الرصيد بنجاح' 

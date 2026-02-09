@@ -108,15 +108,25 @@ export const useDailyClaim = () => {
         return false;
       }
 
-      // Update user's balance
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({
-          balance: profile.balance + rewardAmount,
-          total_earned: profile.total_earned + rewardAmount,
-          daily_challenges_completed: profile.daily_challenges_completed + 1,
-        })
-        .eq('id', user.id);
+      // Update user's balance using RPC to ensure atomicity and avoid race conditions
+      const { error: balanceError } = await supabase.rpc('increment_balance', {
+        user_id: user.id,
+        amount: rewardAmount
+      });
+
+      // If RPC fails, fallback to manual update (less safe but better than nothing)
+      if (balanceError) {
+        console.error('RPC failed, falling back to manual update:', balanceError);
+        const { error: manualError } = await supabase
+          .from('profiles')
+          .update({
+            balance: profile.balance + rewardAmount,
+            total_earned: profile.total_earned + rewardAmount,
+            daily_challenges_completed: profile.daily_challenges_completed + 1,
+          })
+          .eq('id', user.id);
+        if (manualError) throw manualError;
+      }
 
       if (balanceError) throw balanceError;
 

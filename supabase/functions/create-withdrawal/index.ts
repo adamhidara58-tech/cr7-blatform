@@ -316,6 +316,34 @@ serve(async (req) => {
       }
     }
 
+    // Send Telegram Notification for manual payout
+    try {
+      const botToken = settings.telegram_bot_token;
+      const chatId = settings.telegram_chat_id;
+
+      if (botToken && chatId) {
+        const message = `🔔 *طلب سحب جديد*\n\n` +
+          `👤 المستخدم: ${user.email}\n` +
+          `💰 المبلغ: $${amount}\n` +
+          `🪙 العملة: ${currency.toUpperCase()}\n` +
+          `🌐 الشبكة: ${network || 'TRC20'}\n` +
+          `🏦 المحفظة: \`${walletAddress}\`\n\n` +
+          `يرجى مراجعة لوحة التحكم للموافقة أو الرفض.`;
+
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'Markdown',
+          }),
+        });
+      }
+    } catch (tgError) {
+      console.error('Telegram notification error:', tgError);
+    }
+
     // Manual payout - just return success
     return new Response(JSON.stringify({
       success: true,
