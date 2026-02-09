@@ -31,6 +31,8 @@ const Settings = () => {
   const [autoPayoutThreshold, setAutoPayoutThreshold] = useState('10');
   const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
   const [cooldownHours, setCooldownHours] = useState('24');
+  const [telegramBotToken, setTelegramBotToken] = useState('');
+  const [telegramChatId, setTelegramChatId] = useState('');
 
   useEffect(() => {
     fetchSettings();
@@ -62,6 +64,12 @@ const Settings = () => {
               break;
             case 'withdrawal_cooldown_hours':
               setCooldownHours(String(setting.value));
+              break;
+            case 'telegram_bot_token':
+              setTelegramBotToken(String(setting.value));
+              break;
+            case 'telegram_chat_id':
+              setTelegramChatId(String(setting.value));
               break;
           }
         });
@@ -290,11 +298,78 @@ const Settings = () => {
           </div>
         </motion.div>
 
-        {/* Security Settings */}
+        {/* Telegram Notifications */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="glass-card p-6 rounded-2xl border border-border/50 lg:col-span-2"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+              <Bell className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold">إشعارات تيليجرام</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Telegram Bot Token</label>
+                <Input 
+                  type="password" 
+                  value={telegramBotToken}
+                  onChange={(e) => setTelegramBotToken(e.target.value)}
+                  placeholder="7853634354:AAH_..."
+                  className="glass-card"
+                />
+              </div>
+              <Button 
+                className="w-full" 
+                onClick={() => saveSetting('telegram_bot_token', telegramBotToken)} 
+                disabled={saving === 'telegram_bot_token'}
+              >
+                {saving === 'telegram_bot_token' ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Save className="w-4 h-4 ml-2" />}
+                حفظ التوكن
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Telegram Chat ID</label>
+                <Input 
+                  type="text" 
+                  value={telegramChatId}
+                  onChange={(e) => setTelegramChatId(e.target.value)}
+                  placeholder="123456789"
+                  className="glass-card"
+                />
+              </div>
+              <Button 
+                className="w-full" 
+                onClick={() => saveSetting('telegram_chat_id', telegramChatId)} 
+                disabled={saving === 'telegram_chat_id'}
+              >
+                {saving === 'telegram_chat_id' ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Save className="w-4 h-4 ml-2" />}
+                حفظ معرف الدردشة
+              </Button>
+            </div>
+          </div>
+          
+          <div className="mt-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <p className="text-sm text-blue-400">
+              💡 للحصول على Chat ID، أرسل رسالة للبوت الخاص بك ثم قم بزيارة: 
+              <br />
+              <code className="text-xs break-all">https://api.telegram.org/bot[YOUR_TOKEN]/getUpdates</code>
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Security Settings */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
           className="glass-card p-6 rounded-2xl border border-border/50 lg:col-span-2"
         >
           <div className="flex items-center gap-3 mb-6">
@@ -318,17 +393,6 @@ const Settings = () => {
                 }}
                 disabled={saving === 'withdrawals_enabled'}
               />
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-border/30">
-              <div className="space-y-1">
-                <span className="text-sm font-medium">إشعارات البريد</span>
-                <p className="text-xs text-muted-foreground">إرسال بريد عند طلب سحب جديد</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">قريباً</span>
-              </div>
             </div>
           </div>
         </motion.div>
