@@ -13,7 +13,7 @@ const signUpSchema = z.object({
   username: z.string().trim().min(3, 'الاسم يجب أن يكون 3 أحرف على الأقل').max(50, 'الاسم طويل جداً'),
   email: z.string().trim().email('البريد الإلكتروني غير صالح').max(255, 'البريد الإلكتروني طويل جداً'),
   password: z.string().min(6, 'كلمة السر يجب أن تكون 6 أحرف على الأقل').max(100, 'كلمة السر طويلة جداً'),
-  referralCode: z.string().max(20, 'رمز الإحالة غير صالح').optional().or(z.literal('')),
+  referralCode: z.string().trim().min(1, 'رمز الإحالة مطلوب').max(20, 'رمز الإحالة غير صالح'),
 });
 
 const signInSchema = z.object({
@@ -243,12 +243,13 @@ const Auth = () => {
                 <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-gold transition-colors" />
                 <Input
                   type="text"
-                  placeholder="رمز الإحالة (اختياري)"
+                  placeholder="رمز الإحالة (إجباري)"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
                   className="pl-12 text-left bg-black/20 border-white/5 h-14 rounded-2xl focus:border-gold/30 focus:ring-gold/20 transition-all"
                   dir="ltr"
                   maxLength={20}
+                  required
                 />
               </div>
             )}
