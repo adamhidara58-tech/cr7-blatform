@@ -86,8 +86,11 @@ const VIPCard = memo(({ level, currentLevel, index, navigate }: any) => {
           alt={`VIP ${level.level}`}
           loading="eager"
           fetchPriority="high"
-          decoding="async"
           className="h-full w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform duration-700 ease-out origin-bottom"
+          style={{ 
+            contentVisibility: 'auto',
+            imageRendering: 'auto'
+          }}
         />
       </div>
 

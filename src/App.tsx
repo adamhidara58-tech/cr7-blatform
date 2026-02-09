@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
+import { ImageCache } from "./components/ui/ImageCache";
 import Index from "./pages/Index";
 import Challenges from "./pages/Challenges";
 import Team from "./pages/Team";
@@ -111,6 +112,7 @@ const App = () => {
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ImageCache />
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>

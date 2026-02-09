@@ -307,12 +307,16 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       <div className="flex-1 relative z-10">
         {/* Player Image - Moved Down to Avoid Text Overlap */}
         <div className="absolute right-0 bottom-0 w-[50%] h-[110%] flex items-end z-[15] pointer-events-none translate-y-2">
-          <motion.img 
+          <img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
             loading="eager"
-            decoding="async"
-            className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-all duration-700 group-hover:scale-105 origin-bottom will-change-transform"
+            fetchPriority="high"
+            className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-transform duration-700 group-hover:scale-105 origin-bottom will-change-transform"
+            style={{ 
+              contentVisibility: 'auto',
+              imageRendering: 'auto'
+            }}
           />
         </div>
 
