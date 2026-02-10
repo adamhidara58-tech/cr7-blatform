@@ -110,14 +110,33 @@ const DirectWithdrawals = () => {
             </h1>
             <p className="text-muted-foreground mt-1">هذه الصفحة تعرض جميع الطلبات من قاعدة البيانات مباشرة</p>
           </div>
-          <Button 
-            onClick={fetchAllWithdrawals} 
-            disabled={loading}
-            className="bg-gold text-black hover:bg-gold/80 rounded-xl px-6 font-bold"
-          >
-            <RefreshCw className={`w-4 h-4 ml-2 ${loading ? 'animate-spin' : ''}`} />
-            تحديث البيانات
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={fetchAllWithdrawals} 
+              disabled={loading}
+              className="bg-gold text-black hover:bg-gold/80 rounded-xl px-6 font-bold"
+            >
+              <RefreshCw className={`w-4 h-4 ml-2 ${loading ? 'animate-spin' : ''}`} />
+              تحديث البيانات
+            </Button>
+          </div>
+        </div>
+
+        {/* Manual Fix Instructions */}
+        <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-3xl">
+          <h2 className="text-amber-500 font-bold flex items-center gap-2 mb-2">
+            <ShieldAlert className="w-5 h-5" />
+            حل مشكلة عدم ظهور البيانات (هام جداً)
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            إذا كانت الطلبات لا تظهر هنا رغم وجودها في قاعدة البيانات، فهذا بسبب قيود الأمان (RLS) في Supabase. لحلها نهائياً، يرجى اتباع هذه الخطوات البسيطة:
+          </p>
+          <ol className="text-xs space-y-2 text-muted-foreground list-decimal list-inside">
+            <li>افتح لوحة تحكم <span className="text-white font-bold">Supabase</span> الخاصة بمشروعك.</li>
+            <li>انتقل إلى قسم <span className="text-white font-bold">Authentication</span> ثم <span className="text-white font-bold">Policies</span>.</li>
+            <li>ابحث عن جدول <span className="text-white font-bold">crypto_withdrawals</span>.</li>
+            <li>قم بتعطيل <span className="text-amber-500 font-bold">RLS</span> لهذا الجدول مؤقتاً، أو أضف سياسة جديدة (Policy) تسمح بـ <span className="text-white font-bold">SELECT</span> للجميع.</li>
+          </ol>
         </div>
 
         <div className="grid gap-4">
