@@ -70,11 +70,35 @@ const Withdrawals = () => {
   });
 
   const processWithdrawalMutation = useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: 'approve' | 'reject' | 'retry' }) => {
+    mutationFn: async ({ id, action }: { id: string; action: 'approve' | 'reject' | 'retry' | 'approve_manual' }) => {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       
       if (!currentSession?.access_token) {
         throw new Error('لم يتم العثور على جلسة نشطة. يرجى تسجيل الدخول مجدداً.');
+      }
+
+      // If it's a manual approval, we update the database directly
+      if (action === 'approve_manual') {
+        const { error } = await supabase
+          .from('crypto_withdrawals')
+          .update({ 
+            status: 'completed', 
+            processed_at: new Date().toISOString(),
+            payout_type: 'manual'
+          })
+          .eq('id', id);
+        
+        if (error) throw error;
+        
+        // Log activity
+        await supabase.from('activity_logs').insert({
+          admin_id: currentSession.user.id,
+          action: 'WITHDRAWAL_APPROVED_MANUAL',
+          target_id: id,
+          details: { method: 'manual_ui' }
+        });
+        
+        return { success: true, message: 'تم قبول الطلب يدوياً بنجاح' };
       }
 
       const { data, error } = await supabase.functions.invoke('nowpayments-withdrawal', {
@@ -429,9 +453,31 @@ const Withdrawals = () => {
                               size="sm" 
                               variant="outline" 
                               className="h-7 w-7 p-0 border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10"
-                              onClick={() => processWithdrawalMutation.mutate({ id: w.id, action: 'approve' })}
+                              onClick={() => {
+                                if (window.confirm('هل أنت متأكد من الموافقة والدفع التلقائي؟')) {
+                                  processWithdrawalMutation.mutate({ id: w.id, action: 'approve' });
+                                }
+                              }}
                               disabled={processWithdrawalMutation.isPending}
-                              title="موافقة وإرسال"
+                              title="موافقة ودفع تلقائي"
+                            >
+                              {processWithdrawalMutation.isPending ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Zap className="w-3 h-3" />
+                              )}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 w-7 p-0 border-blue-500/50 text-blue-500 hover:bg-blue-500/10"
+                              onClick={() => {
+                                if (window.confirm('هل قمت بالدفع يدوياً وتريد تحديث الحالة فقط؟')) {
+                                  processWithdrawalMutation.mutate({ id: w.id, action: 'approve_manual' });
+                                }
+                              }}
+                              disabled={processWithdrawalMutation.isPending}
+                              title="قبول يدوي (تم الدفع)"
                             >
                               {processWithdrawalMutation.isPending ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -443,7 +489,11 @@ const Withdrawals = () => {
                               size="sm" 
                               variant="outline" 
                               className="h-7 w-7 p-0 border-rose-500/50 text-rose-500 hover:bg-rose-500/10"
-                              onClick={() => processWithdrawalMutation.mutate({ id: w.id, action: 'reject' })}
+                              onClick={() => {
+                                if (window.confirm('هل أنت متأكد من رفض الطلب؟ سيتم إعادة المبلغ لرصيد المستخدم.')) {
+                                  processWithdrawalMutation.mutate({ id: w.id, action: 'reject' });
+                                }
+                              }}
                               disabled={processWithdrawalMutation.isPending}
                               title="رفض واسترداد"
                             >

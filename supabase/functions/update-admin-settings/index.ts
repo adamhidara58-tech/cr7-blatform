@@ -35,18 +35,14 @@ serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '');
     
-    // Create a client with the user's token to verify it
-    const userClient = createClient(supabaseUrl, supabaseAnonKey || '', {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    });
-    
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    // Verify token and get user using admin client
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
       console.error('Auth error:', authError);
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Invalid Token: ' + (authError?.message || 'User not found') 
+        error: 'Invalid Token: ' + (authError?.message || 'Auth session missing!') 
       }), { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

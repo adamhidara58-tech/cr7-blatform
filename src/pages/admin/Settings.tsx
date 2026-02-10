@@ -298,6 +298,44 @@ const Settings = () => {
           </div>
         </motion.div>
 
+        {/* System Status */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="glass-card p-6 rounded-2xl border border-border/50"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-500">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold">حالة النظام</h3>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-border/50">
+              <div>
+                <p className="font-medium">عمليات السحب</p>
+                <p className="text-xs text-muted-foreground">تفعيل أو تعطيل السحب لجميع المستخدمين</p>
+              </div>
+              <Switch 
+                checked={withdrawalsEnabled} 
+                onCheckedChange={(checked) => {
+                  setWithdrawalsEnabled(checked);
+                  saveSetting('withdrawals_enabled', checked);
+                }}
+                disabled={saving === 'withdrawals_enabled'}
+              />
+            </div>
+            
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <p className="text-xs text-amber-400">
+                ⚠️ تنبيه: عند تعطيل السحب، لن يتمكن أي مستخدم من إنشاء طلب سحب جديد، وستظهر لهم رسالة تفيد بأن السحب معطل حالياً.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Telegram Notifications */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}

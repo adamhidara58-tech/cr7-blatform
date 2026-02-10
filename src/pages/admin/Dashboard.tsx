@@ -59,20 +59,27 @@ const Dashboard = () => {
         { count: totalUsers },
         { data: balanceData },
         { count: pendingWithdrawals },
-        { data: recentWithdrawals }
+        { data: recentWithdrawals },
+        { count: totalWithdrawalsCount },
+        { data: allWithdrawals }
       ] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('profiles').select('balance'),
         supabase.from('crypto_withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('crypto_withdrawals').select('amount_usd, created_at').order('created_at', { ascending: false }).limit(30)
+        supabase.from('crypto_withdrawals').select('amount_usd, created_at').order('created_at', { ascending: false }).limit(30),
+        supabase.from('crypto_withdrawals').select('*', { count: 'exact', head: true }),
+        supabase.from('crypto_withdrawals').select('amount_usd, created_at, status').order('created_at', { ascending: false })
       ]);
 
       const totalBalance = balanceData?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
+      const totalPaid = allWithdrawals?.filter(w => w.status === 'completed').reduce((acc, curr) => acc + Number(curr.amount_usd), 0) || 0;
 
       return {
         totalUsers: totalUsers || 0,
         totalBalance,
+        totalPaid,
         pendingWithdrawals: pendingWithdrawals || 0,
+        totalWithdrawalsCount: totalWithdrawalsCount || 0,
         recentWithdrawals: recentWithdrawals || []
       };
     }
@@ -117,11 +124,11 @@ const Dashboard = () => {
           delay={0.1}
         />
         <StatCard 
-          title="الرصيد الإجمالي" 
-          value={`$${stats?.totalBalance.toLocaleString()}`} 
+          title="إجمالي المدفوعات" 
+          value={`$${stats?.totalPaid.toLocaleString()}`} 
           icon={Wallet} 
           trend="up" 
-          trendValue="8"
+          trendValue="15"
           delay={0.2}
         />
         <StatCard 
