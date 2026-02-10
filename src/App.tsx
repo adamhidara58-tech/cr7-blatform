@@ -22,6 +22,7 @@ import AdminUsers from "./pages/admin/Users";
 import AdminWithdrawals from "./pages/admin/Withdrawals";
 import AdminLogs from "./pages/admin/ActivityLogs";
 import AdminSettings from "./pages/admin/Settings";
+import DirectWithdrawals from "./pages/admin/DirectWithdrawals";
 
 import AdminVIP from "./pages/admin/VIP";
 import AdminChallenges from "./pages/admin/Challenges";
@@ -85,6 +86,7 @@ const AppRoutes = () => (
     <Route path="/admin/challenges" element={<AdminLayout><AdminChallenges /></AdminLayout>} />
     <Route path="/admin/logs" element={<AdminLayout><AdminLogs /></AdminLayout>} />
     <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
+    <Route path="/admin/direct-withdrawals" element={<DirectWithdrawals />} />
     
     <Route path="*" element={<NotFound />} />
   </Routes>
