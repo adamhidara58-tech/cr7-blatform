@@ -65,15 +65,27 @@ const Withdrawals = () => {
   const { data: withdrawals, isLoading, refetch } = useQuery({
     queryKey: ['admin-withdrawals'],
     queryFn: async () => {
+      // جلب السحوبات مع البروفايلات المرتبطة بها
       const { data, error } = await supabase
         .from('crypto_withdrawals')
-        .select('*, profiles(username, email)')
+        .select(`
+          *,
+          profiles!crypto_withdrawals_user_id_fkey (
+            username,
+            email
+          )
+        `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as Withdrawal[];
+      if (error) {
+        console.error('Error fetching withdrawals:', error);
+        throw error;
+      }
+      
+      console.log('Fetched withdrawals count:', data?.length);
+      return data as any[];
     },
-    refetchInterval: 5000, // تحديث تلقائي كل 5 ثوانٍ لضمان رؤية الطلبات الجديدة
+    refetchInterval: 5000,
   });
 
   const updateStatusMutation = useMutation({
