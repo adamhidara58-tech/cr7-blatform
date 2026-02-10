@@ -223,6 +223,10 @@ serve(async (req) => {
       status: 'pending'
     });
 
+    let autoProcessed = false;
+    let autoMessage = '';
+    let finalWithdrawal = withdrawal;
+
     // If auto payout, process immediately
     if (isAutoPayout) {
       try {
@@ -246,8 +250,11 @@ serve(async (req) => {
         console.log('NOWPayments payout response:', payoutResult);
 
         if (payoutResponse.ok && payoutResult.id) {
+          autoProcessed = true;
+          autoMessage = 'تم إرسال السحب تلقائياً بنجاح! 🎉';
+          
           // Update withdrawal as completed
-          await supabaseAdmin
+          const { data: updatedWithdrawal } = await supabaseAdmin
             .from('crypto_withdrawals')
             .update({
               status: 'completed',
@@ -255,7 +262,11 @@ serve(async (req) => {
               withdrawal_id: payoutResult.id?.toString(),
               tx_hash: payoutResult.hash || null
             })
-            .eq('id', withdrawal.id);
+            .eq('id', withdrawal.id)
+            .select()
+            .single();
+
+          if (updatedWithdrawal) finalWithdrawal = updatedWithdrawal;
 
           // Update transaction
           await supabaseAdmin
@@ -271,17 +282,9 @@ serve(async (req) => {
             target_id: withdrawal.id,
             details: { amount, currency, payout_id: payoutResult.id }
           });
-
-          return new Response(JSON.stringify({
-            success: true,
-            auto_processed: true,
-            message: 'تم إرسال السحب تلقائياً بنجاح! 🎉',
-            withdrawal: { ...withdrawal, status: 'completed' }
-          }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
         } else {
-          // Mark as error but don't refund (admin can retry)
           const errorMsg = payoutResult.message || payoutResult.error || 'Unknown error';
+          autoMessage = 'تم إنشاء الطلب، لكن فشل الدفع التلقائي. سيتم المراجعة يدوياً.';
           
           await supabaseAdmin
             .from('crypto_withdrawals')
@@ -296,18 +299,11 @@ serve(async (req) => {
             target_id: withdrawal.id,
             details: { amount, currency, error: errorMsg }
           });
-
-          return new Response(JSON.stringify({
-            success: true,
-            auto_processed: false,
-            message: 'تم إنشاء الطلب، لكن فشل الدفع التلقائي. سيتم المراجعة يدوياً.',
-            withdrawal
-          }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
-
       } catch (payoutError: unknown) {
         console.error('Auto payout error:', payoutError);
         const errorMessage = payoutError instanceof Error ? payoutError.message : 'Unknown error';
+        autoMessage = 'تم إنشاء الطلب، سيتم المراجعة يدوياً.';
         
         await supabaseAdmin
           .from('crypto_withdrawals')
@@ -316,24 +312,24 @@ serve(async (req) => {
             withdrawal_id: `AUTO_FAILED: ${errorMessage}`
           })
           .eq('id', withdrawal.id);
-
-        return new Response(JSON.stringify({
-          success: true,
-          auto_processed: false,
-          message: 'تم إنشاء الطلب، سيتم المراجعة يدوياً.',
-          withdrawal
-        }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
     }
 
     // Send Telegram Notification
     try {
-      const botToken = String(settings.telegram_bot_token || '').replace(/"/g, '');
-      const chatId = String(settings.telegram_chat_id || '').replace(/"/g, '');
+      const botToken = String(settings.telegram_bot_token || '').replace(/"/g, '').trim();
+      const chatId = String(settings.telegram_chat_id || '').replace(/"/g, '').trim();
+
+      console.log('Telegram Config Check:', { 
+        hasToken: !!botToken, 
+        tokenLength: botToken.length,
+        hasChatId: !!chatId,
+        chatIdValue: chatId
+      });
 
       if (botToken && chatId && botToken !== 'null' && chatId !== 'null') {
         const siteUrl = Deno.env.get('SITE_URL') || 'https://cr7-blatform.vercel.app';
-        const statusEmoji = isAutoPayout ? '⚡ (تلقائي)' : '⏳ (يدوي)';
+        const statusEmoji = autoProcessed ? '⚡ (تلقائي)' : '⏳ (يدوي)';
         
         const message = `🔔 *طلب سحب جديد ${statusEmoji}*\n\n` +
           `👤 المستخدم: ${user.email}\n` +
@@ -341,7 +337,7 @@ serve(async (req) => {
           `🪙 العملة: ${currency.toUpperCase()}\n` +
           `🌐 الشبكة: ${network || 'TRC20'}\n` +
           `🏦 المحفظة: \`${walletAddress}\`\n` +
-          `📊 الحالة: ${isAutoPayout ? 'تم الدفع تلقائياً' : 'بانتظار الموافقة'}\n\n` +
+          `📊 الحالة: ${autoProcessed ? '✅ تم الدفع تلقائياً' : '⏳ بانتظار الموافقة'}\n\n` +
           `🔗 [إدارة السحوبات في لوحة التحكم](${siteUrl}/admin/withdrawals)`;
 
         console.log(`Sending Telegram notification to ${chatId}...`);
@@ -363,18 +359,17 @@ serve(async (req) => {
           console.log('Telegram notification sent successfully');
         }
       } else {
-        console.log('Telegram configuration missing or invalid:', { hasToken: !!botToken, hasChatId: !!chatId });
+        console.log('Telegram configuration missing or invalid');
       }
     } catch (tgError) {
       console.error('Telegram notification error:', tgError);
     }
 
-    // Manual payout - just return success
     return new Response(JSON.stringify({
       success: true,
-      auto_processed: false,
-      message: 'تم إنشاء طلب السحب بنجاح. يتطلب موافقة المسؤول.',
-      withdrawal
+      auto_processed: autoProcessed,
+      message: autoProcessed ? autoMessage : 'تم إنشاء طلب السحب بنجاح. يتطلب موافقة المسؤول.',
+      withdrawal: finalWithdrawal
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error: unknown) {
