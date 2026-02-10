@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -10,7 +10,8 @@ import {
   User,
   Wallet,
   DollarSign,
-  Calendar
+  Calendar,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,28 @@ interface Withdrawal {
 const SimpleWithdrawals = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // استخدام realtime لتحديث البيانات تلقائياً عند حدوث أي تغيير
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-withdrawals-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'crypto_withdrawals',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['simple-withdrawals'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const { data: withdrawals, isLoading, refetch } = useQuery({
     queryKey: ['simple-withdrawals'],
@@ -66,7 +89,15 @@ const SimpleWithdrawals = () => {
       
       if (withdrawalError) throw withdrawalError;
 
-      // 2. إذا تم الرفض، يجب إعادة المبلغ لرصيد المستخدم
+      // 2. تحديث حالة المعاملة المرتبطة في جدول transactions
+      await supabase
+        .from('transactions')
+        .update({ status: status === 'completed' ? 'completed' : 'failed' })
+        .eq('user_id', (withdrawals?.find(w => w.id === id)?.user_id))
+        .eq('type', 'withdrawal')
+        .eq('status', 'pending');
+
+      // 3. إذا تم الرفض، يجب إعادة المبلغ لرصيد المستخدم
       if (status === 'rejected') {
         const { data: withdrawal } = await supabase
           .from('crypto_withdrawals')
@@ -77,20 +108,23 @@ const SimpleWithdrawals = () => {
         if (withdrawal) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('balance')
+            .select('balance, total_earned')
             .eq('id', withdrawal.user_id)
             .single();
 
           if (profile) {
             await supabase
               .from('profiles')
-              .update({ balance: Number(profile.balance) + Number(withdrawal.amount_usd) })
+              .update({ 
+                balance: Number(profile.balance) + Number(withdrawal.amount_usd),
+                total_earned: Number(profile.total_earned || 0) + Number(withdrawal.amount_usd)
+              })
               .eq('id', withdrawal.user_id);
           }
         }
       }
 
-      // 3. تسجيل النشاط
+      // 4. تسجيل النشاط
       await supabase.from('activity_logs').insert({
         admin_id: session.user.id,
         action: status === 'completed' ? 'WITHDRAWAL_APPROVED' : 'WITHDRAWAL_REJECTED',
@@ -98,10 +132,14 @@ const SimpleWithdrawals = () => {
         details: { status }
       });
 
-      return { success: true };
+      return { success: true, status };
     },
-    onSuccess: () => {
-      toast.success('تم تحديث حالة الطلب بنجاح');
+    onSuccess: (data) => {
+      if (data.status === 'completed') {
+        toast.success('تم قبول طلبك');
+      } else {
+        toast.error('تم رفض طلبك');
+      }
       queryClient.invalidateQueries({ queryKey: ['simple-withdrawals'] });
     },
     onError: (error: any) => {
@@ -153,7 +191,9 @@ const SimpleWithdrawals = () => {
               key={w.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-card p-5 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all"
+              className={`glass-card p-5 rounded-2xl border transition-all ${
+                w.status === 'pending' ? 'border-primary/30 bg-primary/5' : 'border-primary/10'
+              }`}
             >
               <div className="flex flex-col lg:flex-row justify-between gap-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 flex-1">
@@ -201,8 +241,14 @@ const SimpleWithdrawals = () => {
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  {w.status === 'pending' ? (
+                  {w.status === 'pending' || w.status === 'error' ? (
                     <>
+                      {w.status === 'error' && (
+                        <div className="flex items-center gap-1 text-rose-500 mr-2" title="حدث خطأ في الدفع التلقائي">
+                          <AlertCircle className="w-4 h-4" />
+                          <span className="text-xs">خطأ</span>
+                        </div>
+                      )}
                       <Button 
                         onClick={() => {
                           if(window.confirm('هل أنت متأكد من قبول هذا الطلب؟')) {
