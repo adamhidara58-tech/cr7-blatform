@@ -53,6 +53,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
   };
 
   const balance = Number(profile?.balance || 0);
+  const withdrawableBalance = Number(profile?.total_earned || 0);
 
   const handleSubmitAmount = () => {
     const numAmount = parseFloat(amount);
@@ -72,10 +73,18 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
       });
       return;
     }
+    if (numAmount > withdrawableBalance) {
+      toast({
+        title: 'خطأ',
+        description: 'لا يمكنك سحب مبلغ الإيداع، يمكنك سحب الأرباح فقط',
+        variant: 'destructive',
+      });
+      return;
+    }
     if (numAmount > balance) {
       toast({
         title: 'خطأ',
-        description: 'رصيدك غير كافٍ',
+        description: 'رصيدك الإجمالي غير كافٍ',
         variant: 'destructive',
       });
       return;
@@ -191,8 +200,9 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                       <Wallet className="w-12 h-12 mx-auto text-primary mb-3" />
                       <h3 className="text-lg font-semibold">أدخل مبلغ السحب</h3>
                       <div className="glass-card rounded-2xl p-4 border border-white/5 mb-4">
-                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">الرصيد المتاح للسحب</p>
-                        <p className="text-3xl font-black text-gold tracking-tight">${balance.toFixed(2)}</p>
+                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">الأرباح القابلة للسحب</p>
+                        <p className="text-3xl font-black text-gold tracking-tight">${withdrawableBalance.toFixed(2)}</p>
+                        <p className="text-[9px] text-white/40 mt-1">لا يمكن سحب مبالغ الإيداع</p>
                       </div>
                       <div className="flex items-center justify-center gap-4 text-[11px] font-bold">
                         <span className="text-white/40 uppercase tracking-wider">الحد الأدنى: <span className="text-white/80">${limits.min}</span></span>
@@ -220,7 +230,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                       {[25, 50, 75, 100].map((percent) => (
                         <button
                           key={percent}
-                          onClick={() => setAmount((balance * percent / 100).toFixed(2))}
+                          onClick={() => setAmount((withdrawableBalance * percent / 100).toFixed(2))}
                           className="flex-1 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium"
                         >
                           {percent}%
@@ -238,7 +248,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     <GoldButton
                       onClick={handleSubmitAmount}
                       className="w-full"
-                      disabled={!amount || parseFloat(amount) < limits.min || parseFloat(amount) > balance}
+                      disabled={!amount || parseFloat(amount) < limits.min || parseFloat(amount) > withdrawableBalance}
                     >
                       متابعة
                     </GoldButton>

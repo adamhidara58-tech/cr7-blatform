@@ -76,7 +76,7 @@ serve(async (req) => {
       settings[s.key] = s.value;
     });
 
-    const minWithdrawal = Number(settings.min_withdrawal) || 5;
+    const minWithdrawal = 2; // Forced minimum withdrawal to 2$ as per new rule
     const maxWithdrawal = Number(settings.max_withdrawal) || 1000;
     const autoPayoutThreshold = Number(settings.auto_payout_threshold) || 10;
     const cooldownHours = Number(settings.withdrawal_cooldown_hours) || 24;
@@ -106,7 +106,7 @@ serve(async (req) => {
     // Get user profile
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('balance, last_withdrawal_at')
+      .select('balance, total_earned, last_withdrawal_at')
       .eq('id', user.id)
       .single();
 
@@ -117,11 +117,19 @@ serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Check balance
+    // Check balance and earnings
+    const withdrawableBalance = Number(profile.total_earned || 0);
+    if (withdrawableBalance < amount) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'لا يمكنك سحب مبالغ الإيداع، يمكنك سحب الأرباح فقط'
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (Number(profile.balance) < amount) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'رصيد غير كافٍ'
+        error: 'رصيد إجمالي غير كافٍ'
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -157,12 +165,14 @@ serve(async (req) => {
     const isAutoPayout = amount <= autoPayoutThreshold;
     const payoutType = isAutoPayout ? 'auto' : 'manual';
 
-    // Deduct balance
+    // Deduct balance and total_earned
     const newBalance = Number(profile.balance) - amount;
+    const newTotalEarned = Number(profile.total_earned) - amount;
     const { error: balanceError } = await supabaseAdmin
       .from('profiles')
       .update({ 
         balance: newBalance,
+        total_earned: Math.max(0, newTotalEarned),
         last_withdrawal_at: new Date().toISOString()
       })
       .eq('id', user.id);
