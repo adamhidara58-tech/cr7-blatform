@@ -17,6 +17,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { ChangePasswordModal } from '@/components/modals/ChangePasswordModal';
+import { AvatarSelectionModal } from '@/components/modals/AvatarSelectionModal';
 import { useToast } from '@/hooks/use-toast';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { GoldButton } from '@/components/ui/GoldButton';
@@ -59,9 +60,8 @@ const Profile = () => {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const { toast } = useToast();
-  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     if (location.state && (location.state as any).openDeposit) {
@@ -69,100 +69,6 @@ const Profile = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location]);
-
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !profile) return;
-
-    // Basic validation
-    if (!file.type.startsWith('image/')) {
-      toast({ variant: 'destructive', title: 'خطأ', description: 'يرجى اختيار ملف صورة' });
-      return;
-    }
-
-    // File size validation (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ variant: 'destructive', title: 'خطأ', description: 'حجم الصورة يجب أن يكون أقل من 5 ميجابايت' });
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${profile.id}/${fileName}`;
-
-      // First, check if bucket exists by trying to list buckets
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        console.error('Error listing buckets:', bucketsError);
-      }
-
-      const avatarsBucket = buckets?.find(b => b.name === 'avatars');
-      
-      if (!avatarsBucket) {
-        throw new Error('مساحة التخزين "avatars" غير موجودة. يرجى التواصل مع الدعم الفني.');
-      }
-
-      // Delete old avatar if exists
-      if (profile.avatar_url) {
-        try {
-          const oldPath = profile.avatar_url.split('/').slice(-2).join('/');
-          await supabase.storage.from('avatars').remove([oldPath]);
-        } catch (e) {
-          console.log('Could not delete old avatar:', e);
-        }
-      }
-
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { 
-          cacheControl: '3600',
-          upsert: false 
-        });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        if (uploadError.message.includes('Bucket not found')) {
-          throw new Error('مساحة التخزين "avatars" غير متاحة. يرجى التأكد من إعدادات Supabase.');
-        }
-        if (uploadError.message.includes('not allowed')) {
-          throw new Error('ليس لديك صلاحية رفع الملفات. يرجى التحقق من إعدادات الأمان في Supabase.');
-        }
-        throw new Error(uploadError.message || 'فشل رفع الصورة');
-      }
-
-      // Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      // Update Profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', profile.id);
-
-      if (updateError) {
-        console.error('Profile update error:', updateError);
-        throw new Error('فشل تحديث الملف الشخصي');
-      }
-
-      await refreshProfile();
-      toast({ title: 'تم بنجاح', description: 'تم تحديث الصورة الشخصية بنجاح' });
-    } catch (error: any) {
-      console.error('Avatar upload error:', error);
-      toast({ 
-        variant: 'destructive', 
-        title: 'خطأ في رفع الصورة', 
-        description: error.message || 'حدث خطأ غير متوقع'
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const { data: transactions = [], isLoading: isTransactionsLoading } = useQuery({
     queryKey: ['transactions', profile?.id],
@@ -229,21 +135,18 @@ const Profile = () => {
                   <User className="w-12 h-12 text-gold/50" />
                 )}
               </div>
-              {isUploading && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
-                  <Loader2 className="w-6 h-6 text-gold animate-spin" />
-                </div>
-              )}
             </div>
-            <label className="absolute bottom-0 right-0 w-8 h-8 bg-gold rounded-full flex items-center justify-center cursor-pointer border-2 border-[#141419] hover:scale-110 transition-transform">
+            <button 
+              onClick={() => setIsAvatarModalOpen(true)}
+              className="absolute bottom-0 right-0 w-8 h-8 bg-gold rounded-full flex items-center justify-center cursor-pointer border-2 border-[#141419] hover:scale-110 transition-transform"
+            >
               <Camera className="w-4 h-4 text-black" />
-              <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={isUploading} />
-            </label>
+            </button>
             <div className="absolute -top-1 -left-1 w-8 h-8 bg-background border-2 border-gold rounded-full flex items-center justify-center shadow-lg">
               <span className="text-[10px] font-bold text-gold">V{profile.vip_level}</span>
             </div>
           </div>
-          <h2 className="font-display text-xl text-foreground">{profile.username}</h2>
+          <h2 className="font-display text-xl text-foreground mt-4">{profile.username}</h2>
           <p className="text-sm text-muted-foreground">{profile.email}</p>
           <div className="mt-2 px-3 py-1 bg-primary/20 rounded-full">
             <span className="text-sm font-medium text-primary">
@@ -300,108 +203,96 @@ const Profile = () => {
         </motion.div>
       </section>
 
-      {/* Transactions */}
+      {/* Recent Transactions */}
       <section className="px-4 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <button className="text-sm text-primary flex items-center gap-1">
-            عرض الكل
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <h3 className="font-display text-lg text-foreground flex items-center gap-2">
-            <History className="w-5 h-5 text-primary" />
-            آخر المعاملات
-          </h3>
+          <h3 className="font-display text-lg text-foreground">آخر العمليات</h3>
+          <button className="text-xs text-primary hover:underline">عرض الكل</button>
         </div>
-
-        <div className="space-y-2">
+        
+        <div className="space-y-3">
           {isTransactionsLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map(i => <div key={i} className="h-16 bg-secondary/20 rounded-xl animate-pulse" />)}
-            </div>
-          ) : transactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground bg-secondary/10 rounded-xl border border-dashed border-white/5">
-              لا توجد معاملات حتى الآن
-            </div>
-          ) : (
-            transactions.map((transaction, index) => (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-16 bg-secondary/20 rounded-xl animate-pulse" />
+            ))
+          ) : transactions.length > 0 ? (
+            transactions.map((tx) => (
               <motion.div
-                key={transaction.id}
-                initial={{ opacity: 0, x: 20 }}
+                key={tx.id}
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-secondary/30 border border-white/5 rounded-xl p-3 flex items-center justify-between hover:bg-secondary/40 transition-colors"
+                className="flex items-center justify-between p-4 bg-secondary/10 border border-white/5 rounded-xl"
               >
-                <div className="flex items-center gap-2">
-                  {getTransactionIcon(transaction.type)}
-                  <span className={`font-bold ${Number(transaction.amount) >= 0 ? 'text-green-500' : 'text-accent'}`}>
-                    {Number(transaction.amount) >= 0 ? '+' : ''}${Math.abs(Number(transaction.amount)).toFixed(2)}
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
+                    {getTransactionIcon(tx.type)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{tx.description}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {new Date(tx.created_at).toLocaleDateString('ar-EG')}
+                    </p>
+                  </div>
                 </div>
-                
-                <div className="text-right flex-1 mx-3">
-                  <p className="text-sm font-medium text-foreground">{transaction.description}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(transaction.created_at).toLocaleDateString('ar-SA')}
+                <div className="text-right">
+                  <p className={`text-sm font-bold ${
+                    ['deposit', 'challenge', 'commission'].includes(tx.type) ? 'text-green-500' : 'text-accent'
+                  }`}>
+                    {['deposit', 'challenge', 'commission'].includes(tx.type) ? '+' : '-'}${tx.amount}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {tx.status === 'completed' ? 'مكتمل' : tx.status === 'pending' ? 'قيد الانتظار' : 'فشل'}
                   </p>
                 </div>
-                
-                <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
-                  transaction.status === 'completed' 
-                    ? 'bg-green-500/20 text-green-500' 
-                    : transaction.status === 'pending'
-                    ? 'bg-yellow-500/20 text-yellow-500'
-                    : 'bg-accent/20 text-accent'
-                }`}>
-                  {transaction.status === 'completed' ? 'مكتمل' : transaction.status === 'pending' ? 'قيد الانتظار' : 'فشل'}
-                </span>
               </motion.div>
             ))
+          ) : (
+            <div className="text-center py-8 bg-secondary/5 rounded-xl border border-dashed border-white/10">
+              <History className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-20" />
+              <p className="text-sm text-muted-foreground">لا توجد عمليات سابقة</p>
+            </div>
           )}
         </div>
       </section>
 
       {/* Menu Items */}
-      <section className="px-4 mb-6">
-        <div className="bg-gradient-card border border-white/5 rounded-2xl overflow-hidden">
+      <section className="px-4 mb-20">
+        <div className="bg-secondary/10 border border-white/5 rounded-2xl overflow-hidden">
           {menuItems.map((item, index) => (
-            <motion.button
-              key={item.label}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + index * 0.1 }}
+            <button
+              key={index}
               onClick={item.onClick}
               className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors ${
-                index < menuItems.length - 1 ? 'border-b border-white/5' : ''
+                index !== menuItems.length - 1 ? 'border-b border-white/5' : ''
               }`}
             >
-              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
               <div className="flex items-center gap-3">
-                <span className="text-foreground font-medium">{item.label}</span>
-                <item.icon className="w-5 h-5 text-primary" />
+                <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center">
+                  <item.icon className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium text-foreground">{item.label}</span>
               </div>
-            </motion.button>
+              <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+            </button>
           ))}
+          
+          <button
+            onClick={() => signOut()}
+            className="w-full flex items-center gap-3 p-4 hover:bg-red-500/10 transition-colors text-red-500"
+          >
+            <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+              <LogOut className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium">تسجيل الخروج</span>
+          </button>
         </div>
-      </section>
-
-      {/* Logout */}
-      <section className="px-4 pb-6">
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          onClick={signOut}
-          className="w-full flex items-center justify-center gap-2 py-4 text-accent hover:bg-accent/10 rounded-2xl transition-all border border-accent/20"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="font-bold">تسجيل الخروج</span>
-        </motion.button>
       </section>
 
       {/* Modals */}
       <DepositModal isOpen={isDepositOpen} onClose={() => setIsDepositOpen(false)} />
       <WithdrawalModal isOpen={isWithdrawalOpen} onClose={() => setIsWithdrawalOpen(false)} />
-      <ChangePasswordModal open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen} />
+      <ChangePasswordModal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} />
+      <AvatarSelectionModal isOpen={isAvatarModalOpen} onClose={() => setIsAvatarModalOpen(false)} />
     </PageLayout>
   );
 };
