@@ -72,7 +72,8 @@ const Withdrawals = () => {
       
       if (error) throw error;
       return data as Withdrawal[];
-    }
+    },
+    refetchInterval: 5000, // تحديث تلقائي كل 5 ثوانٍ لضمان رؤية الطلبات الجديدة
   });
 
   const updateStatusMutation = useMutation({
@@ -206,9 +207,16 @@ const Withdrawals = () => {
           <h1 className="text-2xl md:text-3xl font-black text-gold tracking-tight mb-1">إدارة طلبات السحب</h1>
           <p className="text-muted-foreground text-sm">تحكم كامل في حالات طلبات السحب والموافقة اليدوية</p>
         </div>
-        <Button onClick={() => refetch()} variant="outline" className="rounded-xl border-border/50">
+        <Button 
+          onClick={() => {
+            refetch();
+            toast.success('تم تحديث قائمة الطلبات');
+          }} 
+          variant="outline" 
+          className="rounded-xl border-border/50 bg-gold/10 hover:bg-gold/20 text-gold"
+        >
           <RefreshCw className={`w-4 h-4 ml-2 ${isLoading ? 'animate-spin' : ''}`} />
-          تحديث
+          تحديث الطلبات الجديدة
         </Button>
       </div>
 
