@@ -41,6 +41,7 @@ export const TransactionsHistory = () => {
         return <Clock className="w-4 h-4 text-yellow-500 animate-pulse" />;
       case 'failed':
       case 'expired':
+      case 'rejected':
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
         return <Clock className="w-4 h-4 text-muted-foreground" />;
@@ -61,6 +62,8 @@ export const TransactionsHistory = () => {
         return 'جاري التأكيد';
       case 'failed':
         return 'فشل';
+      case 'rejected':
+        return 'مرفوض';
       case 'expired':
         return 'منتهي الصلاحية';
       default:

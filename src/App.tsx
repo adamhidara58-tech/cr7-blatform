@@ -19,7 +19,7 @@ import { AdminLayout } from "./components/layout/AdminLayout";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
-import AdminWithdrawals from "./pages/admin/Withdrawals";
+import AdminWithdrawals from "./pages/admin/SimpleWithdrawals";
 import AdminLogs from "./pages/admin/ActivityLogs";
 import AdminSettings from "./pages/admin/Settings";
 
