@@ -11,7 +11,7 @@ interface AvatarSelectionModalProps {
   onClose: () => void;
 }
 
-const AVATARS = Array.from({ length: 10 }, (_, i) => `/avatars/avatar${i + 1}.png`);
+const AVATARS = Array.from({ length: 10 }, (_, i) => `/avatars/avatar${i + 1}.webp`);
 
 export const AvatarSelectionModal = ({ isOpen, onClose }: AvatarSelectionModalProps) => {
   const { profile, refreshProfile } = useAuth();
