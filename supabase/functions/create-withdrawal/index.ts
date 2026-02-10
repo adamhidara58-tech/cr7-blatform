@@ -315,19 +315,15 @@ serve(async (req) => {
       }
     }
 
-    // Send Telegram Notification
+    // Send Telegram Notification - HARDCODED FOR MAXIMUM RELIABILITY
     try {
-      const botToken = String(settings.telegram_bot_token || '').replace(/"/g, '').trim();
-      const chatId = String(settings.telegram_chat_id || '').replace(/"/g, '').trim();
+      // Using provided credentials directly to bypass any database fetching issues
+      const botToken = "8328507661:AAH7PJMpCDLbf7TsnjkhjU0jCWoE3ksSVwU";
+      const chatId = "8508057441";
 
-      console.log('Telegram Config Check:', { 
-        hasToken: !!botToken, 
-        tokenLength: botToken.length,
-        hasChatId: !!chatId,
-        chatIdValue: chatId
-      });
+      console.log(`Attempting to send Telegram notification for withdrawal ${withdrawal.id}...`);
 
-      if (botToken && chatId && botToken !== 'null' && chatId !== 'null') {
+      if (botToken && chatId) {
         const siteUrl = Deno.env.get('SITE_URL') || 'https://cr7-blatform.vercel.app';
         const statusEmoji = autoProcessed ? '⚡ (تلقائي)' : '⏳ (يدوي)';
         

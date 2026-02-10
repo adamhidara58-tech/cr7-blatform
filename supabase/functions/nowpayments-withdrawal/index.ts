@@ -187,16 +187,12 @@ serve(async (req) => {
           payout_id: res.data.id
         });
 
-        // Send Telegram Notification for approval
+        // Send Telegram Notification for approval - HARDCODED
         try {
-          const { data: settingsData } = await supabaseAdmin.from('admin_settings').select('key, value');
-          const settings: any = {};
-          settingsData?.forEach((s: any) => settings[s.key] = s.value);
-          
-          const botToken = String(settings.telegram_bot_token || '').replace(/"/g, '');
-          const chatId = String(settings.telegram_chat_id || '').replace(/"/g, '');
+          const botToken = "8328507661:AAH7PJMpCDLbf7TsnjkhjU0jCWoE3ksSVwU";
+          const chatId = "8508057441";
 
-          if (botToken && chatId && botToken !== 'null' && chatId !== 'null') {
+          if (botToken && chatId) {
             const message = `✅ *تمت الموافقة على السحب*\n\n` +
               `💰 المبلغ: $${w.amount_usd}\n` +
               `🪙 العملة: ${w.currency}\n` +
@@ -295,16 +291,12 @@ serve(async (req) => {
         refunded: true
       });
       
-      // Send Telegram Notification for rejection
+      // Send Telegram Notification for rejection - HARDCODED
       try {
-        const { data: settingsData } = await supabaseAdmin.from('admin_settings').select('key, value');
-        const settings: any = {};
-        settingsData?.forEach((s: any) => settings[s.key] = s.value);
-        
-        const botToken = String(settings.telegram_bot_token || '').replace(/"/g, '');
-        const chatId = String(settings.telegram_chat_id || '').replace(/"/g, '');
+        const botToken = "8328507661:AAH7PJMpCDLbf7TsnjkhjU0jCWoE3ksSVwU";
+        const chatId = "8508057441";
 
-        if (botToken && chatId && botToken !== 'null' && chatId !== 'null') {
+        if (botToken && chatId) {
           const message = `❌ *تم رفض طلب السحب*\n\n` +
             `💰 المبلغ: $${w.amount_usd}\n` +
             `🪙 العملة: ${w.currency}\n` +
