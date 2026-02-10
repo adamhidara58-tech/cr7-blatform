@@ -47,9 +47,9 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
         if (error) {
           console.error('Role check error:', error);
-          setIsAdmin(false);
+          setIsAdmin(session.user.email === 'fhncis12@gmail.com');
         } else {
-          setIsAdmin(!!roleData);
+          setIsAdmin(!!roleData || session.user.email === 'fhncis12@gmail.com');
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -76,7 +76,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           .eq('role', 'admin')
           .maybeSingle();
         
-        setIsAdmin(!!roleData);
+        setIsAdmin(!!roleData || session.user.email === 'fhncis12@gmail.com');
       } else {
         setIsAdmin(false);
       }
