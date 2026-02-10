@@ -10,15 +10,18 @@ import {
   AlertCircle,
   RefreshCw,
   Send,
-  Filter,
   CheckSquare,
-  Square
+  Square,
+  Zap,
+  User,
+  Wallet as WalletIcon,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Withdrawal {
   id: string;
@@ -43,18 +46,30 @@ interface Withdrawal {
 const Withdrawals = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [session, setSession] = useState<any>(null);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      setSession(currentSession);
-    };
-    getSession();
-  }, []);
   const [filterStatus, setFilterStatus] = useState('all');
-  const [filterType, setFilterType] = useState('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // Real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-withdrawals-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'crypto_withdrawals',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const { data: withdrawals, isLoading, refetch } = useQuery({
     queryKey: ['admin-withdrawals'],
@@ -70,15 +85,15 @@ const Withdrawals = () => {
   });
 
   const processWithdrawalMutation = useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: 'approve' | 'reject' | 'retry' | 'approve_manual' }) => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+    mutationFn: async ({ id, action }: { id: string; action: 'approve' | 'reject' }) => {
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!currentSession?.access_token) {
+      if (!session?.access_token) {
         throw new Error('لم يتم العثور على جلسة نشطة. يرجى تسجيل الدخول مجدداً.');
       }
 
-      // If it's a manual approval, we update the database directly
-      if (action === 'approve_manual') {
+      if (action === 'approve') {
+        // Manual approval - just update status
         const { error } = await supabase
           .from('crypto_withdrawals')
           .update({ 
@@ -92,85 +107,140 @@ const Withdrawals = () => {
         
         // Log activity
         await supabase.from('activity_logs').insert({
-          admin_id: currentSession.user.id,
+          admin_id: session.user.id,
           action: 'WITHDRAWAL_APPROVED_MANUAL',
           target_id: id,
-          details: { method: 'manual_ui' }
+          details: { method: 'admin_dashboard_ui' }
         });
         
-        return { success: true, message: 'تم قبول الطلب يدوياً بنجاح' };
-      }
+        return { success: true, message: 'تم قبول الطلب بنجاح' };
+      } else {
+        // Reject - refund balance and update status
+        const { data: w } = await supabase
+          .from('crypto_withdrawals')
+          .select('*')
+          .eq('id', id)
+          .single();
 
-      const { data, error } = await supabase.functions.invoke('nowpayments-withdrawal', {
-        body: { withdrawalId: id, action },
-        headers: {
-          Authorization: `Bearer ${currentSession.access_token}`
-        }
-      });
+        if (!w) throw new Error('الطلب غير موجود');
 
-      if (error) throw error;
-      if (data && data.success === false) {
-        throw new Error(data.error || 'حدث خطأ أثناء معالجة العملية');
+        // Refund balance
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('balance')
+          .eq('id', w.user_id)
+          .single();
+
+        await supabase
+          .from('profiles')
+          .update({ 
+            balance: (profile?.balance || 0) + w.amount_usd 
+          })
+          .eq('id', w.user_id);
+        
+        const { error } = await supabase
+          .from('crypto_withdrawals')
+          .update({ 
+            status: 'rejected', 
+            processed_at: new Date().toISOString() 
+          })
+          .eq('id', id);
+        
+        if (error) throw error;
+
+        // Log activity
+        await supabase.from('activity_logs').insert({
+          admin_id: session.user.id,
+          action: 'WITHDRAWAL_REJECTED',
+          target_id: id,
+          details: { refund: true }
+        });
+
+        return { success: true, message: 'تم رفض الطلب وإعادة الرصيد للمستخدم' };
       }
-      return data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || 'تمت العملية بنجاح');
+      toast.success(data.message);
       queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
     },
     onError: (error: Error) => {
-      console.error('Process error:', error);
-      toast.error(error.message || 'حدث خطأ أثناء معالجة الطلب');
-      queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
+      toast.error(error.message);
     }
   });
 
-  const massPayoutMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+  const massActionMutation = useMutation({
+    mutationFn: async ({ ids, action }: { ids: string[]; action: 'approve' | 'reject' }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Session missing');
 
-      if (!currentSession?.access_token) {
-        throw new Error('لم يتم العثور على جلسة نشطة. يرجى تسجيل الدخول مجدداً.');
+      for (const id of ids) {
+        if (action === 'approve') {
+          await supabase
+            .from('crypto_withdrawals')
+            .update({ 
+              status: 'completed', 
+              processed_at: new Date().toISOString(),
+              payout_type: 'manual'
+            })
+            .eq('id', id)
+            .eq('status', 'pending');
+        } else {
+          const { data: w } = await supabase
+            .from('crypto_withdrawals')
+            .select('*')
+            .eq('id', id)
+            .eq('status', 'pending')
+            .single();
+
+          if (w) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('balance')
+              .eq('id', w.user_id)
+              .single();
+
+            await supabase
+              .from('profiles')
+              .update({ balance: (profile?.balance || 0) + w.amount_usd })
+              .eq('id', w.user_id);
+
+            await supabase
+              .from('crypto_withdrawals')
+              .update({ status: 'rejected', processed_at: new Date().toISOString() })
+              .eq('id', id);
+          }
+        }
       }
 
-      const { data, error } = await supabase.functions.invoke('nowpayments-withdrawal', {
-        body: { action: 'mass_payout', withdrawalIds: ids },
-        headers: {
-          Authorization: `Bearer ${currentSession.access_token}`
-        }
+      await supabase.from('activity_logs').insert({
+        admin_id: session.user.id,
+        action: action === 'approve' ? 'MASS_APPROVE' : 'MASS_REJECT',
+        details: { count: ids.length }
       });
 
-      if (error) throw error;
-      return data;
+      return { success: true, message: `تمت معالجة ${ids.length} طلب بنجاح` };
     },
     onSuccess: (data) => {
-      toast.success(data.message || 'تمت معالجة الطلبات');
+      toast.success(data.message);
       setSelectedIds([]);
       queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
     },
     onError: (error: Error) => {
-      console.error('Mass payout error:', error);
-      toast.error(error.message || 'حدث خطأ أثناء المعالجة الجماعية');
+      toast.error(error.message);
     }
   });
 
   const filteredWithdrawals = withdrawals?.filter(w => {
-    const username = w.profiles?.username || '';
-    const email = w.profiles?.email || '';
-    const wallet = w.wallet_address || '';
-    
-    const matchesSearch = username.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          wallet.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchStr = `${w.profiles?.username} ${w.profiles?.email} ${w.wallet_address} ${w.id}`.toLowerCase();
+    const matchesSearch = searchStr.includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || w.status === filterStatus;
-    const matchesType = filterType === 'all' || w.payout_type === filterType;
-    return matchesSearch && matchesStatus && matchesType;
+    return matchesSearch && matchesStatus;
   });
 
   const pendingWithdrawals = filteredWithdrawals?.filter(w => w.status === 'pending') || [];
 
   const handleSelectAll = () => {
-    if (selectedIds.length === pendingWithdrawals.length) {
+    if (selectedIds.length === pendingWithdrawals.length && pendingWithdrawals.length > 0) {
       setSelectedIds([]);
     } else {
       setSelectedIds(pendingWithdrawals.map(w => w.id));
@@ -179,362 +249,248 @@ const Withdrawals = () => {
 
   const handleSelect = (id: string) => {
     setSelectedIds(prev => 
-      prev.includes(id) 
-        ? prev.filter(i => i !== id) 
-        : [...prev, id]
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
-  const handleMassPayout = () => {
-    if (selectedIds.length === 0) {
-      toast.error('يرجى تحديد طلبات السحب أولاً');
-      return;
-    }
-    massPayoutMutation.mutate(selectedIds);
-  };
-
-  const getStatusColor = (status: string) => {
+  const getStatusStyles = (status: string) => {
     switch (status) {
-      case 'pending': return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
-      case 'completed': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
-      case 'rejected': return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
-      case 'error': return 'text-rose-600 bg-rose-600/10 border-rose-600/20';
-      default: return 'text-muted-foreground bg-muted/10 border-muted/20';
+      case 'pending': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+      case 'completed': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+      case 'rejected': return 'bg-rose-500/10 text-rose-500 border-rose-500/20';
+      default: return 'bg-slate-500/10 text-slate-500 border-slate-500/20';
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending': return 'معلق';
-      case 'completed': return 'مكتمل';
+      case 'pending': return 'قيد المراجعة';
+      case 'completed': return 'تم السحب';
       case 'rejected': return 'مرفوض';
-      case 'error': return 'خطأ';
       default: return status;
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    return type === 'auto' ? 'تلقائي' : 'يدوي';
-  };
-
-  // Stats
-  const stats = {
-    total: withdrawals?.length || 0,
-    pending: withdrawals?.filter(w => w.status === 'pending').length || 0,
-    completed: withdrawals?.filter(w => w.status === 'completed').length || 0,
-    rejected: withdrawals?.filter(w => w.status === 'rejected').length || 0,
-    error: withdrawals?.filter(w => w.status === 'error').length || 0,
-    auto: withdrawals?.filter(w => w.payout_type === 'auto').length || 0,
-    manual: withdrawals?.filter(w => w.payout_type === 'manual').length || 0
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
         <div>
-          <h2 className="text-3xl font-bold text-gradient-gold mb-2">طلبات السحب</h2>
-          <p className="text-muted-foreground">إدارة ومعالجة طلبات السحب - تلقائي (≤$10) ويدوي (&gt;$10)</p>
+          <h1 className="text-3xl font-black text-gold tracking-tight mb-1">إدارة طلبات السحب</h1>
+          <p className="text-muted-foreground text-sm">عرض ومعالجة طلبات سحب الأرباح للمستخدمين</p>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => refetch()}
-          className="gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          تحديث
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => refetch()}
+            className="rounded-xl border-border/50 hover:bg-secondary"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            تحديث البيانات
+          </Button>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <div className="glass-card p-3 rounded-xl border border-border/50 text-center">
-          <p className="text-2xl font-bold">{stats.total}</p>
-          <p className="text-xs text-muted-foreground">الإجمالي</p>
-        </div>
-        <div className="glass-card p-3 rounded-xl border border-amber-500/30 text-center">
-          <p className="text-2xl font-bold text-amber-500">{stats.pending}</p>
-          <p className="text-xs text-muted-foreground">معلق</p>
-        </div>
-        <div className="glass-card p-3 rounded-xl border border-emerald-500/30 text-center">
-          <p className="text-2xl font-bold text-emerald-500">{stats.completed}</p>
-          <p className="text-xs text-muted-foreground">مكتمل</p>
-        </div>
-        <div className="glass-card p-3 rounded-xl border border-rose-500/30 text-center">
-          <p className="text-2xl font-bold text-rose-500">{stats.rejected}</p>
-          <p className="text-xs text-muted-foreground">مرفوض</p>
-        </div>
-        <div className="glass-card p-3 rounded-xl border border-rose-600/30 text-center">
-          <p className="text-2xl font-bold text-rose-600">{stats.error}</p>
-          <p className="text-xs text-muted-foreground">خطأ</p>
-        </div>
-        <div className="glass-card p-3 rounded-xl border border-blue-500/30 text-center">
-          <p className="text-2xl font-bold text-blue-500">{stats.auto}</p>
-          <p className="text-xs text-muted-foreground">تلقائي</p>
-        </div>
-        <div className="glass-card p-3 rounded-xl border border-purple-500/30 text-center">
-          <p className="text-2xl font-bold text-purple-500">{stats.manual}</p>
-          <p className="text-xs text-muted-foreground">يدوي</p>
-        </div>
+      {/* Stats Quick View */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'إجمالي الطلبات', value: withdrawals?.length || 0, color: 'text-white' },
+          { label: 'قيد المراجعة', value: withdrawals?.filter(w => w.status === 'pending').length || 0, color: 'text-amber-500' },
+          { label: 'تم قبولها', value: withdrawals?.filter(w => w.status === 'completed').length || 0, color: 'text-emerald-500' },
+          { label: 'تم رفضها', value: withdrawals?.filter(w => w.status === 'rejected').length || 0, color: 'text-rose-500' },
+        ].map((stat, i) => (
+          <div key={i} className="bg-card p-4 rounded-2xl border border-border text-center">
+            <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">{stat.label}</p>
+            <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Filters & Actions */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="بحث عن مستخدم أو محفظة..." 
-            className="pl-10 glass-card border-border/50"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        <select 
-          className="glass-card border border-border/50 rounded-md px-3 py-2 text-sm bg-background"
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-        >
-          <option value="all">كل الحالات</option>
-          <option value="pending">معلق</option>
-          <option value="completed">مكتمل</option>
-          <option value="rejected">مرفوض</option>
-          <option value="error">خطأ</option>
-        </select>
-
-        <select 
-          className="glass-card border border-border/50 rounded-md px-3 py-2 text-sm bg-background"
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-        >
-          <option value="all">كل الأنواع</option>
-          <option value="auto">تلقائي</option>
-          <option value="manual">يدوي</option>
-        </select>
-
-        {selectedIds.length > 0 && (
-          <Button 
-            onClick={handleMassPayout}
-            disabled={massPayoutMutation.isPending}
-            className="gap-2 bg-primary hover:bg-primary/90"
+      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-card p-4 rounded-2xl border border-border">
+        <div className="flex flex-1 w-full gap-4 items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="بحث باسم المستخدم، البريد، أو المحفظة..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 rounded-xl bg-secondary/30 border-border/50 focus:ring-gold/20"
+            />
+          </div>
+          <select 
+            className="bg-secondary/30 border border-border/50 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold/20 h-10"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
           >
-            {massPayoutMutation.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-            إرسال {selectedIds.length} دفعة
-          </Button>
-        )}
+            <option value="all">جميع الحالات</option>
+            <option value="pending">قيد المراجعة</option>
+            <option value="completed">تم السحب</option>
+            <option value="rejected">مرفوض</option>
+          </select>
+        </div>
+
+        <AnimatePresence>
+          {selectedIds.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="flex items-center gap-2 w-full lg:w-auto"
+            >
+              <span className="text-sm font-bold text-gold ml-2 whitespace-nowrap">{selectedIds.length} طلب محدد</span>
+              <Button 
+                size="sm" 
+                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex-1 lg:flex-none"
+                onClick={() => massActionMutation.mutate({ ids: selectedIds, action: 'approve' })}
+                disabled={massActionMutation.isPending}
+              >
+                قبول الكل
+              </Button>
+              <Button 
+                size="sm" 
+                variant="destructive" 
+                className="rounded-xl flex-1 lg:flex-none"
+                onClick={() => massActionMutation.mutate({ ids: selectedIds, action: 'reject' })}
+                disabled={massActionMutation.isPending}
+              >
+                رفض الكل
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Table */}
-      <div className="glass-card rounded-2xl border border-border/50 overflow-hidden">
+      {/* Main Table */}
+      <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-right border-collapse">
             <thead>
-              <tr className="border-b border-border/50 bg-white/5">
-                <th className="px-4 py-4 text-sm font-semibold">
-                  <button 
-                    onClick={handleSelectAll}
-                    className="flex items-center gap-2 hover:text-primary transition-colors"
-                  >
+              <tr className="bg-secondary/30 border-b border-border">
+                <th className="p-4 w-10 text-center">
+                  <button onClick={handleSelectAll} className="hover:text-gold transition-colors">
                     {selectedIds.length === pendingWithdrawals.length && pendingWithdrawals.length > 0 ? (
-                      <CheckSquare className="w-4 h-4 text-primary" />
+                      <CheckSquare className="w-5 h-5 text-gold" />
                     ) : (
-                      <Square className="w-4 h-4" />
+                      <Square className="w-5 h-5" />
                     )}
                   </button>
                 </th>
-                <th className="px-4 py-4 text-sm font-semibold">المستخدم</th>
-                <th className="px-4 py-4 text-sm font-semibold">المبلغ</th>
-                <th className="px-4 py-4 text-sm font-semibold">العملة / الشبكة</th>
-                <th className="px-4 py-4 text-sm font-semibold">المحفظة</th>
-                <th className="px-4 py-4 text-sm font-semibold">النوع</th>
-                <th className="px-4 py-4 text-sm font-semibold">الحالة</th>
-                <th className="px-4 py-4 text-sm font-semibold">التاريخ</th>
-                <th className="px-4 py-4 text-sm font-semibold text-center">الإجراءات</th>
+                <th className="p-4 text-sm font-bold text-muted-foreground">المستخدم</th>
+                <th className="p-4 text-sm font-bold text-muted-foreground">المبلغ</th>
+                <th className="p-4 text-sm font-bold text-muted-foreground">العملة والشبكة</th>
+                <th className="p-4 text-sm font-bold text-muted-foreground">عنوان المحفظة</th>
+                <th className="p-4 text-sm font-bold text-muted-foreground">التاريخ</th>
+                <th className="p-4 text-sm font-bold text-muted-foreground">الحالة</th>
+                <th className="p-4 text-sm font-bold text-muted-foreground text-center">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
               {isLoading ? (
-                [1, 2, 3, 4, 5].map(i => (
+                [...Array(5)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={9} className="px-6 py-4 h-16 bg-white/5" />
+                    <td colSpan={8} className="p-8 bg-secondary/10"></td>
                   </tr>
                 ))
               ) : filteredWithdrawals?.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
-                    لا توجد طلبات سحب مطابقة للبحث
+                  <td colSpan={8} className="p-12 text-center text-muted-foreground font-medium">
+                    لا توجد طلبات سحب حالياً
                   </td>
                 </tr>
               ) : (
                 filteredWithdrawals?.map((w) => (
-                  <motion.tr 
-                    key={w.id}
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="hover:bg-white/5 transition-colors"
-                  >
-                    <td className="px-4 py-4">
+                  <tr key={w.id} className="hover:bg-secondary/20 transition-colors group">
+                    <td className="p-4 text-center">
                       {w.status === 'pending' && (
-                        <Checkbox
-                          checked={selectedIds.includes(w.id)}
+                        <Checkbox 
+                          checked={selectedIds.includes(w.id)} 
                           onCheckedChange={() => handleSelect(w.id)}
+                          className="border-border data-[state=checked]:bg-gold data-[state=checked]:border-gold"
                         />
                       )}
                     </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{w.profiles?.username || 'غير معروف'}</span>
-                        <span className="text-xs text-muted-foreground">{w.profiles?.email || ''}</span>
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">{w.profiles?.username || 'مستخدم'}</span>
+                          <span className="text-[10px] text-muted-foreground">{w.profiles?.email}</span>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4">
-                      <span className="font-bold text-primary">${w.amount_usd}</span>
+                    <td className="p-4 font-black text-gold text-lg">
+                      ${w.amount_usd.toFixed(2)}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-primary/20 text-primary">
+                        <span className="bg-secondary px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter">
                           {w.currency}
                         </span>
-                        <span className="text-[10px] text-muted-foreground uppercase">{w.network || 'TRC20'}</span>
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase">
+                          {w.network || 'TRC20'}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-4 py-4">
-                      <button 
-                        className="flex items-center gap-1 group cursor-pointer hover:text-primary transition-colors" 
-                        onClick={() => {
-                          navigator.clipboard.writeText(w.wallet_address);
-                          toast.info('تم نسخ العنوان');
-                        }}
-                      >
-                        <span className="text-xs font-mono text-muted-foreground max-w-[100px] truncate group-hover:text-primary">
-                          {w.wallet_address}
-                        </span>
-                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2 group/wallet">
+                        <WalletIcon className="w-3 h-3 text-muted-foreground" />
+                        <code 
+                          className="text-[11px] font-mono bg-secondary/50 px-2 py-1 rounded cursor-pointer hover:bg-gold/10 hover:text-gold transition-colors"
+                          onClick={() => {
+                            navigator.clipboard.writeText(w.wallet_address);
+                            toast.success('تم نسخ العنوان');
+                          }}
+                        >
+                          {w.wallet_address.substring(0, 8)}...{w.wallet_address.substring(w.wallet_address.length - 8)}
+                        </code>
+                        <ExternalLink className="w-3 h-3 opacity-0 group-hover/wallet:opacity-100 transition-opacity cursor-pointer text-muted-foreground" />
+                      </div>
                     </td>
-                    <td className="px-4 py-4">
-                      <span className={`text-[10px] px-2 py-1 rounded-full border ${
-                        w.payout_type === 'auto' 
-                          ? 'text-blue-500 bg-blue-500/10 border-blue-500/20' 
-                          : 'text-purple-500 bg-purple-500/10 border-purple-500/20'
-                      }`}>
-                        {getTypeLabel(w.payout_type)}
+                    <td className="p-4">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(w.created_at).toLocaleDateString('ar-EG', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${getStatusStyles(w.status)}`}>
+                        {getStatusLabel(w.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col gap-1">
-                        <span className={`text-[10px] px-2 py-1 rounded-full border w-fit ${getStatusColor(w.status)}`}>
-                          {getStatusLabel(w.status)}
-                        </span>
-                        {w.status === 'error' && w.withdrawal_id && (
-                          <div className="flex items-center gap-1 text-[9px] text-rose-400 max-w-[120px]">
-                            <AlertCircle className="w-3 h-3 shrink-0" />
-                            <span className="truncate" title={w.withdrawal_id}>
-                              {w.withdrawal_id.replace('ERROR: ', '').replace('AUTO_FAILED: ', '').replace('AUTO_ERROR: ', '')}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-xs text-muted-foreground">
-                      {new Date(w.created_at).toLocaleDateString('ar-EG')}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center justify-center gap-1">
-                        {w.status === 'pending' && (
+                    <td className="p-4">
+                      <div className="flex items-center justify-center gap-2">
+                        {w.status === 'pending' ? (
                           <>
                             <Button 
                               size="sm" 
-                              variant="outline" 
-                              className="h-7 w-7 p-0 border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10"
-                              onClick={() => {
-                                if (window.confirm('هل أنت متأكد من الموافقة والدفع التلقائي؟')) {
-                                  processWithdrawalMutation.mutate({ id: w.id, action: 'approve' });
-                                }
-                              }}
+                              className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-3"
+                              onClick={() => processWithdrawalMutation.mutate({ id: w.id, action: 'approve' })}
                               disabled={processWithdrawalMutation.isPending}
-                              title="موافقة ودفع تلقائي"
                             >
-                              {processWithdrawalMutation.isPending ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Zap className="w-3 h-3" />
-                              )}
+                              <CheckCircle2 className="w-4 h-4 ml-1" />
+                              قبول
                             </Button>
                             <Button 
                               size="sm" 
-                              variant="outline" 
-                              className="h-7 w-7 p-0 border-blue-500/50 text-blue-500 hover:bg-blue-500/10"
-                              onClick={() => {
-                                if (window.confirm('هل قمت بالدفع يدوياً وتريد تحديث الحالة فقط؟')) {
-                                  processWithdrawalMutation.mutate({ id: w.id, action: 'approve_manual' });
-                                }
-                              }}
+                              variant="destructive" 
+                              className="h-8 rounded-lg px-3"
+                              onClick={() => processWithdrawalMutation.mutate({ id: w.id, action: 'reject' })}
                               disabled={processWithdrawalMutation.isPending}
-                              title="قبول يدوي (تم الدفع)"
                             >
-                              {processWithdrawalMutation.isPending ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <CheckCircle2 className="w-3 h-3" />
-                              )}
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-7 w-7 p-0 border-rose-500/50 text-rose-500 hover:bg-rose-500/10"
-                              onClick={() => {
-                                if (window.confirm('هل أنت متأكد من رفض الطلب؟ سيتم إعادة المبلغ لرصيد المستخدم.')) {
-                                  processWithdrawalMutation.mutate({ id: w.id, action: 'reject' });
-                                }
-                              }}
-                              disabled={processWithdrawalMutation.isPending}
-                              title="رفض واسترداد"
-                            >
-                              {processWithdrawalMutation.isPending ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <XCircle className="w-3 h-3" />
-                              )}
+                              <XCircle className="w-4 h-4 ml-1" />
+                              رفض
                             </Button>
                           </>
-                        )}
-                        {w.status === 'error' && (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-7 w-7 p-0 border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
-                            onClick={() => processWithdrawalMutation.mutate({ id: w.id, action: 'retry' })}
-                            disabled={processWithdrawalMutation.isPending}
-                            title="إعادة المحاولة"
-                          >
-                            {processWithdrawalMutation.isPending ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <RefreshCw className="w-3 h-3" />
-                            )}
-                          </Button>
-                        )}
-                        {w.tx_hash && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => window.open(`https://tronscan.org/#/transaction/${w.tx_hash}`, '_blank')}
-                            title="عرض المعاملة"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">لا توجد إجراءات</span>
                         )}
                       </div>
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))
               )}
             </tbody>

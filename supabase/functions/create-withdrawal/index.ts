@@ -6,8 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const NOWPAYMENTS_API_URL = 'https://api.nowpayments.io/v1';
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -16,14 +14,9 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const nowpaymentsApiKey = Deno.env.get('NOWPAYMENTS_API_KEY');
 
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase configuration missing');
-    }
-
-    if (!nowpaymentsApiKey) {
-      throw new Error('NOWPAYMENTS_API_KEY not configured');
     }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -71,14 +64,13 @@ serve(async (req) => {
       .from('admin_settings')
       .select('key, value');
 
-    const settings: Record<string, number | boolean | string> = {};
-    settingsData?.forEach((s: { key: string; value: number | boolean | string }) => {
+    const settings: Record<string, any> = {};
+    settingsData?.forEach((s: { key: string; value: any }) => {
       settings[s.key] = s.value;
     });
 
-    const minWithdrawal = 2; // Forced minimum withdrawal to 2$ as per new rule
+    const minWithdrawal = 2; 
     const maxWithdrawal = Number(settings.max_withdrawal) || 1000;
-    const autoPayoutThreshold = Number(settings.auto_payout_threshold) || 10;
     const cooldownHours = Number(settings.withdrawal_cooldown_hours) || 24;
     const withdrawalsEnabled = settings.withdrawals_enabled !== false && settings.withdrawals_enabled !== 'false';
 
@@ -106,7 +98,7 @@ serve(async (req) => {
     // Get user profile
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('balance, total_earned, last_withdrawal_at')
+      .select('balance, total_earned, last_withdrawal_at, username, email')
       .eq('id', user.id)
       .single();
 
@@ -161,9 +153,8 @@ serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Determine payout type
-    const isAutoPayout = amount <= autoPayoutThreshold;
-    const payoutType = isAutoPayout ? 'auto' : 'manual';
+    // All withdrawals are manual now as per user request
+    const payoutType = 'manual';
 
     // Deduct balance and total_earned
     const newBalance = Number(profile.balance) - amount;
@@ -204,7 +195,11 @@ serve(async (req) => {
       // Refund balance on error
       await supabaseAdmin
         .from('profiles')
-        .update({ balance: profile.balance })
+        .update({ 
+          balance: profile.balance,
+          total_earned: profile.total_earned,
+          last_withdrawal_at: profile.last_withdrawal_at
+        })
         .eq('id', user.id);
 
       console.error('Withdrawal creation error:', withdrawalError);
@@ -223,157 +218,46 @@ serve(async (req) => {
       status: 'pending'
     });
 
-    let autoProcessed = false;
-    let autoMessage = '';
-    let finalWithdrawal = withdrawal;
-
-    // If auto payout, process immediately
-    if (isAutoPayout) {
-      try {
-        console.log('Processing auto payout for withdrawal:', withdrawal.id);
-        
-        const payoutResponse = await fetch(`${NOWPAYMENTS_API_URL}/payout`, {
-          method: 'POST',
-          headers: {
-            'x-api-key': nowpaymentsApiKey,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            address: walletAddress,
-            currency: currency.toLowerCase(),
-            amount: amount,
-            ipn_callback_url: `${supabaseUrl}/functions/v1/nowpayments-webhook`
-          })
-        });
-
-        const payoutResult = await payoutResponse.json();
-        console.log('NOWPayments payout response:', payoutResult);
-
-        if (payoutResponse.ok && payoutResult.id) {
-          autoProcessed = true;
-          autoMessage = 'تم إرسال السحب تلقائياً بنجاح! 🎉';
-          
-          // Update withdrawal as completed
-          const { data: updatedWithdrawal } = await supabaseAdmin
-            .from('crypto_withdrawals')
-            .update({
-              status: 'completed',
-              processed_at: new Date().toISOString(),
-              withdrawal_id: payoutResult.id?.toString(),
-              tx_hash: payoutResult.hash || null
-            })
-            .eq('id', withdrawal.id)
-            .select()
-            .single();
-
-          if (updatedWithdrawal) finalWithdrawal = updatedWithdrawal;
-
-          // Update transaction
-          await supabaseAdmin
-            .from('transactions')
-            .update({ status: 'completed' })
-            .eq('user_id', user.id)
-            .eq('type', 'withdrawal')
-            .eq('status', 'pending');
-
-          // Log activity
-          await supabaseAdmin.from('activity_logs').insert({
-            action: 'AUTO_WITHDRAWAL_SUCCESS',
-            target_id: withdrawal.id,
-            details: { amount, currency, payout_id: payoutResult.id }
-          });
-        } else {
-          const errorMsg = payoutResult.message || payoutResult.error || 'Unknown error';
-          autoMessage = 'تم إنشاء الطلب، لكن فشل الدفع التلقائي. سيتم المراجعة يدوياً.';
-          
-          await supabaseAdmin
-            .from('crypto_withdrawals')
-            .update({
-              status: 'error',
-              withdrawal_id: `AUTO_ERROR: ${errorMsg}`
-            })
-            .eq('id', withdrawal.id);
-
-          await supabaseAdmin.from('activity_logs').insert({
-            action: 'AUTO_WITHDRAWAL_FAILED',
-            target_id: withdrawal.id,
-            details: { amount, currency, error: errorMsg }
-          });
-        }
-      } catch (payoutError: unknown) {
-        console.error('Auto payout error:', payoutError);
-        const errorMessage = payoutError instanceof Error ? payoutError.message : 'Unknown error';
-        autoMessage = 'تم إنشاء الطلب، سيتم المراجعة يدوياً.';
-        
-        await supabaseAdmin
-          .from('crypto_withdrawals')
-          .update({
-            status: 'error',
-            withdrawal_id: `AUTO_FAILED: ${errorMessage}`
-          })
-          .eq('id', withdrawal.id);
-      }
-    }
-
-    // Send Telegram Notification - HARDCODED FOR MAXIMUM RELIABILITY
+    // Send Telegram Notification
     try {
-      // Using provided credentials directly to bypass any database fetching issues
       const botToken = "8328507661:AAH7PJMpCDLbf7TsnjkhjU0jCWoE3ksSVwU";
       const chatId = "8508057441";
+      
+      const message = `🔔 *طلب سحب جديد بانتظار المراجعة*\n\n` +
+        `👤 المستخدم: ${profile.username || 'غير معروف'}\n` +
+        `📧 البريد: ${profile.email}\n` +
+        `💰 المبلغ: $${amount}\n` +
+        `🪙 العملة: ${currency.toUpperCase()}\n` +
+        `🌐 الشبكة: ${network || 'TRC20'}\n` +
+        `🏦 المحفظة: \`${walletAddress}\`\n` +
+        `📊 الحالة: ⏳ بانتظار الموافقة اليدوية\n\n` +
+        `🔗 [لوحة التحكم](https://cr7-blatform.vercel.app/admin/withdrawals)`;
 
-      console.log(`Attempting to send Telegram notification for withdrawal ${withdrawal.id}...`);
-
-      if (botToken && chatId) {
-        const siteUrl = Deno.env.get('SITE_URL') || 'https://cr7-blatform.vercel.app';
-        const statusEmoji = autoProcessed ? '⚡ (تلقائي)' : '⏳ (يدوي)';
-        
-        const message = `🔔 *طلب سحب جديد ${statusEmoji}*\n\n` +
-          `👤 المستخدم: ${user.email}\n` +
-          `💰 المبلغ: $${amount}\n` +
-          `🪙 العملة: ${currency.toUpperCase()}\n` +
-          `🌐 الشبكة: ${network || 'TRC20'}\n` +
-          `🏦 المحفظة: \`${walletAddress}\`\n` +
-          `📊 الحالة: ${autoProcessed ? '✅ تم الدفع تلقائياً' : '⏳ بانتظار الموافقة'}\n\n` +
-          `🔗 [إدارة السحوبات في لوحة التحكم](${siteUrl}/admin/withdrawals)`;
-
-        console.log(`Sending Telegram notification to ${chatId}...`);
-        const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: message,
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true
-          }),
-        });
-        
-        if (!tgRes.ok) {
-          const errorText = await tgRes.text();
-          console.error('Telegram API error:', errorText);
-        } else {
-          console.log('Telegram notification sent successfully');
-        }
-      } else {
-        console.log('Telegram configuration missing or invalid');
-      }
-    } catch (tgError) {
-      console.error('Telegram notification error:', tgError);
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: 'Markdown',
+        }),
+      });
+    } catch (tgErr) {
+      console.error('Telegram notification error:', tgErr);
     }
 
     return new Response(JSON.stringify({
       success: true,
-      auto_processed: autoProcessed,
-      message: autoProcessed ? autoMessage : 'تم إنشاء طلب السحب بنجاح. يتطلب موافقة المسؤول.',
-      withdrawal: finalWithdrawal
+      message: 'تم إرسال طلب السحب بنجاح وهو قيد المراجعة حالياً.',
+      withdrawal: withdrawal,
+      auto_processed: false
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-  } catch (error: unknown) {
-    console.error('Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+  } catch (error: any) {
+    console.error('Unexpected error:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: errorMessage
+      error: error.message || 'حدث خطأ غير متوقع'
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });
