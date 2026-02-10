@@ -22,14 +22,32 @@ const DirectWithdrawals = () => {
   const fetchAllWithdrawals = async () => {
     setLoading(true);
     try {
-      // محاولة جلب البيانات مباشرة بدون فلاتر معقدة
-      const { data, error } = await supabase
+      // 1. جلب جميع السحوبات أولاً بشكل مستقل
+      const { data: withdrawalsData, error: wError } = await supabase
         .from('crypto_withdrawals')
-        .select('*, profiles(username, email)')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setWithdrawals(data || []);
+      if (wError) throw wError;
+
+      if (withdrawalsData && withdrawalsData.length > 0) {
+        // 2. جلب البروفايلات المرتبطة بها في استعلام منفصل لتجنب مشاكل الـ Join مع RLS
+        const userIds = [...new Set(withdrawalsData.map(w => w.user_id))];
+        const { data: profilesData, error: pError } = await supabase
+          .from('profiles')
+          .select('id, username, email')
+          .in('id', userIds);
+
+        // 3. دمج البيانات يدوياً
+        const combinedData = withdrawalsData.map(w => ({
+          ...w,
+          profiles: profilesData?.find(p => p.id === w.user_id) || null
+        }));
+
+        setWithdrawals(combinedData);
+      } else {
+        setWithdrawals([]);
+      }
     } catch (error: any) {
       console.error('Fetch error:', error);
       toast.error('خطأ في جلب البيانات: ' + error.message);
