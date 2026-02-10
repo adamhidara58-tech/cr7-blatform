@@ -321,7 +321,7 @@ const Withdrawals = () => {
                       </div>
                     </td>
                     <td className="p-4 text-[10px] text-muted-foreground">
-                      <div className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(w.created_at).toLocaleDateString('ar-EG')}</div>
+                      <div className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(w.created_at).toLocaleDateString('en-US')}</div>
                     </td>
                     <td className="p-4">
                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${getStatusStyles(w.status)}`}>

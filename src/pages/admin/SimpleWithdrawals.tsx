@@ -195,7 +195,7 @@ const SimpleWithdrawals = () => {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">التاريخ</p>
-                      <p className="text-sm">{new Date(w.created_at).toLocaleString('ar-EG')}</p>
+                      <p className="text-sm">{new Date(w.created_at).toLocaleString('en-US')}</p>
                     </div>
                   </div>
                 </div>

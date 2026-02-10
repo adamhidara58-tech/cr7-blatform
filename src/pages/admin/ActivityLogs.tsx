@@ -120,7 +120,7 @@ const ActivityLogs = () => {
                       </pre>
                     </td>
                     <td className="px-6 py-4 text-xs text-muted-foreground">
-                      {new Date(log.created_at).toLocaleString('ar-EG')}
+                      {new Date(log.created_at).toLocaleString("en-US")}
                     </td>
                   </motion.tr>
                 ))

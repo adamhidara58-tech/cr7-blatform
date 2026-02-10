@@ -182,7 +182,7 @@ const Users = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-xs text-muted-foreground">
-                      {new Date(u.created_at).toLocaleDateString('ar-EG')}
+                      {new Date(u.created_at).toLocaleDateString('en-US')}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">

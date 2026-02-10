@@ -100,7 +100,7 @@ const Profile = () => {
 
   const menuItems = [
     { icon: Lock, label: 'تغيير كلمة المرور', onClick: () => setIsPasswordModalOpen(true) },
-    { icon: HelpCircle, label: 'المساعدة والدعم', href: '/team' },
+    { icon: HelpCircle, label: 'المساعدة والدعم', onClick: () => window.open('https://t.me/c7r_support', '_blank') },
   ];
 
   if (isProfileLoading && !profile) {
@@ -230,7 +230,7 @@ const Profile = () => {
                   <div>
                     <p className="text-sm font-medium text-foreground">{tx.description}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {new Date(tx.created_at).toLocaleDateString('ar-EG')}
+                      {new Date(tx.created_at).toLocaleDateString('en-US')}
                     </p>
                   </div>
                 </div>
@@ -259,10 +259,10 @@ const Profile = () => {
       <section className="px-4 mb-20">
         <div className="bg-secondary/10 border border-white/5 rounded-2xl overflow-hidden">
           {menuItems.map((item, index) => (
-            <button
+            <div
               key={index}
               onClick={item.onClick}
-              className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors ${
+              className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors cursor-pointer ${
                 index !== menuItems.length - 1 ? 'border-b border-white/5' : ''
               }`}
             >
@@ -273,7 +273,7 @@ const Profile = () => {
                 <span className="text-sm font-medium text-foreground">{item.label}</span>
               </div>
               <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-            </button>
+            </div>
           ))}
           
           <button
