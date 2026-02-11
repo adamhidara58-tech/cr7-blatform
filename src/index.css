@@ -144,11 +144,14 @@
   }
 
   .glass-header {
-    background: rgba(10, 10, 12, 0.9);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    /* Hardware acceleration */
+    background: rgba(10, 10, 12, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* Hardware acceleration for smooth performance */
     transform: translateZ(0);
+    will-change: transform;
+    contain: layout style paint;
+    backface-visibility: hidden;
   }
 
   .glass-navbar {
