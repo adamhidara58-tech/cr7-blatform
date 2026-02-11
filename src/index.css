@@ -72,12 +72,10 @@
     background-image: radial-gradient(circle at top center, hsla(45, 63%, 53%, 0.03) 0%, transparent 70%);
     overflow-x: hidden;
     text-rendering: optimizeSpeed;
-    /* Hardware acceleration for body */
-    transform: translateZ(0);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100%;
-    position: relative;
+    /* Removed position: relative and transform to allow fixed navbar positioning */
   }
 
   /* Performance optimizations */
