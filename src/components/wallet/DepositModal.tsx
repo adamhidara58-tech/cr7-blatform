@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, ExternalLink, QrCode, Wallet, AlertCircle } from 'lucide-center';
+import { X, Copy, Check, ExternalLink, QrCode, Wallet, AlertCircle } from 'lucide-react';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { Input } from '@/components/ui/input';
 import { useCryptoPayments } from '@/hooks/useCryptoPayments';
