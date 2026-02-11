@@ -32,19 +32,27 @@ serve(async (req) => {
     // Get auth token from request
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.log('Authorization header missing');
       return new Response(
         JSON.stringify({ success: false, error: 'Authorization required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // Extract the token from the Authorization header
     const token = authHeader.replace('Bearer ', '');
+    
+    // Create supabase client with the user's token
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } }
+      global: {
+        headers: { Authorization: `Bearer ${token}` }
+      }
     });
 
+    // Verify user using the token
     const { data: { user }, error: authError } = await userClient.auth.getUser(token);
+    
     if (authError || !user) {
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid authorization' }),
@@ -52,6 +60,7 @@ serve(async (req) => {
       );
     }
 
+    // Parse request body
     let body;
     try {
       body = await req.json();
@@ -62,16 +71,19 @@ serve(async (req) => {
       );
     }
 
-    // --- EXACT MATCH LOGIC ---
-    // Use the exact amount provided by the user
-    const amount = parseFloat(body.amount);
+    // --- FIXED AMOUNT LOGIC ---
+    // Ensure amount is a fixed number with 2 decimals
+    const rawAmount = parseFloat(body.amount);
+    const amount = parseFloat(rawAmount.toFixed(2));
     const currency = body.currency;
 
-    if (isNaN(amount) || amount < MINIMUM_DEPOSIT_USD) {
+    // Validate minimum deposit
+    if (!amount || amount < MINIMUM_DEPOSIT_USD) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: `الحد الأدنى للإيداع هو $${MINIMUM_DEPOSIT_USD}`
+          error: `الحد الأدنى للإيداع هو $${MINIMUM_DEPOSIT_USD}`,
+          minimumDeposit: MINIMUM_DEPOSIT_USD 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -84,9 +96,10 @@ serve(async (req) => {
       );
     }
 
+    // Generate unique order ID
     const orderId = `DEP-${user.id.slice(0, 8)}-${Date.now()}`;
 
-    // Create payment via NOWPayments
+    // Create payment directly via NOWPayments
     const paymentResponse = await fetch(`${NOWPAYMENTS_API_URL}/payment`, {
       method: 'POST',
       headers: {
@@ -98,23 +111,27 @@ serve(async (req) => {
         price_currency: 'usd',
         pay_currency: currency.toLowerCase(),
         order_id: orderId,
-        order_description: `Deposit $${amount} to CR7 Platform`,
+        order_description: `Deposit $${amount.toFixed(2)} to CR7 Platform`,
         ipn_callback_url: `${supabaseUrl}/functions/v1/nowpayments-webhook`,
       }),
     });
 
     const paymentResponseText = await paymentResponse.text();
+
     if (!paymentResponse.ok) {
       throw new Error(`NOWPayments API error: ${paymentResponse.status}`);
     }
 
     let paymentData = JSON.parse(paymentResponseText);
 
-    // Use the pay_amount returned by NOWPayments as the source of truth
-    // This ensures the user sees exactly what the gateway expects
-    const payAmount = paymentData.pay_amount;
+    // Ensure pay_amount is also fixed to 2 decimals if it's USDT/Stablecoin
+    // For other cryptos, we keep the precision but for display we will handle it in frontend
+    let payAmount = paymentData.pay_amount;
+    if (currency.toLowerCase().includes('usdt') || currency.toLowerCase().includes('usdc')) {
+      payAmount = parseFloat(parseFloat(payAmount).toFixed(2));
+    }
 
-    // Save deposit record
+    // Save deposit record to database
     const depositRecord = {
       user_id: user.id,
       invoice_id: paymentData.payment_id?.toString() || orderId,
@@ -137,6 +154,7 @@ serve(async (req) => {
       throw new Error(`Failed to save deposit record: ${insertError.message}`);
     }
 
+    // Generate QR code URL
     const qrCode = paymentData.pay_address 
       ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(paymentData.pay_address)}`
       : null;
@@ -149,7 +167,7 @@ serve(async (req) => {
           invoiceId: paymentData.payment_id,
           invoiceUrl: paymentData.invoice_url || null,
           payAddress: paymentData.pay_address,
-          payAmount: payAmount, // Return the exact amount from gateway
+          payAmount: payAmount,
           payCurrency: paymentData.pay_currency?.toUpperCase() || currency.toUpperCase(),
           network: paymentData.network,
           expiresAt: paymentData.expiration_estimate_date,

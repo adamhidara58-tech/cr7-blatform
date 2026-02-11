@@ -22,7 +22,7 @@ export const BottomNavigation = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="w-full mt-auto z-50 glass-header border-t border-white/5 pb-safe pt-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-header border-t border-white/5 pb-safe pt-2">
       <div className="flex items-center justify-around px-2 max-w-lg mx-auto h-16">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -32,14 +32,14 @@ export const BottomNavigation = () => {
             <motion.button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`relative flex flex-col items-center justify-center flex-1 transition-all duration-200 ease-out ${
+              className={`relative flex flex-col items-center justify-center flex-1 transition-all duration-300 ${
                 isActive ? 'text-gold' : 'text-white/30'
               }`}
               whileTap={{ scale: 0.9 }}
             >
-              <div className={`relative p-2 rounded-xl transition-all duration-200 ease-out ${isActive ? 'bg-gold/10' : ''}`}>
+              <div className={`relative p-2 rounded-xl transition-all duration-500 ${isActive ? 'bg-gold/10' : ''}`}>
                 <Icon
-                  className={`w-5.5 h-5.5 transition-all duration-200 ease-out ${
+                  className={`w-5.5 h-5.5 transition-all duration-300 ${
                     isActive ? 'text-gold' : ''
                   }`}
                 />
@@ -51,7 +51,7 @@ export const BottomNavigation = () => {
                   />
                 )}
               </div>
-              <span className={`text-[10px] font-bold mt-1 transition-colors duration-200 ease-out ${isActive ? 'text-gold' : ''}`}>
+              <span className={`text-[10px] font-bold mt-1 transition-colors duration-300 ${isActive ? 'text-gold' : ''}`}>
                 {item.labelAr}
               </span>
               {isActive && (
