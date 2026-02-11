@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, ExternalLink, QrCode, Wallet, AlertCircle } from 'lucide-react';
+import { X, Copy, Check, ExternalLink, QrCode, Wallet, AlertCircle } from 'lucide-center';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { Input } from '@/components/ui/input';
 import { useCryptoPayments } from '@/hooks/useCryptoPayments';
@@ -18,7 +18,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
   const [selectedCurrency, setSelectedCurrency] = useState<string>('');
   const [depositInfo, setDepositInfo] = useState<{
     payAddress: string;
-    payAmount: number;
+    payAmount: number | string;
     payCurrency: string;
     qrCode: string;
     invoiceUrl: string;
@@ -52,7 +52,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
     if (result) {
       setDepositInfo({
         payAddress: result.payAddress,
-        payAmount: result.payAmount,
+        payAmount: result.payAmount, // Use exact value from backend
         payCurrency: result.payCurrency,
         qrCode: result.qrCode,
         invoiceUrl: result.invoiceUrl,
@@ -70,9 +70,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
     onClose();
   };
 
-  // All currencies are now supported (only 5 configured)
   const popularCurrencies = currencies;
-  const otherCurrencies: typeof currencies = [];
 
   if (!isOpen) return null;
 
@@ -135,7 +133,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                   {[10, 50, 100, 500].map((preset) => (
                     <button
                       key={preset}
-                      onClick={() => setAmount(preset.toFixed(2))}
+                      onClick={() => setAmount(preset.toString())}
                       className="flex-1 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium"
                     >
                       ${preset}
@@ -171,7 +169,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
               >
                 <div className="text-center mb-4">
                   <h3 className="text-lg font-semibold">اختر العملة</h3>
-                  <p className="text-sm text-muted-foreground">إيداع ${parseFloat(amount).toFixed(2)}</p>
+                  <p className="text-sm text-muted-foreground">إيداع ${amount}</p>
                 </div>
 
                 {loading ? (
@@ -190,7 +188,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                               onClick={() => handleSelectCurrency(currency.currency)}
                               className={`p-4 rounded-xl bg-secondary/50 hover:bg-secondary border transition-all text-center flex flex-col items-center justify-center gap-1 group ${
                                 selectedCurrency === currency.currency 
-                                  ? 'border-gold shadow-[0_0_15px_rgba(212,175,55,0.2)] bg-gold/5' 
+                                  ? 'border-gold shadow-[0_0_15_rgba(212,175,55,0.2)] bg-gold/5' 
                                   : 'border-white/5 hover:border-gold/50'
                               }`}
                             >
@@ -228,7 +226,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                 <div className="text-center">
                   <h3 className="text-lg font-semibold">إرسال الدفعة</h3>
                   <p className="text-sm text-muted-foreground">
-                    أرسل {depositInfo.payAmount.toFixed(2)} {depositInfo.payCurrency}
+                    أرسل {depositInfo.payAmount} {depositInfo.payCurrency}
                   </p>
                 </div>
 
@@ -273,11 +271,11 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                       {copied === 'amount' && <span className="text-[10px] font-bold text-gold animate-pulse">تم النسخ!</span>}
                     </div>
                     <div 
-                      onClick={() => handleCopy(depositInfo.payAmount.toFixed(2), 'amount')}
+                      onClick={() => handleCopy(depositInfo.payAmount.toString(), 'amount')}
                       className="group relative flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer"
                     >
                       <div className="flex-1 text-xl font-black text-gold tracking-tight">
-                        {depositInfo.payAmount.toFixed(2)} <span className="text-xs text-white/40 ml-1 uppercase">{depositInfo.payCurrency}</span>
+                        {depositInfo.payAmount} <span className="text-xs text-white/40 ml-1 uppercase">{depositInfo.payCurrency}</span>
                       </div>
                       <div className="p-2 rounded-lg bg-gold/10 text-gold group-hover:bg-gold group-hover:text-black transition-all">
                         {copied === 'amount' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
