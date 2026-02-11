@@ -32,14 +32,14 @@ export const BottomNavigation = () => {
             <motion.button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`relative flex flex-col items-center justify-center flex-1 transition-all duration-300 ${
+              className={`relative flex flex-col items-center justify-center flex-1 transition-all duration-200 ease-out ${
                 isActive ? 'text-gold' : 'text-white/30'
               }`}
               whileTap={{ scale: 0.9 }}
             >
-              <div className={`relative p-2 rounded-xl transition-all duration-500 ${isActive ? 'bg-gold/10' : ''}`}>
+              <div className={`relative p-2 rounded-xl transition-all duration-200 ease-out ${isActive ? 'bg-gold/10' : ''}`}>
                 <Icon
-                  className={`w-5.5 h-5.5 transition-all duration-300 ${
+                  className={`w-5.5 h-5.5 transition-all duration-200 ease-out ${
                     isActive ? 'text-gold' : ''
                   }`}
                 />
@@ -51,7 +51,7 @@ export const BottomNavigation = () => {
                   />
                 )}
               </div>
-              <span className={`text-[10px] font-bold mt-1 transition-colors duration-300 ${isActive ? 'text-gold' : ''}`}>
+              <span className={`text-[10px] font-bold mt-1 transition-colors duration-200 ease-out ${isActive ? 'text-gold' : ''}`}>
                 {item.labelAr}
               </span>
               {isActive && (
