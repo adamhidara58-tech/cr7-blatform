@@ -185,3 +185,29 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Smooth transitions for all images */
+img {
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+/* Smooth transitions for interactive elements */
+button, a, [role="button"] {
+  transition: all 0.2s ease-out;
+}
+
+/* Smooth transitions for cards and containers */
+.glass-card {
+  transition: all 0.3s ease-out;
+}
+
+/* Optimize animations for better performance */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    scroll-behavior: smooth;
+  }
+  
+  img, video {
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+}
