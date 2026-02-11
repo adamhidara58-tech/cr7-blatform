@@ -130,10 +130,9 @@ export const useDailyClaim = () => {
       if (updateError) {
         console.error('Manual update failed, trying RPC:', updateError);
         // Fallback to RPC if manual update fails
-        const { error: rpcError } = await supabase.rpc('claim_daily_reward', {
-          p_user_id: user.id,
-          p_vip_level: profile.vip_level,
-          p_amount: rewardAmount
+        const { error: rpcError } = await supabase.rpc('increment_balance', {
+          user_id: user.id,
+          amount: rewardAmount
         });
         if (rpcError) throw rpcError;
       }
@@ -160,7 +159,7 @@ export const useDailyClaim = () => {
             .update({
               total_paid: (stats.total_paid || 0) + rewardAmount,
             })
-            .eq('id', '7e6fc921-8ed9-4854-bdcf-0d3b4856b5cb');
+            .eq('id', 1); // Assuming ID 1 for stats
         }
       } catch (e) {
         console.error('Error updating platform stats:', e);
