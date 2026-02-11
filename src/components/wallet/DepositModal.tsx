@@ -135,7 +135,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                   {[10, 50, 100, 500].map((preset) => (
                     <button
                       key={preset}
-                      onClick={() => setAmount(preset.toString())}
+                      onClick={() => setAmount(preset.toFixed(2))}
                       className="flex-1 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium"
                     >
                       ${preset}
@@ -171,7 +171,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
               >
                 <div className="text-center mb-4">
                   <h3 className="text-lg font-semibold">اختر العملة</h3>
-                  <p className="text-sm text-muted-foreground">إيداع ${amount}</p>
+                  <p className="text-sm text-muted-foreground">إيداع ${parseFloat(amount).toFixed(2)}</p>
                 </div>
 
                 {loading ? (
@@ -206,23 +206,6 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                         </div>
                       </div>
                     )}
-
-                    {otherCurrencies.length > 0 && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-2">عملات أخرى</p>
-                        <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                          {otherCurrencies.map((currency) => (
-                            <button
-                              key={currency.currency}
-                              onClick={() => handleSelectCurrency(currency.currency)}
-                              className="p-2 rounded-lg bg-secondary/50 hover:bg-secondary text-xs font-medium"
-                            >
-                              {currency.currency.toUpperCase()}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </>
                 )}
 
@@ -245,11 +228,11 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                 <div className="text-center">
                   <h3 className="text-lg font-semibold">إرسال الدفعة</h3>
                   <p className="text-sm text-muted-foreground">
-                    أرسل {depositInfo.payAmount} {depositInfo.payCurrency}
+                    أرسل {depositInfo.payAmount.toFixed(2)} {depositInfo.payCurrency}
                   </p>
                 </div>
 
-                {/* QR Code Section - Reordered visually */}
+                {/* QR Code Section */}
                 <div className="glass-card rounded-2xl p-6 border border-white/5 space-y-6">
                   {depositInfo.qrCode && (
                     <div className="flex flex-col items-center gap-3">
@@ -290,11 +273,11 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                       {copied === 'amount' && <span className="text-[10px] font-bold text-gold animate-pulse">تم النسخ!</span>}
                     </div>
                     <div 
-                      onClick={() => handleCopy(depositInfo.payAmount.toString(), 'amount')}
+                      onClick={() => handleCopy(depositInfo.payAmount.toFixed(2), 'amount')}
                       className="group relative flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer"
                     >
                       <div className="flex-1 text-xl font-black text-gold tracking-tight">
-                        {depositInfo.payAmount} <span className="text-xs text-white/40 ml-1 uppercase">{depositInfo.payCurrency}</span>
+                        {depositInfo.payAmount.toFixed(2)} <span className="text-xs text-white/40 ml-1 uppercase">{depositInfo.payCurrency}</span>
                       </div>
                       <div className="p-2 rounded-lg bg-gold/10 text-gold group-hover:bg-gold group-hover:text-black transition-all">
                         {copied === 'amount' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -303,13 +286,17 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                   </div>
                 </div>
 
-                {/* Warning */}
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                {/* Warning Message Box */}
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex gap-3">
+                  <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                   <div className="text-sm">
-                    <p className="font-medium text-yellow-500">مهم!</p>
-                    <p className="text-muted-foreground">
-                      أرسل المبلغ المحدد فقط. سيتم تحديث رصيدك تلقائياً بعد تأكيد الشبكة.
+                    <p className="font-bold text-red-500 mb-1">⚠️ مهم:</p>
+                    <p className="text-white/90 leading-relaxed">
+                      يرجى إرسال المبلغ كاملاً كما هو ظاهر (بدون خصم رسوم الشبكة).
+                      أي نقص في المبلغ سيؤدي إلى عدم احتساب الإيداع.
+                    </p>
+                    <p className="text-[11px] text-white/60 mt-2 border-t border-white/10 pt-2">
+                      تأكد من اختيار شبكة TRC20 وإرسال المبلغ كامل بدون اقتطاع.
                     </p>
                   </div>
                 </div>

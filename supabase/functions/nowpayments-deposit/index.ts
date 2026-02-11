@@ -41,8 +41,7 @@ serve(async (req) => {
 
     // Extract the token from the Authorization header
     const token = authHeader.replace('Bearer ', '');
-    console.log('Token received, length:', token.length);
-
+    
     // Create supabase client with the user's token
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -54,42 +53,32 @@ serve(async (req) => {
     // Verify user using the token
     const { data: { user }, error: authError } = await userClient.auth.getUser(token);
     
-    if (authError) {
-      console.log('Auth error:', authError.message);
+    if (authError || !user) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid authorization: ' + authError.message }),
+        JSON.stringify({ success: false, error: 'Invalid authorization' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    if (!user) {
-      console.log('No user found for token');
-      return new Response(
-        JSON.stringify({ success: false, error: 'User not found' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`User ${user.id} (${user.email}) requesting deposit`);
 
     // Parse request body
     let body;
     try {
       body = await req.json();
     } catch (e) {
-      console.error('Failed to parse request body:', e);
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid request body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { amount, currency } = body;
-    console.log(`Deposit request: amount=${amount}, currency=${currency}`);
+    // --- FIXED AMOUNT LOGIC ---
+    // Ensure amount is a fixed number with 2 decimals
+    const rawAmount = parseFloat(body.amount);
+    const amount = parseFloat(rawAmount.toFixed(2));
+    const currency = body.currency;
 
     // Validate minimum deposit
     if (!amount || amount < MINIMUM_DEPOSIT_USD) {
-      console.log(`Invalid amount: ${amount}, minimum is ${MINIMUM_DEPOSIT_USD}`);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -101,7 +90,6 @@ serve(async (req) => {
     }
 
     if (!currency) {
-      console.log('Currency is missing');
       return new Response(
         JSON.stringify({ success: false, error: 'Currency is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -110,10 +98,8 @@ serve(async (req) => {
 
     // Generate unique order ID
     const orderId = `DEP-${user.id.slice(0, 8)}-${Date.now()}`;
-    console.log(`Generated order ID: ${orderId}`);
 
     // Create payment directly via NOWPayments
-    console.log('Creating payment with NOWPayments...');
     const paymentResponse = await fetch(`${NOWPAYMENTS_API_URL}/payment`, {
       method: 'POST',
       headers: {
@@ -125,29 +111,25 @@ serve(async (req) => {
         price_currency: 'usd',
         pay_currency: currency.toLowerCase(),
         order_id: orderId,
-        order_description: `Deposit $${amount} to CR7 Platform`,
+        order_description: `Deposit $${amount.toFixed(2)} to CR7 Platform`,
         ipn_callback_url: `${supabaseUrl}/functions/v1/nowpayments-webhook`,
       }),
     });
 
     const paymentResponseText = await paymentResponse.text();
-    console.log(`NOWPayments response status: ${paymentResponse.status}`);
-    console.log(`NOWPayments response: ${paymentResponseText}`);
 
     if (!paymentResponse.ok) {
-      console.error('NOWPayments API error:', paymentResponseText);
-      throw new Error(`NOWPayments API error: ${paymentResponse.status} - ${paymentResponseText}`);
+      throw new Error(`NOWPayments API error: ${paymentResponse.status}`);
     }
 
-    let paymentData;
-    try {
-      paymentData = JSON.parse(paymentResponseText);
-    } catch (e) {
-      console.error('Failed to parse NOWPayments response:', e);
-      throw new Error('Invalid response from payment provider');
-    }
+    let paymentData = JSON.parse(paymentResponseText);
 
-    console.log('Payment created successfully:', JSON.stringify(paymentData));
+    // Ensure pay_amount is also fixed to 2 decimals if it's USDT/Stablecoin
+    // For other cryptos, we keep the precision but for display we will handle it in frontend
+    let payAmount = paymentData.pay_amount;
+    if (currency.toLowerCase().includes('usdt') || currency.toLowerCase().includes('usdc')) {
+      payAmount = parseFloat(parseFloat(payAmount).toFixed(2));
+    }
 
     // Save deposit record to database
     const depositRecord = {
@@ -156,7 +138,7 @@ serve(async (req) => {
       order_id: orderId,
       payment_id: paymentData.payment_id?.toString(),
       amount_usd: amount,
-      amount_crypto: paymentData.pay_amount,
+      amount_crypto: payAmount,
       currency: currency.toUpperCase(),
       network: paymentData.network || currency.toUpperCase(),
       wallet_address: paymentData.pay_address,
@@ -164,18 +146,13 @@ serve(async (req) => {
       expires_at: paymentData.expiration_estimate_date || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     };
 
-    console.log('Saving deposit record:', JSON.stringify(depositRecord));
-
     const { error: insertError } = await supabase
       .from('crypto_deposits')
       .insert(depositRecord);
 
     if (insertError) {
-      console.error('Database insert error:', insertError);
       throw new Error(`Failed to save deposit record: ${insertError.message}`);
     }
-
-    console.log('Deposit record saved successfully');
 
     // Generate QR code URL
     const qrCode = paymentData.pay_address 
@@ -190,13 +167,13 @@ serve(async (req) => {
           invoiceId: paymentData.payment_id,
           invoiceUrl: paymentData.invoice_url || null,
           payAddress: paymentData.pay_address,
-          payAmount: paymentData.pay_amount,
+          payAmount: payAmount,
           payCurrency: paymentData.pay_currency?.toUpperCase() || currency.toUpperCase(),
           network: paymentData.network,
           expiresAt: paymentData.expiration_estimate_date,
           qrCode,
         },
-        message: 'يرجى إرسال المبلغ المطلوب بالإضافة إلى رسوم الشبكة لإتمام المعاملة',
+        message: 'يرجى إرسال المبلغ المطلوب كاملاً لإتمام المعاملة',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -204,13 +181,10 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Deposit error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error details:', errorMessage);
-    
     return new Response(
       JSON.stringify({
         success: false,
-        error: errorMessage,
+        error: error instanceof Error ? error.message : 'Unknown error',
       }),
       {
         status: 500,
