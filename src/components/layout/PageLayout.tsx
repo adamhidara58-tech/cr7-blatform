@@ -7,7 +7,7 @@ interface PageLayoutProps {
   showHeader?: boolean;
 }
 
-// Updated at: 2026-02-11 08:30:00 - Performance Force Update
+// Updated at: 2026-02-11 11:03:00 - Fixed Bottom Navigation positioning
 export const PageLayout = ({ children, showHeader = true }: PageLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center selection:bg-gold/30">
@@ -23,8 +23,10 @@ export const PageLayout = ({ children, showHeader = true }: PageLayoutProps) => 
         <main className="flex-1 pt-4 pb-28">
           {children}
         </main>
-        <BottomNavigation />
       </div>
+      
+      {/* Bottom Navigation - Outside container for proper fixed positioning */}
+      <BottomNavigation />
     </div>
   );
 };
