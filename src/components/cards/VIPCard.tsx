@@ -230,11 +230,11 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       whileHover={vipLevel.level >= 3 ? { y: -5, scale: 1.01 } : {}}
       transition={{ delay: index * 0.1 }}
       onClick={handleAction}
-      className={`relative w-full max-w-md mx-auto aspect-[1.15/1] rounded-[2rem] overflow-hidden border border-white/10 p-4 flex flex-col mb-6 cursor-pointer group ${colors.depth} bg-zinc-950 transition-all duration-300 ease-out`}
+      className={`relative w-full max-w-md mx-auto aspect-[1.15/1] rounded-[2rem] overflow-hidden border border-white/10 p-4 flex flex-col mb-6 cursor-pointer group ${colors.depth} bg-zinc-950 transition-all duration-500`}
     >
       {/* Background */}
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform" 
+        className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 will-change-transform" 
         style={{ 
           backgroundImage: `url(${stadiumBg})`,
           backgroundSize: 'cover',
@@ -286,7 +286,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
             <motion.div 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`bg-gradient-to-r ${colors.main} text-white px-4 py-2 rounded-full border border-white/20 font-black text-[9px] uppercase shadow-lg transition-all duration-200 ease-out flex items-center gap-1.5`}
+              className={`bg-gradient-to-r ${colors.main} text-white px-4 py-2 rounded-full border border-white/20 font-black text-[9px] uppercase shadow-lg transition-all flex items-center gap-1.5`}
             >
               <span className="whitespace-nowrap">
                 {!isUnlocked ? (
@@ -312,7 +312,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
             alt={vipLevel.name}
             loading="eager"
             fetchPriority="high"
-            className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-transform duration-500 ease-out group-hover:scale-105 origin-bottom will-change-transform"
+            className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-transform duration-700 group-hover:scale-105 origin-bottom will-change-transform"
             style={{ 
               contentVisibility: 'auto',
               imageRendering: 'auto'
