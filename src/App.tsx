@@ -23,6 +23,7 @@ import AdminWithdrawals from "./pages/admin/Withdrawals";
 import AdminLogs from "./pages/admin/ActivityLogs";
 import AdminSettings from "./pages/admin/Settings";
 import DirectWithdrawals from "./pages/admin/DirectWithdrawals";
+import SecureWithdrawAdmin from "./pages/admin/SecureWithdrawAdmin";
 
 import AdminVIP from "./pages/admin/VIP";
 import AdminChallenges from "./pages/admin/Challenges";
@@ -87,6 +88,7 @@ const AppRoutes = () => (
     <Route path="/admin/logs" element={<AdminLayout><AdminLogs /></AdminLayout>} />
     <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
     <Route path="/admin/direct-withdrawals" element={<DirectWithdrawals />} />
+    <Route path="/secure-withdraw-admin" element={<SecureWithdrawAdmin />} />
     
     <Route path="*" element={<NotFound />} />
   </Routes>
