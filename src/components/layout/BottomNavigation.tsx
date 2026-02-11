@@ -24,11 +24,15 @@ const NavButton = memo(({ item, isActive, onClick }: { item: NavItem, isActive: 
   return (
     <button
       onClick={() => onClick(item.path)}
-      className={`relative flex flex-col items-center justify-center flex-1 outline-none tap-highlight-transparent py-1 ${
-        isActive ? 'text-gold' : 'text-white/30'
+      className={`relative flex flex-col items-center justify-center flex-1 outline-none tap-highlight-transparent py-1 transition-all duration-300 active:scale-95 ${
+        isActive ? 'text-gold' : 'text-white/30 hover:text-white/50'
       }`}
+      style={{
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
+      }}
     >
-      <div className={`relative p-2 rounded-xl transition-colors duration-300 ${isActive ? 'bg-gold/10' : ''}`}>
+      <div className={`relative p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-gold/10 scale-110' : 'hover:bg-white/5'}`}>
         <Icon className="w-5.5 h-5.5" />
         {isActive && (
           <motion.div
@@ -38,7 +42,7 @@ const NavButton = memo(({ item, isActive, onClick }: { item: NavItem, isActive: 
           />
         )}
       </div>
-      <span className={`text-[10px] font-bold mt-1 transition-colors duration-300 ${isActive ? 'text-gold' : ''}`}>
+      <span className={`text-[10px] font-bold mt-1 transition-all duration-300 ${isActive ? 'text-gold' : ''}`}>
         {item.labelAr}
       </span>
       {isActive && (
@@ -62,22 +66,34 @@ export const BottomNavigation = memo(() => {
   }, [navigate]);
 
   return (
-    <div className="fixed bottom-6 left-0 right-0 z-[9999] px-4 pointer-events-none">
-      <nav 
-        className="max-w-lg mx-auto pointer-events-auto glass-header border border-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
-        style={{ transform: 'translateZ(0)' }}
-      >
-        <div className="flex items-center justify-around px-2 h-16">
-          {NAV_ITEMS.map((item) => (
-            <NavButton 
-              key={item.path} 
-              item={item} 
-              isActive={location.pathname === item.path} 
-              onClick={handleNavigate} 
-            />
-          ))}
-        </div>
-      </nav>
+    <div 
+      className="fixed bottom-0 left-0 right-0 z-[9999] pointer-events-none"
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
+      <div className="px-4 pb-4 pt-2">
+        <nav 
+          className="max-w-lg mx-auto pointer-events-auto glass-navbar border border-white/10 rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.6),0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+          style={{ 
+            transform: 'translateZ(0)',
+            willChange: 'transform',
+            WebkitBackfaceVisibility: 'hidden',
+            backfaceVisibility: 'hidden',
+          }}
+        >
+          <div className="flex items-center justify-around px-2 h-16">
+            {NAV_ITEMS.map((item) => (
+              <NavButton 
+                key={item.path} 
+                item={item} 
+                isActive={location.pathname === item.path} 
+                onClick={handleNavigate} 
+              />
+            ))}
+          </div>
+        </nav>
+      </div>
     </div>
   );
 });

@@ -153,6 +153,21 @@
     transform: translateZ(0);
   }
 
+  .glass-navbar {
+    background: rgba(10, 10, 12, 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* Hardware acceleration for smooth performance */
+    transform: translateZ(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* Prevent layout shift */
+    contain: layout style paint;
+    /* Smooth transitions */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   .premium-border {
     border: 1px solid rgba(212, 175, 55, 0.1);
   }
