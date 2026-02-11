@@ -90,8 +90,6 @@ const Withdrawals = () => {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, newStatus }: { id: string; newStatus: 'completed' | 'rejected' | 'pending' }) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('يجب تسجيل الدخول أولاً');
 
       const { data: withdrawal } = await supabase
         .from('crypto_withdrawals')
@@ -128,9 +126,29 @@ const Withdrawals = () => {
       
       if (error) throw error;
 
+      // Create/update transaction record for the user
+      if (newStatus === 'completed') {
+        await supabase.from('transactions').insert({
+          user_id: withdrawal.user_id,
+          type: 'withdrawal',
+          amount: withdrawal.amount_usd,
+          description: `سحب ${withdrawal.currency} - تم القبول`,
+          status: 'completed',
+        });
+      } else if (newStatus === 'rejected') {
+        await supabase.from('transactions').insert({
+          user_id: withdrawal.user_id,
+          type: 'withdrawal',
+          amount: withdrawal.amount_usd,
+          description: `سحب ${withdrawal.currency} - مرفوض`,
+          status: 'rejected',
+        });
+      }
+
       // Log the admin action
+      const { data: { session } } = await supabase.auth.getSession();
       await supabase.from('activity_logs').insert({
-        admin_id: session.user.id,
+        admin_id: session?.user.id,
         action: `WITHDRAWAL_${newStatus.toUpperCase()}`,
         target_id: id,
         details: { oldStatus: withdrawal.status, newStatus }
