@@ -7,6 +7,7 @@ interface PageLayoutProps {
   showHeader?: boolean;
 }
 
+// Updated at: 2026-02-11 08:30:00 - Performance Force Update
 export const PageLayout = ({ children, showHeader = true }: PageLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center selection:bg-gold/30">
