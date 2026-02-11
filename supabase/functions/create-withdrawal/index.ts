@@ -42,6 +42,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: false, error: 'جميع الحقول مطلوبة' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    const amountNum = parseFloat(amount);
+
+    // Backend Protection: Minimum Withdrawal = 2 USDT
+    if (amountNum < 2) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "الحد الأدنى للسحب هو 2 USDT" 
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     // Get user profile
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
@@ -64,7 +74,6 @@ serve(async (req) => {
     }
 
     // Check balance (only earned funds)
-    const amountNum = parseFloat(amount);
     if (profile.total_earned < amountNum) {
       return new Response(JSON.stringify({ success: false, error: 'لا يمكنك سحب مبالغ الإيداع، يمكنك سحب الأرباح فقط' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }

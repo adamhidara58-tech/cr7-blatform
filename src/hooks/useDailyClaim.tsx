@@ -69,10 +69,11 @@ export const useDailyClaim = () => {
       return false;
     }
 
+    // Double check locally before proceeding
     if (todayClaim) {
       toast({
         title: 'تم الاستلام مسبقاً',
-        description: 'لقد استلمت مكافأتك اليومية بالفعل',
+        description: 'تم استلام المكافأة مسبقاً',
         variant: 'destructive',
       });
       return false;
@@ -85,7 +86,33 @@ export const useDailyClaim = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      // Insert daily claim record
+      // 1. Check if already claimed in DB (Atomic check)
+      const { data: existingClaim } = await supabase
+        .from('daily_claims')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('claimed_at', today)
+        .maybeSingle();
+
+      if (existingClaim) {
+        setTodayClaim({
+          id: existingClaim.id,
+          user_id: user.id,
+          vip_level: profile.vip_level,
+          amount: rewardAmount,
+          claimed_at: today,
+          created_at: new Date().toISOString(),
+        });
+        toast({
+          title: 'تم الاستلام مسبقاً',
+          description: 'تم استلام المكافأة مسبقاً',
+          variant: 'destructive',
+        });
+        setClaiming(false);
+        return false;
+      }
+
+      // 2. Insert daily claim record
       const { error: claimError } = await supabase
         .from('daily_claims')
         .insert({
@@ -99,17 +126,31 @@ export const useDailyClaim = () => {
         if (claimError.code === '23505') {
           toast({
             title: 'تم الاستلام مسبقاً',
-            description: 'لقد استلمت مكافأتك اليومية بالفعل',
+            description: 'تم استلام المكافأة مسبقاً',
             variant: 'destructive',
           });
+          // Update local state to reflect it's claimed
+          setTodayClaim({
+            id: 'already-claimed',
+            user_id: user.id,
+            vip_level: profile.vip_level,
+            amount: rewardAmount,
+            claimed_at: today,
+            created_at: new Date().toISOString(),
+          });
         } else {
-          throw claimError;
+          console.error('Claim error:', claimError);
+          toast({
+            title: 'خطأ',
+            description: 'حدث خطأ أثناء استلام المكافأة',
+            variant: 'destructive',
+          });
         }
+        setClaiming(false);
         return false;
       }
 
-      // Update user's balance
-      // We'll try to update the profile directly first as it's more reliable if RPC is not set up
+      // 3. Update user's balance
       const { data: currentProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('balance, total_earned, daily_challenges_completed')
@@ -129,7 +170,6 @@ export const useDailyClaim = () => {
       
       if (updateError) {
         console.error('Manual update failed, trying RPC:', updateError);
-        // Fallback to RPC if manual update fails
         const { error: rpcError } = await supabase.rpc('increment_balance', {
           user_id: user.id,
           amount: rewardAmount
@@ -137,8 +177,8 @@ export const useDailyClaim = () => {
         if (rpcError) throw rpcError;
       }
 
-      // Create transaction record
-      const { error: transactionError } = await supabase
+      // 4. Create transaction record
+      await supabase
         .from('transactions')
         .insert({
           user_id: user.id,
@@ -148,9 +188,7 @@ export const useDailyClaim = () => {
           status: 'completed',
         });
 
-      if (transactionError) throw transactionError;
-
-      // Update platform stats (swallow error to not fail the whole process)
+      // 5. Update platform stats (silent)
       try {
         const { data: stats } = await supabase.from('platform_stats').select('total_paid').single();
         if (stats) {
@@ -159,22 +197,23 @@ export const useDailyClaim = () => {
             .update({
               total_paid: (stats.total_paid || 0) + rewardAmount,
             })
-            .eq('id', 1); // Assuming ID 1 for stats
+            .eq('id', 1);
         }
       } catch (e) {
         console.error('Error updating platform stats:', e);
       }
 
-      // Refresh profile and set today's claim
-      await refreshProfile();
+      // 6. Finalize
       setTodayClaim({
-        id: '',
+        id: 'new-claim',
         user_id: user.id,
         vip_level: profile.vip_level,
         amount: rewardAmount,
         claimed_at: today,
         created_at: new Date().toISOString(),
       });
+
+      await refreshProfile();
 
       toast({
         title: 'تم استلام المكافأة! 🎉',
