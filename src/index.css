@@ -144,42 +144,25 @@
   }
 
   .glass-header {
-    /* Advanced Glassmorphism: Ultra-thin background with high saturation */
-    background: rgba(10, 10, 12, 0.45);
-    backdrop-filter: blur(24px) saturate(200%) brightness(110%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(110%);
-    
-    /* Luminous border effect */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 
-      0 8px 32px 0 rgba(0, 0, 0, 0.4),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-
-    /* Performance & Rendering */
+    background: rgba(10, 10, 12, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* Hardware acceleration for smooth performance */
     transform: translateZ(0);
-    will-change: transform, backdrop-filter;
+    will-change: transform;
     contain: layout style paint;
     backface-visibility: hidden;
   }
 
   .glass-navbar {
-    /* Advanced Glassmorphism: Slightly more opaque for readability at bottom */
-    background: rgba(10, 10, 12, 0.65);
-    backdrop-filter: blur(28px) saturate(220%) brightness(105%);
-    -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(105%);
-    
-    /* Luminous border effect */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 
-      0 -8px 32px 0 rgba(0, 0, 0, 0.5),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-
-    /* Performance & Rendering */
+    background: rgba(10, 10, 12, 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* Hardware acceleration for smooth performance */
     transform: translateZ(0);
-    will-change: transform, backdrop-filter;
-    contain: layout style paint;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-  }den;
     /* Prevent layout shift */
     contain: layout style paint;
     /* Smooth transitions */

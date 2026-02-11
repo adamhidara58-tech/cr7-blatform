@@ -99,7 +99,8 @@ export const Header = memo(() => {
       {/* Floating Header Container */}
       <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none px-4 pt-4">
         <header 
-          className="max-w-lg mx-auto pointer-events-auto glass-header rounded-[32px] overflow-hidden"
+          className="max-w-lg mx-auto pointer-events-auto glass-header border border-white/10 rounded-[28px] shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden will-change-transform"
+          style={{ transform: 'translateZ(0)' }}
         >
           <div className="flex items-center justify-between px-4 py-2.5 gap-2">
             {/* Logo Section */}
