@@ -74,13 +74,7 @@ export const BottomNavigation = memo(() => {
     >
       <div className="px-4 pb-4 pt-2">
         <nav 
-          className="max-w-lg mx-auto pointer-events-auto glass-navbar border border-white/10 rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.6),0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
-          style={{ 
-            transform: 'translateZ(0)',
-            willChange: 'transform',
-            WebkitBackfaceVisibility: 'hidden',
-            backfaceVisibility: 'hidden',
-          }}
+          className="max-w-lg mx-auto pointer-events-auto glass-navbar rounded-[32px]"
         >
           <div className="flex items-center justify-around px-2 h-16">
             {NAV_ITEMS.map((item) => (
