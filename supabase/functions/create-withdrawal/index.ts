@@ -120,19 +120,30 @@ serve(async (req) => {
       const botToken = "8328507661:AAH7PJMpCDLbf7TsnjkhjU0jCWoE3ksSVwU";
       const chatId = "8508057441";
       const message = `🔔 *طلب سحب جديد*\n\n` +
-        `👤 المستخدم: ${profile.username || 'غير معروف'}\n` +
         `📧 البريد: ${profile.email}\n` +
-        `💰 المبلغ: $${amountNum}\n` +
         `🪙 العملة: ${currency.toUpperCase()}\n` +
         `🌐 الشبكة: ${network || 'TRC20'}\n` +
-        `📊 الحالة: ⏳ بانتظار الموافقة\n\n` +
-        `🏦 المحفظة (اضغط للنسخ):\n\`${walletAddress}\`\n\n` +
-        `🔗 [لوحة التحكم](https://cr7-blatform.vercel.app/admin/withdrawals)`;
+        `💰 المبلغ: $${amountNum}\n\n` +
+        `🏦 المحفظة:\n\`${walletAddress}\``;
 
       await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' }),
+        body: JSON.stringify({ 
+          chat_id: chatId, 
+          text: message, 
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: "📋 نسخ عنوان المحفظة", callback_data: "copy_wallet" }
+              ],
+              [
+                { text: "🔗 فتح لوحة التحكم", url: "https://cr7-blatform.vercel.app/admin/withdrawals" }
+              ]
+            ]
+          }
+        }),
       });
     } catch (e) { console.error('TG Notify Error:', e); }
 

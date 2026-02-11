@@ -98,9 +98,7 @@ export const NotificationsModal = ({ open, onOpenChange }: NotificationsModalPro
                     <p className="text-sm font-bold text-primary">
                       {tx.type === 'deposit' ? '+' : '-'}${Math.abs(tx.amount)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      الحالة: {tx.status === 'completed' ? 'مكتمل' : tx.status === 'pending' ? 'قيد الانتظار' : 'فشل'}
-                    </p>
+
                   </div>
                 </div>
               </motion.div>
