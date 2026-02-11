@@ -10,7 +10,7 @@ interface PageLayoutProps {
 export const PageLayout = ({ children, showHeader = true }: PageLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center selection:bg-gold/30">
-      {/* Dynamic Background Effects */}
+      {/* Dynamic Background Effects - Optimized for performance */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-[500px] bg-gradient-to-b from-gold/5 to-transparent opacity-30" />
         <div className="absolute top-1/4 -left-20 w-64 h-64 bg-gold/5 blur-[80px] rounded-full" />
