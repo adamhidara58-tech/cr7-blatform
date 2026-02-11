@@ -14,7 +14,7 @@ const FAQItem = ({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
   return (
     <motion.div 
       initial={false}
-      className={`glass-card rounded-2xl border transition-all duration-200 ease-out overflow-hidden mb-4 ${
+      className={`glass-card rounded-2xl border transition-all duration-300 overflow-hidden mb-4 ${
         isOpen ? 'border-gold/40 shadow-[0_0_20px_rgba(212,175,55,0.15)] bg-white/5' : 'border-white/5 hover:border-white/10'
       }`}
     >
@@ -24,13 +24,13 @@ const FAQItem = ({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
       >
         <div className="flex items-center gap-4 flex-1">
           <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{icon}</span>
-          <span className={`font-bold text-sm md:text-base transition-colors duration-200 ease-out ${isOpen ? 'text-gold' : 'text-white/90'}`}>
+          <span className={`font-bold text-sm md:text-base transition-colors ${isOpen ? 'text-gold' : 'text-white/90'}`}>
             {question}
           </span>
         </div>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: [0.4, 0.0, 0.2, 1] }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
           className={`${isOpen ? 'text-gold' : 'text-white/30'}`}
         >
           <ChevronDown className="w-5 h-5" />
