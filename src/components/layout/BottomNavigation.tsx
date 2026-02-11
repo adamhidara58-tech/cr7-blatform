@@ -1,7 +1,7 @@
 import { Home, Trophy, Users, Crown, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { memo, useMemo, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 
 interface NavItem {
   icon: React.ElementType;
@@ -24,7 +24,7 @@ const NavButton = memo(({ item, isActive, onClick }: { item: NavItem, isActive: 
   return (
     <button
       onClick={() => onClick(item.path)}
-      className={`relative flex flex-col items-center justify-center flex-1 outline-none tap-highlight-transparent ${
+      className={`relative flex flex-col items-center justify-center flex-1 outline-none tap-highlight-transparent py-1 ${
         isActive ? 'text-gold' : 'text-white/30'
       }`}
     >
@@ -62,21 +62,23 @@ export const BottomNavigation = memo(() => {
   }, [navigate]);
 
   return (
-    <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999] glass-header border-t border-white/5 pb-safe pt-2 backdrop-blur-lg"
-      style={{ transform: 'translateZ(0)' }} // Force GPU rendering for fixed navbar
-    >
-      <div className="flex items-center justify-around px-2 max-w-lg mx-auto h-16">
-        {NAV_ITEMS.map((item) => (
-          <NavButton 
-            key={item.path} 
-            item={item} 
-            isActive={location.pathname === item.path} 
-            onClick={handleNavigate} 
-          />
-        ))}
-      </div>
-    </nav>
+    <div className="fixed bottom-6 left-0 right-0 z-[9999] px-4 pointer-events-none">
+      <nav 
+        className="max-w-lg mx-auto pointer-events-auto glass-header border border-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+        style={{ transform: 'translateZ(0)' }}
+      >
+        <div className="flex items-center justify-around px-2 h-16">
+          {NAV_ITEMS.map((item) => (
+            <NavButton 
+              key={item.path} 
+              item={item} 
+              isActive={location.pathname === item.path} 
+              onClick={handleNavigate} 
+            />
+          ))}
+        </div>
+      </nav>
+    </div>
   );
 });
 
