@@ -1,6 +1,7 @@
 import { Home, Trophy, Users, Crown, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { memo, useMemo, useCallback } from 'react';
 
 interface NavItem {
   icon: React.ElementType;
@@ -9,7 +10,7 @@ interface NavItem {
   path: string;
 }
 
-const navItems: NavItem[] = [
+const NAV_ITEMS: NavItem[] = [
   { icon: Home, label: 'Home', labelAr: 'الرئيسية', path: '/' },
   { icon: Trophy, label: 'Challenges', labelAr: 'التحديات', path: '/challenges' },
   { icon: Users, label: 'Team', labelAr: 'الفريق', path: '/team' },
@@ -17,53 +18,66 @@ const navItems: NavItem[] = [
   { icon: User, label: 'Profile', labelAr: 'حسابي', path: '/profile' },
 ];
 
-export const BottomNavigation = () => {
+const NavButton = memo(({ item, isActive, onClick }: { item: NavItem, isActive: boolean, onClick: (path: string) => void }) => {
+  const Icon = item.icon;
+  
+  return (
+    <button
+      onClick={() => onClick(item.path)}
+      className={`relative flex flex-col items-center justify-center flex-1 outline-none tap-highlight-transparent ${
+        isActive ? 'text-gold' : 'text-white/30'
+      }`}
+    >
+      <div className={`relative p-2 rounded-xl transition-colors duration-300 ${isActive ? 'bg-gold/10' : ''}`}>
+        <Icon className="w-5.5 h-5.5" />
+        {isActive && (
+          <motion.div
+            layoutId="activeGlow"
+            className="absolute inset-0 bg-gold/20 blur-xl rounded-full"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          />
+        )}
+      </div>
+      <span className={`text-[10px] font-bold mt-1 transition-colors duration-300 ${isActive ? 'text-gold' : ''}`}>
+        {item.labelAr}
+      </span>
+      {isActive && (
+        <motion.div
+          className="absolute -bottom-1 w-1 h-1 bg-gold rounded-full shadow-[0_0_8px_#D4AF37]"
+          layoutId="activeIndicator"
+        />
+      )}
+    </button>
+  );
+});
+
+NavButton.displayName = 'NavButton';
+
+export const BottomNavigation = memo(() => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  return (
-    <nav className="w-full mt-auto z-50 glass-header border-t border-white/5 pb-safe pt-2">
-      <div className="flex items-center justify-around px-2 max-w-lg mx-auto h-16">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          const Icon = item.icon;
+  const handleNavigate = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
 
-          return (
-            <motion.button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className={`relative flex flex-col items-center justify-center flex-1 transition-all duration-300 ${
-                isActive ? 'text-gold' : 'text-white/30'
-              }`}
-              whileTap={{ scale: 0.9 }}
-            >
-              <div className={`relative p-2 rounded-xl transition-all duration-500 ${isActive ? 'bg-gold/10' : ''}`}>
-                <Icon
-                  className={`w-5.5 h-5.5 transition-all duration-300 ${
-                    isActive ? 'text-gold' : ''
-                  }`}
-                />
-                {isActive && (
-                  <motion.div
-                    layoutId="activeGlow"
-                    className="absolute inset-0 bg-gold/20 blur-xl rounded-full"
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  />
-                )}
-              </div>
-              <span className={`text-[10px] font-bold mt-1 transition-colors duration-300 ${isActive ? 'text-gold' : ''}`}>
-                {item.labelAr}
-              </span>
-              {isActive && (
-                <motion.div
-                  className="absolute -bottom-1 w-1 h-1 bg-gold rounded-full shadow-[0_0_8px_#D4AF37]"
-                  layoutId="activeIndicator"
-                />
-              )}
-            </motion.button>
-          );
-        })}
+  return (
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-[9999] glass-header border-t border-white/5 pb-safe pt-2 backdrop-blur-lg"
+      style={{ transform: 'translateZ(0)' }} // Force GPU rendering for fixed navbar
+    >
+      <div className="flex items-center justify-around px-2 max-w-lg mx-auto h-16">
+        {NAV_ITEMS.map((item) => (
+          <NavButton 
+            key={item.path} 
+            item={item} 
+            isActive={location.pathname === item.path} 
+            onClick={handleNavigate} 
+          />
+        ))}
       </div>
     </nav>
   );
-};
+});
+
+BottomNavigation.displayName = 'BottomNavigation';

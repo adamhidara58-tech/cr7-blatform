@@ -62,6 +62,8 @@
     /* Improve scroll performance */
     scroll-behavior: smooth;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    height: 100%;
   }
 
   body {
@@ -69,11 +71,13 @@
     font-family: 'Cairo', 'Tajawal', sans-serif;
     background-image: radial-gradient(circle at top center, hsla(45, 63%, 53%, 0.03) 0%, transparent 70%);
     overflow-x: hidden;
-    text-rendering: optimizeLegibility;
+    text-rendering: optimizeSpeed;
     /* Hardware acceleration for body */
     transform: translateZ(0);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100%;
+    position: relative;
   }
 
   /* Performance optimizations */

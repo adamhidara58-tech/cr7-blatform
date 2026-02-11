@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 
@@ -10,27 +10,28 @@ interface FAQItemProps {
   onClick: () => void;
 }
 
-const FAQItem = ({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
+// استخدام memo لمنع الـ re-render غير الضروري لكل عنصر عند فتح عنصر آخر
+const FAQItem = memo(({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
   return (
-    <motion.div 
-      initial={false}
-      className={`glass-card rounded-2xl border transition-all duration-300 overflow-hidden mb-4 ${
-        isOpen ? 'border-gold/40 shadow-[0_0_20px_rgba(212,175,55,0.15)] bg-white/5' : 'border-white/5 hover:border-white/10'
+    <div 
+      className={`glass-card rounded-2xl border transition-colors duration-300 overflow-hidden mb-4 ${
+        isOpen ? 'border-gold/40 bg-white/5' : 'border-white/5 hover:border-white/10'
       }`}
+      style={{ transform: 'translateZ(0)' }} // GPU Acceleration
     >
       <button
         onClick={onClick}
-        className="w-full px-5 py-5 flex items-center justify-between gap-4 text-right"
+        className="w-full px-5 py-5 flex items-center justify-between gap-4 text-right outline-none"
       >
         <div className="flex items-center gap-4 flex-1">
-          <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{icon}</span>
-          <span className={`font-bold text-sm md:text-base transition-colors ${isOpen ? 'text-gold' : 'text-white/90'}`}>
+          <span className="text-2xl" style={{ textShadow: '0 0 8px rgba(255,255,255,0.2)' }}>{icon}</span>
+          <span className={`font-bold text-sm md:text-base transition-colors duration-200 ${isOpen ? 'text-gold' : 'text-white/90'}`}>
             {question}
           </span>
         </div>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          transition={{ duration: 0.2, ease: "circOut" }}
           className={`${isOpen ? 'text-gold' : 'text-white/30'}`}
         >
           <ChevronDown className="w-5 h-5" />
@@ -43,9 +44,13 @@ const FAQItem = ({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ type: "spring", duration: 0.4, bounce: 0, opacity: { duration: 0.2 } }}
+            transition={{ 
+              height: { type: "spring", duration: 0.3, bounce: 0 },
+              opacity: { duration: 0.2 }
+            }}
+            style={{ overflow: 'hidden' }}
           >
-            <div className="px-5 pb-6 pt-0 will-change-[height,opacity]">
+            <div className="px-5 pb-6 pt-0 will-change-transform">
               <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-4" />
               <div className="text-white/70 text-sm leading-relaxed font-medium whitespace-pre-line">
                 {answer}
@@ -54,12 +59,19 @@ const FAQItem = ({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
-};
+});
 
-export const FAQSection = () => {
+FAQItem.displayName = 'FAQItem';
+
+export const FAQSection = memo(() => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  // استخدام useCallback لضمان ثبات المرجع ومنع الـ re-render للـ FAQItem
+  const handleToggle = useCallback((index: number) => {
+    setOpenIndex(prev => prev === index ? null : index);
+  }, []);
 
   const faqs = [
     {
@@ -114,7 +126,7 @@ export const FAQSection = () => {
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-full h-40 bg-gold/5 blur-[100px] pointer-events-none" />
       
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         className="text-center mb-10"
@@ -137,20 +149,18 @@ export const FAQSection = () => {
             answer={faq.answer}
             icon={faq.icon}
             isOpen={openIndex === index}
-            onClick={() => setOpenIndex(openIndex === index ? null : index)}
+            onClick={() => handleToggle(index)}
           />
         ))}
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        className="mt-10 text-center"
-      >
+      <div className="mt-10 text-center">
         <p className="text-white/20 text-[11px] font-medium">
           © 2026 CR7 ELITE PLATFORM • نظام آمن وموثوق
         </p>
-      </motion.div>
+      </div>
     </section>
   );
-};
+});
+
+FAQSection.displayName = 'FAQSection';
