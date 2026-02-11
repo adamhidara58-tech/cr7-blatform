@@ -136,10 +136,7 @@ serve(async (req) => {
           reply_markup: {
             inline_keyboard: [
               [
-                { text: "📋 نسخ عنوان المحفظة", callback_data: "copy_wallet" }
-              ],
-              [
-                { text: "🔗 فتح لوحة التحكم", url: "https://cr7-blatform.vercel.app/admin/withdrawals" }
+                { text: "📋 نسخ عنوان المحفظة", copy_text: { text: walletAddress } }
               ]
             ]
           }
