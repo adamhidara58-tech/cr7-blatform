@@ -75,7 +75,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100%;
-    /* Removed position: relative and transform to allow fixed navbar positioning */
   }
 
   /* Performance optimizations */
@@ -144,9 +143,10 @@
   }
 
   .glass-header {
-    background: rgba(10, 10, 12, 0.85);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(12px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     /* Hardware acceleration for smooth performance */
     transform: translateZ(0);
     will-change: transform;
@@ -155,9 +155,10 @@
   }
 
   .glass-navbar {
-    background: rgba(10, 10, 12, 0.95);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(12px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     /* Hardware acceleration for smooth performance */
     transform: translateZ(0);
     will-change: transform;

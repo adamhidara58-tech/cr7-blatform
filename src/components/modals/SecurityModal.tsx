@@ -48,61 +48,66 @@ export const SecurityModal = ({ open, onOpenChange }: SecurityModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-modal max-w-md border-border/50">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl font-display text-gradient-gold">
-            <Shield className="w-5 h-5 text-primary" />
-            الأمان
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {securityItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="p-4 rounded-xl glass-card border border-border/30"
-              >
-                <div className="flex items-center justify-between">
-                  <GoldButton 
-                    variant={item.status === 'active' ? 'secondary' : 'primary'}
-                    size="sm"
-                    onClick={() => handleAction(item.id)}
-                  >
-                    {item.action}
-                  </GoldButton>
-                  
-                  <div className="flex items-center gap-3 text-right">
-                    <div>
-                      <div className="flex items-center justify-end gap-2 mb-1">
-                        <h4 className="font-semibold text-foreground">{item.title}</h4>
-                        {item.status === 'active' && (
-                          <CheckCircle className="w-4 h-4 text-green-400" />
-                        )}
+      <DialogContent className="max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+        <div className="bg-[#0A0A0C] border border-white/10 rounded-[32px] w-full flex flex-col overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)]">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-center text-xl font-bold text-gradient-gold flex items-center justify-center gap-2">
+              <Shield className="w-5 h-5 text-gold" />
+              الأمان والخصوصية
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="p-6 pt-2 space-y-4">
+            {securityItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-all"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-gold" />
                       </div>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                      <div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h4 className="font-bold text-white text-sm">{item.title}</h4>
+                          {item.status === 'active' && (
+                            <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                          )}
+                        </div>
+                        <p className="text-[10px] text-white/40 font-medium">{item.description}</p>
+                      </div>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-primary" />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
 
-        <div className="mt-4 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-          <div className="flex items-center gap-3 text-right">
-            <div className="flex-1">
-              <p className="text-sm text-green-400 font-medium">حسابك محمي</p>
-              <p className="text-xs text-muted-foreground">آخر تسجيل دخول: منذ 5 دقائق</p>
+                    <button 
+                      onClick={() => handleAction(item.id)}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        item.status === 'active' 
+                          ? 'bg-white/5 text-white/40 hover:bg-white/10' 
+                          : 'bg-gold text-black hover:scale-105 active:scale-95'
+                      }`}
+                    >
+                      {item.action}
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            <div className="mt-4 p-5 rounded-2xl bg-green-500/5 border border-green-500/10 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5 text-green-400" />
+              </div>
+              <div>
+                <p className="text-xs text-green-400 font-bold">حسابك محمي بنسبة 100%</p>
+                <p className="text-[10px] text-white/30 font-medium mt-0.5">يتم تشفير جميع بياناتك ومعاملاتك بشكل كامل.</p>
+              </div>
             </div>
-            <Shield className="w-8 h-8 text-green-400" />
           </div>
         </div>
       </DialogContent>

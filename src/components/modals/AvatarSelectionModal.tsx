@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Check, Loader2 } from 'lucide-react';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface AvatarSelectionModalProps {
   isOpen: boolean;
@@ -47,82 +53,57 @@ export const AvatarSelectionModal = ({ isOpen, onClose }: AvatarSelectionModalPr
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-          />
-          
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md bg-[#1A1A20] border border-white/10 rounded-3xl overflow-hidden shadow-2xl"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/5">
-              <h3 className="text-xl font-display text-foreground">اختر صورتك الشخصية</h3>
-              <button 
-                onClick={onClose}
-                className="p-2 hover:bg-white/5 rounded-full transition-colors"
-              >
-                <X className="w-6 h-6 text-muted-foreground" />
-              </button>
-            </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+        <div className="bg-[#0A0A0C] border border-white/10 rounded-[32px] w-full flex flex-col overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)]">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-center text-xl font-bold text-gradient-gold">اختر صورتك الشخصية</DialogTitle>
+          </DialogHeader>
 
-            {/* Avatar Grid */}
-            <div className="p-6 max-h-[60vh] overflow-y-auto">
-              <div className="grid grid-cols-3 gap-4">
-                {AVATARS.map((avatar) => (
-                  <button
-                    key={avatar}
-                    onClick={() => setSelectedAvatar(avatar)}
-                    className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
-                      selectedAvatar === avatar 
-                        ? 'border-gold scale-95 shadow-[0_0_15px_rgba(212,175,55,0.3)]' 
-                        : 'border-transparent hover:border-white/20'
-                    }`}
-                  >
-                    <img 
-                      src={avatar} 
-                      alt="Avatar" 
-                      className="w-full h-full object-cover"
-                    />
-                    {selectedAvatar === avatar && (
-                      <div className="absolute inset-0 bg-gold/20 flex items-center justify-center">
-                        <div className="bg-gold rounded-full p-1">
-                          <Check className="w-4 h-4 text-black" />
-                        </div>
+          <div className="p-6 pt-2 overflow-y-auto custom-scrollbar max-h-[60vh]">
+            <div className="grid grid-cols-3 gap-4">
+              {AVATARS.map((avatar) => (
+                <button
+                  key={avatar}
+                  onClick={() => setSelectedAvatar(avatar)}
+                  className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
+                    selectedAvatar === avatar 
+                      ? 'border-gold scale-95 shadow-[0_0_15px_rgba(212,175,55,0.3)]' 
+                      : 'border-white/5 hover:border-white/20'
+                  }`}
+                >
+                  <img 
+                    src={avatar} 
+                    alt="Avatar" 
+                    className="w-full h-full object-cover"
+                  />
+                  {selectedAvatar === avatar && (
+                    <div className="absolute inset-0 bg-gold/20 flex items-center justify-center">
+                      <div className="bg-gold rounded-full p-1.5 shadow-lg">
+                        <Check className="w-4 h-4 text-black" />
                       </div>
-                    )}
-                  </button>
-                ))}
-              </div>
+                    </div>
+                  )}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* Footer */}
-            <div className="p-6 border-t border-white/5">
-              <GoldButton
-                variant="primary"
-                className="w-full py-4"
-                onClick={handleSave}
-                disabled={isUpdating || !selectedAvatar}
-              >
-                {isUpdating ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  'حفظ التغييرات'
-                )}
-              </GoldButton>
-            </div>
-          </motion.div>
+          <div className="p-6 border-t border-white/5">
+            <GoldButton
+              className="w-full py-7 rounded-2xl text-lg font-black shadow-gold"
+              onClick={handleSave}
+              disabled={isUpdating || !selectedAvatar}
+            >
+              {isUpdating ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+              ) : (
+                'حفظ التغييرات'
+              )}
+            </GoldButton>
+          </div>
         </div>
-      )}
-    </AnimatePresence>
+      </DialogContent>
+    </Dialog>
   );
 };

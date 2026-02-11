@@ -67,64 +67,65 @@ export const ChangePasswordModal = ({ open, onOpenChange }: ChangePasswordModalP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-modal max-w-md border-border/50">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl font-display text-gradient-gold">
-            <Lock className="w-5 h-5 text-primary" />
-            تغيير كلمة المرور
-          </DialogTitle>
-        </DialogHeader>
-        
-        <form onSubmit={handleUpdatePassword} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground block text-left">كلمة المرور القديمة</label>
-            <input
-              type="password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              className="w-full bg-[#141419] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 outline-none transition-all"
-              placeholder="••••••••"
-              required
-            />
-          </div>
+      <DialogContent className="max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+        <div className="bg-[#0A0A0C] border border-white/10 rounded-[32px] w-full flex flex-col overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)]">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-center text-xl font-bold text-gradient-gold flex items-center justify-center gap-2">
+              <Lock className="w-5 h-5 text-gold" />
+              تغيير كلمة المرور
+            </DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleUpdatePassword} className="p-6 pt-2 space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/30 uppercase tracking-widest px-1">كلمة المرور القديمة</label>
+              <input
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-white focus:border-gold/50 outline-none transition-all"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground block text-left">كلمة المرور الجديدة</label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full bg-[#141419] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 outline-none transition-all"
-              placeholder="••••••••"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/30 uppercase tracking-widest px-1">كلمة المرور الجديدة</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-white focus:border-gold/50 outline-none transition-all"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground block text-left">تأكيد كلمة المرور الجديدة</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full bg-[#141419] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 outline-none transition-all"
-              placeholder="••••••••"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/30 uppercase tracking-widest px-1">تأكيد كلمة المرور الجديدة</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-white focus:border-gold/50 outline-none transition-all"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-          <GoldButton 
-            type="submit"
-            variant="primary" 
-            className="w-full py-6 mt-2"
-            disabled={loading}
-          >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              'تحديث كلمة المرور'
-            )}
-          </GoldButton>
-        </form>
+            <GoldButton 
+              type="submit"
+              className="w-full py-7 rounded-2xl text-lg font-black shadow-gold mt-4"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+              ) : (
+                'تحديث كلمة المرور'
+              )}
+            </GoldButton>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

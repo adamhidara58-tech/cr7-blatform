@@ -46,50 +46,52 @@ export const PrivacyModal = ({ open, onOpenChange }: PrivacyModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-modal max-w-md border-border/50">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl font-display text-gradient-gold">
-            <Eye className="w-5 h-5 text-primary" />
-            الخصوصية
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {privacyItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="p-4 rounded-xl glass-card border border-border/30"
-              >
-                <div className="flex items-center justify-between">
-                  <Switch 
-                    checked={item.enabled}
-                    onCheckedChange={() => toggleSetting(item.id as keyof typeof settings)}
-                  />
-                  
-                  <div className="flex items-center gap-3 text-right">
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
+      <DialogContent className="max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+        <div className="bg-[#0A0A0C] border border-white/10 rounded-[32px] w-full flex flex-col overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)]">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-center text-xl font-bold text-gradient-gold flex items-center justify-center gap-2">
+              <Eye className="w-5 h-5 text-gold" />
+              إعدادات الخصوصية
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="p-6 pt-2 space-y-4">
+            {privacyItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-all"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-gold" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm mb-0.5">{item.title}</h4>
+                        <p className="text-[10px] text-white/40 font-medium">{item.description}</p>
+                      </div>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-primary" />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
 
-        <div className="mt-4 p-4 rounded-xl bg-secondary/50 border border-border/30">
-          <p className="text-xs text-muted-foreground text-right leading-relaxed">
-            نحن نحترم خصوصيتك. جميع بياناتك مشفرة ومحمية وفقاً لأعلى معايير الأمان.
-          </p>
+                    <Switch 
+                      checked={item.enabled}
+                      onCheckedChange={() => toggleSetting(item.id as keyof typeof settings)}
+                    />
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            <div className="mt-4 p-5 rounded-2xl bg-white/5 border border-white/10">
+              <p className="text-[10px] text-white/30 text-center font-medium leading-relaxed">
+                نحن نحترم خصوصيتك. جميع بياناتك مشفرة ومحمية وفقاً لأعلى معايير الأمان العالمية. لن يتم مشاركة بياناتك مع أي طرف ثالث.
+              </p>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

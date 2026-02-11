@@ -67,14 +67,14 @@ export const BottomNavigation = memo(() => {
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-[9999] pointer-events-none"
+      className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
       <div className="px-4 pb-4 pt-2">
         <nav 
-          className="max-w-lg mx-auto pointer-events-auto glass-navbar border border-white/10 rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.6),0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+          className="max-w-lg mx-auto pointer-events-auto glass-navbar rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.6),0_8px_32px_rgba(0,0,0,0.5)]"
           style={{ 
             transform: 'translateZ(0)',
             willChange: 'transform',

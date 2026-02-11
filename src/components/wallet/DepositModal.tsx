@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, ExternalLink, QrCode, Wallet, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Copy, Check, Wallet, AlertCircle } from 'lucide-react';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { Input } from '@/components/ui/input';
 import { useCryptoPayments } from '@/hooks/useCryptoPayments';
 import { toast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -70,95 +76,74 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
     onClose();
   };
 
-  // All currencies are now supported (only 5 configured)
   const popularCurrencies = currencies;
-  const otherCurrencies: typeof currencies = [];
-
-  if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-        onClick={handleClose}
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-card border border-border rounded-2xl w-full max-w-md max-h-[95vh] flex flex-col overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <button onClick={handleClose} className="p-2 hover:bg-secondary rounded-lg">
-              <X className="w-5 h-5" />
-            </button>
-            <h2 className="font-display text-lg">إيداع</h2>
-            <div className="w-9" />
-          </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+        <div className="bg-[#0A0A0C] border border-white/10 rounded-[32px] w-full flex flex-col overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)]">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-center text-xl font-bold text-gradient-gold">إيداع الأموال</DialogTitle>
+          </DialogHeader>
 
-          <div className="p-4 overflow-y-auto flex-1 custom-scrollbar">
+          <div className="p-6 pt-2 overflow-y-auto custom-scrollbar max-h-[70vh]">
             {/* Step 1: Amount */}
             {step === 'amount' && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
               >
-                <div className="text-center mb-6">
-                  <Wallet className="w-12 h-12 mx-auto text-primary mb-3" />
-                  <h3 className="text-lg font-semibold">أدخل مبلغ الإيداع</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    الحد الأدنى: ${minimumDepositUsd}
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto bg-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-gold/20 shadow-gold">
+                    <Wallet className="w-8 h-8 text-gold" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">أدخل مبلغ الإيداع</h3>
+                  <p className="text-sm text-white/40 mt-1">
+                    الحد الأدنى للإيداع هو <span className="text-gold font-bold">${minimumDepositUsd}</span>
                   </p>
                 </div>
 
-                <div className="relative">
+                <div className="relative group">
                   <Input
                     type="number"
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="text-center text-2xl font-bold h-16 pr-12"
+                    className="text-center text-3xl font-black h-20 bg-white/5 border-white/10 rounded-2xl focus:border-gold/50 focus:ring-gold/20 transition-all"
                     min={minimumDepositUsd}
                   />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 font-bold text-lg">
                     USD
                   </span>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {[10, 50, 100, 500].map((preset) => (
                     <button
                       key={preset}
                       onClick={() => setAmount(preset.toFixed(2))}
-                      className="flex-1 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium"
+                      className="py-3 rounded-xl bg-white/5 border border-white/5 hover:border-gold/30 hover:bg-gold/5 transition-all text-sm font-bold text-white/70 hover:text-gold"
                     >
                       ${preset}
                     </button>
                   ))}
                 </div>
 
-                <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">
-                    يرجى إرسال المبلغ المطلوب <strong>بالإضافة</strong> إلى رسوم الشبكة لإتمام المعاملة
+                <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    يرجى إرسال المبلغ المطلوب <strong className="text-white">بالإضافة</strong> إلى رسوم الشبكة لضمان وصول المبلغ كاملاً.
                   </p>
                 </div>
 
-                <div className="pt-2">
-                  <GoldButton
-                    onClick={handleSubmitAmount}
-                    className="w-full py-6 shadow-[0_10px_20px_-5px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
-                    disabled={!amount || parseFloat(amount) < minimumDepositUsd}
-                  >
-                    متابعة
-                  </GoldButton>
-                </div>
+                <GoldButton
+                  onClick={handleSubmitAmount}
+                  className="w-full py-7 rounded-2xl text-lg font-black shadow-gold hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  disabled={!amount || parseFloat(amount) < minimumDepositUsd}
+                >
+                  متابعة للدفع
+                </GoldButton>
               </motion.div>
             )}
 
@@ -170,50 +155,40 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                 className="space-y-4"
               >
                 <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold">اختر العملة</h3>
-                  <p className="text-sm text-muted-foreground">إيداع ${parseFloat(amount).toFixed(2)}</p>
+                  <h3 className="text-lg font-bold text-white">اختر العملة</h3>
+                  <p className="text-sm text-white/40">المبلغ المطلوب: <span className="text-gold font-bold">${parseFloat(amount).toFixed(2)}</span></p>
                 </div>
 
                 {loading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                  <div className="flex flex-col items-center justify-center py-12 gap-4">
+                    <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+                    <p className="text-sm text-white/40 font-medium">جاري تجهيز بوابة الدفع...</p>
                   </div>
                 ) : (
-                  <>
-                    {popularCurrencies.length > 0 && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-2">العملات الشائعة</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {popularCurrencies.slice(0, 6).map((currency) => (
-                            <button
-                              key={currency.currency}
-                              onClick={() => handleSelectCurrency(currency.currency)}
-                              className={`p-4 rounded-xl bg-secondary/50 hover:bg-secondary border transition-all text-center flex flex-col items-center justify-center gap-1 group ${
-                                selectedCurrency === currency.currency 
-                                  ? 'border-gold shadow-[0_0_15px_rgba(212,175,55,0.2)] bg-gold/5' 
-                                  : 'border-white/5 hover:border-gold/50'
-                              }`}
-                            >
-                              <p className="font-black text-lg tracking-tight group-hover:text-gold transition-colors">
-                                {currency.currency.toUpperCase().replace('TRC20', '').replace('BSC', '').replace('MATIC', '').replace('MAINNET', '')}
-                              </p>
-                              <div className="h-px w-8 bg-white/10 group-hover:bg-gold/30 transition-colors" />
-                              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest group-hover:text-white/60">
-                                {currency.network.replace(' (BSC)', '')}
-                              </p>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
+                  <div className="grid grid-cols-2 gap-3">
+                    {popularCurrencies.map((currency) => (
+                      <button
+                        key={currency.currency}
+                        onClick={() => handleSelectCurrency(currency.currency)}
+                        className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-gold/50 hover:bg-gold/5 transition-all flex flex-col items-center gap-2 group"
+                      >
+                        <p className="font-black text-xl text-white group-hover:text-gold transition-colors">
+                          {currency.currency.toUpperCase().replace('TRC20', '').replace('BSC', '')}
+                        </p>
+                        <div className="h-px w-8 bg-white/10 group-hover:bg-gold/30" />
+                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                          {currency.network}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
                 )}
 
                 <button
                   onClick={() => setStep('amount')}
-                  className="w-full py-2 text-sm text-muted-foreground hover:text-foreground"
+                  className="w-full py-4 text-sm font-bold text-white/30 hover:text-white transition-colors"
                 >
-                  رجوع
+                  ← رجوع لتعديل المبلغ
                 </button>
               </motion.div>
             )}
@@ -221,111 +196,67 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
             {/* Step 3: Payment Details */}
             {step === 'payment' && depositInfo && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-4"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="space-y-6"
               >
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold">إرسال الدفعة</h3>
-                  <p className="text-sm text-muted-foreground">
-                    أرسل {depositInfo.payAmount.toFixed(2)} {depositInfo.payCurrency}
+                  <h3 className="text-lg font-bold text-white">إرسال الدفعة</h3>
+                  <p className="text-sm text-white/40">
+                    أرسل <span className="text-gold font-black">{depositInfo.payAmount.toFixed(6)}</span> {depositInfo.payCurrency.toUpperCase()}
                   </p>
                 </div>
 
-                {/* QR Code Section */}
-                <div className="glass-card rounded-2xl p-6 border border-white/5 space-y-6">
+                <div className="bg-white/5 border border-white/10 rounded-[24px] p-6 space-y-6">
                   {depositInfo.qrCode && (
                     <div className="flex flex-col items-center gap-3">
-                      <div className="bg-white p-4 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                      <div className="bg-white p-3 rounded-2xl">
                         <img
                           src={depositInfo.qrCode}
                           alt="QR Code"
-                          className="w-44 h-44"
+                          className="w-40 h-40"
                         />
                       </div>
-                      <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">امسح الكود للدفع</span>
+                      <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">امسح الكود للدفع الفوري</span>
                     </div>
                   )}
 
-                  {/* Wallet Address */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between px-1">
                       <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">عنوان المحفظة</label>
                       {copied === 'address' && <span className="text-[10px] font-bold text-gold animate-pulse">تم النسخ!</span>}
                     </div>
                     <div 
                       onClick={() => handleCopy(depositInfo.payAddress, 'address')}
-                      className="group relative flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer"
+                      className="group flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer"
                     >
-                      <div className="flex-1 font-mono text-xs break-all text-white/80 leading-relaxed">
+                      <div className="flex-1 font-mono text-[10px] break-all text-white/60 leading-relaxed">
                         {depositInfo.payAddress}
                       </div>
                       <div className="p-2 rounded-lg bg-gold/10 text-gold group-hover:bg-gold group-hover:text-black transition-all">
-                        {copied === 'address' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Amount */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between px-1">
-                      <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">المبلغ المطلوب</label>
-                      {copied === 'amount' && <span className="text-[10px] font-bold text-gold animate-pulse">تم النسخ!</span>}
-                    </div>
-                    <div 
-                      onClick={() => handleCopy(depositInfo.payAmount.toFixed(2), 'amount')}
-                      className="group relative flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer"
-                    >
-                      <div className="flex-1 text-xl font-black text-gold tracking-tight">
-                        {depositInfo.payAmount.toFixed(2)} <span className="text-xs text-white/40 ml-1 uppercase">{depositInfo.payCurrency}</span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-gold/10 text-gold group-hover:bg-gold group-hover:text-black transition-all">
-                        {copied === 'amount' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        <Copy className="w-4 h-4" />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Warning Message Box */}
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex gap-3">
-                  <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-bold text-red-500 mb-1">⚠️ مهم:</p>
-                    <p className="text-white/90 leading-relaxed">
-                      يرجى إرسال المبلغ كاملاً كما هو ظاهر (بدون خصم رسوم الشبكة).
-                      أي نقص في المبلغ سيؤدي إلى عدم احتساب الإيداع.
-                    </p>
-                    <p className="text-[11px] text-white/60 mt-2 border-t border-white/10 pt-2">
-                      تأكد من اختيار شبكة TRC20 وإرسال المبلغ كامل بدون اقتطاع.
-                    </p>
-                  </div>
+                <div className="text-center p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-2xl">
+                   <p className="text-[10px] text-yellow-500/70 font-bold leading-relaxed">
+                    سيتم تحديث رصيدك تلقائياً فور تأكيد الشبكة للمعاملة. قد يستغرق ذلك من 5 إلى 15 دقيقة.
+                   </p>
                 </div>
 
-                {/* Estimated time */}
-                <p className="text-xs text-center text-muted-foreground">
-                  ⏱️ الوقت المقدر للتأكيد: 10-30 دقيقة
-                </p>
-
-                {depositInfo.invoiceUrl && (
-                  <a
-                    href={depositInfo.invoiceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 text-sm text-primary hover:underline"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    فتح صفحة الدفع
-                  </a>
-                )}
-
-                <GoldButton onClick={handleClose} variant="secondary" className="w-full">
-                  تم
+                <GoldButton
+                  onClick={handleClose}
+                  className="w-full py-5 rounded-2xl font-bold"
+                >
+                  تم الإرسال، أغلق النافذة
                 </GoldButton>
               </motion.div>
             )}
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
