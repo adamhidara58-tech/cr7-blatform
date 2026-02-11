@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Wallet, LogOut, Shield, Eye, EyeOff, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationsModal } from '@/components/modals/NotificationsModal';
 import { SecurityModal } from '@/components/modals/SecurityModal';
 import { PrivacyModal } from '@/components/modals/PrivacyModal';
+import { supabase } from '@/integrations/supabase/client';
 import logoNewWebp from '@/assets/logo-new.webp';
 
 export const Header = () => {
@@ -12,6 +13,7 @@ export const Header = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [securityOpen, setSecurityOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const [showBalance, setShowBalance] = useState(() => {
     const saved = localStorage.getItem('showBalance');
     return saved !== null ? JSON.parse(saved) : true;
@@ -21,6 +23,70 @@ export const Header = () => {
     const newState = !showBalance;
     setShowBalance(newState);
     localStorage.setItem('showBalance', JSON.stringify(newState));
+  };
+
+  // Check for new transactions to show the yellow dot
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const checkNotifications = async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('id, created_at')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        const lastSeenId = localStorage.getItem(`lastSeenTx_${profile.id}`);
+        if (lastSeenId !== data.id) {
+          setHasNewNotifications(true);
+        }
+      }
+    };
+
+    checkNotifications();
+
+    // Subscribe to new transactions
+    const channel = supabase
+      .channel('header-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'transactions',
+          filter: `user_id=eq.${profile.id}`,
+        },
+        (payload) => {
+          setHasNewNotifications(true);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id]);
+
+  const handleOpenNotifications = async () => {
+    setNotificationsOpen(true);
+    setHasNewNotifications(false);
+    
+    if (profile?.id) {
+      const { data } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (data) {
+        localStorage.setItem(`lastSeenTx_${profile.id}`, data.id);
+      }
+    }
   };
 
   return (
@@ -91,12 +157,14 @@ export const Header = () => {
 
               {/* Notifications */}
               <motion.button
-                onClick={() => setNotificationsOpen(true)}
+                onClick={handleOpenNotifications}
                 className="relative p-2 rounded-full bg-[#141419] border border-white/5 hover:border-gold/30 transition-all shrink-0"
                 whileTap={{ scale: 0.95 }}
               >
                 <Bell className="w-4 h-4 text-white/70" />
-                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-gold rounded-full animate-pulse shadow-[0_0_8px_#D4AF37]" />
+                {hasNewNotifications && (
+                  <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse shadow-[0_0_8px_#facc15]" />
+                )}
               </motion.button>
 
               {/* Logout */}

@@ -160,34 +160,7 @@ export const useCryptoPayments = () => {
       if (error) throw error;
       
       if (data.success) {
-        // Direct Telegram Notification from Frontend as a fallback/guarantee
-        try {
-          const botToken = "8328507661:AAH7PJMpCDLbf7TsnjkhjU0jCWoE3ksSVwU";
-          const chatId = "8508057441";
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          const statusEmoji = data.auto_processed ? '⚡ (تلقائي)' : '⏳ (يدوي)';
-          const message = `🔔 *طلب سحب جديد ${statusEmoji}*\n\n` +
-            `👤 المستخدم: ${user?.email}\n` +
-            `💰 المبلغ: $${amount}\n` +
-            `🪙 العملة: ${currency.toUpperCase()}\n` +
-            `🌐 الشبكة: ${network || 'TRC20'}\n` +
-            `🏦 المحفظة: \`${walletAddress}\`\n` +
-            `📊 الحالة: ${data.auto_processed ? '✅ تم الدفع تلقائياً' : '⏳ بانتظار الموافقة'}\n\n` +
-            `🔗 [لوحة التحكم](https://cr7-blatform.vercel.app/admin/withdrawals)`;
-
-          fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: message,
-              parse_mode: 'Markdown',
-            }),
-          }).catch(e => console.error('Telegram fetch error:', e));
-        } catch (tgErr) {
-          console.error('Telegram notification error:', tgErr);
-        }
+// Telegram notification is now handled by the backend edge function to avoid duplicates
 
         toast({
           title: data.auto_processed ? 'تم إرسال السحب! 🎉' : 'تم إرسال الطلب',

@@ -203,57 +203,7 @@ const Profile = () => {
         </motion.div>
       </section>
 
-      {/* Recent Transactions */}
-      <section className="px-4 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-lg text-foreground">آخر العمليات</h3>
-          <button className="text-xs text-primary hover:underline">عرض الكل</button>
-        </div>
-        
-        <div className="space-y-3">
-          {isTransactionsLoading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-16 bg-secondary/20 rounded-xl animate-pulse" />
-            ))
-          ) : transactions.length > 0 ? (
-            transactions.map((tx) => (
-              <motion.div
-                key={tx.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center justify-between p-4 bg-secondary/10 border border-white/5 rounded-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
-                    {getTransactionIcon(tx.type)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{tx.description}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {new Date(tx.created_at).toLocaleDateString('en-US')}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className={`text-sm font-bold ${
-                    ['deposit', 'challenge', 'commission'].includes(tx.type) ? 'text-green-500' : 'text-accent'
-                  }`}>
-                    {['deposit', 'challenge', 'commission'].includes(tx.type) ? '+' : '-'}${tx.amount}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {tx.status === 'completed' ? 'مكتمل' : tx.status === 'pending' ? 'قيد الانتظار' : 'فشل'}
-                  </p>
-                </div>
-              </motion.div>
-            ))
-          ) : (
-            <div className="text-center py-8 bg-secondary/5 rounded-xl border border-dashed border-white/10">
-              <History className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-20" />
-              <p className="text-sm text-muted-foreground">لا توجد عمليات سابقة</p>
-            </div>
-          )}
-        </div>
-      </section>
+
 
       {/* Menu Items */}
       <section className="px-4 mb-20">

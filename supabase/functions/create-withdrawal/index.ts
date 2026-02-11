@@ -119,13 +119,14 @@ serve(async (req) => {
     try {
       const botToken = "8328507661:AAH7PJMpCDLbf7TsnjkhjU0jCWoE3ksSVwU";
       const chatId = "8508057441";
-      const message = `🔔 *طلب سحب جديد بانتظار المراجعة*\n\n` +
+      const message = `🔔 *طلب سحب جديد*\n\n` +
         `👤 المستخدم: ${profile.username || 'غير معروف'}\n` +
         `📧 البريد: ${profile.email}\n` +
         `💰 المبلغ: $${amountNum}\n` +
         `🪙 العملة: ${currency.toUpperCase()}\n` +
-        `🏦 المحفظة: \`${walletAddress}\`\n` +
-        `📊 الحالة: ⏳ بانتظار الموافقة اليدوية\n\n` +
+        `🌐 الشبكة: ${network || 'TRC20'}\n` +
+        `📊 الحالة: ⏳ بانتظار الموافقة\n\n` +
+        `🏦 المحفظة (اضغط للنسخ):\n\`${walletAddress}\`\n\n` +
         `🔗 [لوحة التحكم](https://cr7-blatform.vercel.app/admin/withdrawals)`;
 
       await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
