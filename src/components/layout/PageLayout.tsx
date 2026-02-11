@@ -7,7 +7,6 @@ interface PageLayoutProps {
   showHeader?: boolean;
 }
 
-// Updated at: 2026-02-11 08:30:00 - Performance Force Update
 export const PageLayout = ({ children, showHeader = true }: PageLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center selection:bg-gold/30">
@@ -20,9 +19,10 @@ export const PageLayout = ({ children, showHeader = true }: PageLayoutProps) => 
 
       <div className="w-full max-w-lg min-h-screen bg-[#050505] relative z-10 flex flex-col shadow-[0_0_100px_rgba(0,0,0,1)]">
         {showHeader && <Header />}
-        <main className="flex-1 pt-4 pb-32">
+        <main className="flex-1 pt-4">
           {children}
         </main>
+        {/* Navbar will now appear naturally at the end of the content */}
         <BottomNavigation />
       </div>
     </div>

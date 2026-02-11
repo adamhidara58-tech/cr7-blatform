@@ -62,23 +62,21 @@ export const BottomNavigation = memo(() => {
   }, [navigate]);
 
   return (
-    <div className="fixed bottom-6 left-0 right-0 z-[9999] px-4 pointer-events-none">
-      <nav 
-        className="max-w-lg mx-auto pointer-events-auto glass-header border border-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
-        style={{ transform: 'translateZ(0)' }}
-      >
-        <div className="flex items-center justify-around px-2 h-16">
-          {NAV_ITEMS.map((item) => (
-            <NavButton 
-              key={item.path} 
-              item={item} 
-              isActive={location.pathname === item.path} 
-              onClick={handleNavigate} 
-            />
-          ))}
-        </div>
-      </nav>
-    </div>
+    <nav 
+      className="w-full mt-auto glass-header border-t border-white/5 pb-safe pt-2 backdrop-blur-lg"
+      style={{ transform: 'translateZ(0)' }}
+    >
+      <div className="flex items-center justify-around px-2 max-w-lg mx-auto h-16">
+        {NAV_ITEMS.map((item) => (
+          <NavButton 
+            key={item.path} 
+            item={item} 
+            isActive={location.pathname === item.path} 
+            onClick={handleNavigate} 
+          />
+        ))}
+      </div>
+    </nav>
   );
 });
 
