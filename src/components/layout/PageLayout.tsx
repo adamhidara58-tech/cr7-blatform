@@ -19,7 +19,7 @@ export const PageLayout = ({ children, showHeader = true }: PageLayoutProps) => 
 
       <div className="w-full max-w-lg min-h-screen bg-[#050505] relative z-10 flex flex-col shadow-[0_0_100px_rgba(0,0,0,1)]">
         {showHeader && <Header />}
-        <main className="flex-1 pb-28 pt-4">
+        <main className="flex-1 pt-4">
           {children}
         </main>
         <BottomNavigation />

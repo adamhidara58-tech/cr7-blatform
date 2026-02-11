@@ -43,9 +43,9 @@ const FAQItem = ({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.4, 0.0, 0.2, 1] }}
+            transition={{ type: "spring", duration: 0.4, bounce: 0, opacity: { duration: 0.2 } }}
           >
-            <div className="px-5 pb-6 pt-0">
+            <div className="px-5 pb-6 pt-0 will-change-[height,opacity]">
               <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-4" />
               <div className="text-white/70 text-sm leading-relaxed font-medium whitespace-pre-line">
                 {answer}

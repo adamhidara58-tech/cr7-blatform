@@ -22,7 +22,7 @@ export const BottomNavigation = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-header border-t border-white/5 pb-safe pt-2">
+    <nav className="w-full mt-auto z-50 glass-header border-t border-white/5 pb-safe pt-2">
       <div className="flex items-center justify-around px-2 max-w-lg mx-auto h-16">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
