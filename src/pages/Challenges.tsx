@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Trophy, Calendar, Users, Lock, Crown, Check, Star, Gift } from 'lucide-react';
+import { Trophy, Calendar, Users, Lock, Crown, Check, Star, Gift, Clock } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useDailyClaim } from '@/hooks/useDailyClaim';
@@ -26,17 +26,42 @@ const ChallengeCard = memo(({
   index, 
   userVipLevel, 
   claiming, 
-  onClaim 
+  onClaim,
+  nextClaimAt
 }: { 
   challenge: DailyChallenge; 
   index: number;
   userVipLevel: number;
   claiming: boolean;
   onClaim: (challenge: DailyChallenge) => void;
+  nextClaimAt: Date | null;
 }) => {
   const isLocked = challenge.requiresVipUpgrade;
   const isCurrentUserChallenge = challenge.type === 'daily_login' && challenge.vipLevel === userVipLevel;
   const isLowerLevel = challenge.type === 'daily_login' && challenge.vipLevel < userVipLevel && challenge.vipLevel !== 0;
+  
+  const [timeLeft, setTimeLeft] = useState<string>('');
+
+  useEffect(() => {
+    if (!isCurrentUserChallenge || !nextClaimAt) return;
+
+    const updateTimer = () => {
+      const now = new Date();
+      if (now >= nextClaimAt) {
+        setTimeLeft('');
+        return;
+      }
+      const diff = nextClaimAt.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [isCurrentUserChallenge, nextClaimAt]);
 
   const getLevelColor = (level: number) => {
     const colors: Record<number, string> = {
@@ -162,8 +187,8 @@ const ChallengeCard = memo(({
                   </span>
                 ) : challenge.isCompleted ? (
                   <span className="flex items-center justify-center gap-2">
-                    <Check className="w-4 h-4" />
-                    تم الاستلام اليوم ✓
+                    <Clock className="w-4 h-4" />
+                    متاح بعد {timeLeft}
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
@@ -198,7 +223,7 @@ const Challenges = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { hasClaimed, claiming, claimDailyReward } = useDailyClaim();
+  const { hasClaimed, claiming, claimDailyReward, nextClaimAt } = useDailyClaim();
   const [isLoaded, setIsLoaded] = useState(false);
   
   const userVipLevel = profile?.vip_level ?? 0;
@@ -337,8 +362,8 @@ const Challenges = () => {
             <div className="mt-3 pt-3 border-t border-primary-foreground/20">
               {hasClaimed ? (
                 <p className="text-center text-primary-foreground/80 text-sm flex items-center justify-center gap-2">
-                  <Check className="w-4 h-4" />
-                  تم استلام مكافأة اليوم ✓
+                  <Clock className="w-4 h-4" />
+                  المكافأة القادمة بعد مرور 24 ساعة
                 </p>
               ) : (
                 <p className="text-center text-primary-foreground text-sm">
@@ -364,6 +389,7 @@ const Challenges = () => {
               userVipLevel={userVipLevel}
               claiming={claiming}
               onClaim={handleClaimReward}
+              nextClaimAt={nextClaimAt}
             />
           ))}
         </div>
@@ -384,6 +410,7 @@ const Challenges = () => {
                 userVipLevel={userVipLevel}
                 claiming={claiming}
                 onClaim={handleClaimReward}
+                nextClaimAt={nextClaimAt}
               />
             ))}
           </div>

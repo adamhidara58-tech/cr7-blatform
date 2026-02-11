@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertCircle, Clock, Wallet, Loader2 } from 'lucide-react';
 import { GoldButton } from '@/components/ui/GoldButton';
@@ -22,6 +22,20 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
   const [walletAddress, setWalletAddress] = useState('');
   const [limits, setLimits] = useState({ min: 2, max: 1000 });
   const [fetchingLimits, setFetchingLimits] = useState(false);
+  const [currentTimeUtc, setCurrentTimeUtc] = useState(new Date());
+
+  // Update UTC time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTimeUtc(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isWithinWithdrawalWindow = useMemo(() => {
+    const utcHour = currentTimeUtc.getUTCHours();
+    return utcHour >= 12 && utcHour < 13;
+  }, [currentTimeUtc]);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,11 +55,10 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
       if (data && !error) {
         const val = data.value as { min?: number; max?: number };
         setLimits({
-          min: Math.max(2, Number(val?.min || 2)), // Ensure at least 2 USDT
+          min: Math.max(2, Number(val?.min || 2)),
           max: Number(val?.max || 1000)
         });
       } else {
-        // Default to 2 if not found
         setLimits({ min: 2, max: 1000 });
       }
     } catch (e) {
@@ -60,6 +73,15 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
   const withdrawableBalance = Number(profile?.total_earned || 0);
 
   const handleSubmitAmount = () => {
+    if (!isWithinWithdrawalWindow) {
+      toast({
+        title: 'خارج وقت السحب',
+        description: 'السحب متاح فقط بين 12:00 و 13:00 بتوقيت UTC',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount < 2) {
       toast({
@@ -142,7 +164,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
 
   if (!isOpen) return null;
 
-  const isAmountInvalid = !amount || parseFloat(amount) < 2 || parseFloat(amount) > withdrawableBalance;
+  const isAmountInvalid = !amount || parseFloat(amount) < 2 || parseFloat(amount) > withdrawableBalance || !isWithinWithdrawalWindow;
 
   return (
     <AnimatePresence>
@@ -169,7 +191,25 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
           </div>
 
           <div className="p-4 overflow-y-auto flex-1 custom-scrollbar">
-            {!canWithdraw && (
+            {!isWithinWithdrawalWindow && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4"
+              >
+                <div className="flex items-center gap-3">
+                  <Clock className="w-8 h-8 text-red-500" />
+                  <div>
+                    <p className="font-semibold text-red-500">السحب مغلق حالياً</p>
+                    <p className="text-sm text-muted-foreground">
+                      السحب متاح يومياً من 12:00 إلى 13:00 بتوقيت UTC
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {isWithinWithdrawalWindow && !canWithdraw && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -196,7 +236,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
               </div>
             ) : (
               <>
-                {step === 'amount' && canWithdraw && (
+                {step === 'amount' && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -231,6 +271,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                         className={`text-center text-2xl font-bold h-16 pr-12 ${amount && parseFloat(amount) < 2 ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                         min={2}
                         max={Math.min(balance, limits.max)}
+                        disabled={!isWithinWithdrawalWindow}
                       />
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                         USD
@@ -243,6 +284,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                           key={percent}
                           onClick={() => setAmount((withdrawableBalance * percent / 100).toFixed(2))}
                           className="flex-1 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium"
+                          disabled={!isWithinWithdrawalWindow}
                         >
                           {percent}%
                         </button>
@@ -259,9 +301,9 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     <GoldButton
                       onClick={handleSubmitAmount}
                       className="w-full"
-                      disabled={isAmountInvalid}
+                      disabled={isAmountInvalid || !canWithdraw}
                     >
-                      متابعة
+                      {!isWithinWithdrawalWindow ? 'السحب مغلق حالياً' : 'متابعة'}
                     </GoldButton>
                   </motion.div>
                 )}

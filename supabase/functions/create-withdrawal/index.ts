@@ -34,6 +34,18 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // --- TIME RESTRICTION: 12:00 - 13:00 UTC ONLY ---
+    const now = new Date();
+    const utcHour = now.getUTCHours();
+    
+    if (utcHour < 12 || utcHour >= 13) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "السحب متاح فقط بين 12:00 و 13:00 بتوقيت UTC" 
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    // ------------------------------------------------
+
     const body = await req.json();
     const { amount, currency, walletAddress, network } = body;
 

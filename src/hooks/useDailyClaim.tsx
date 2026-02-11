@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -16,38 +16,46 @@ interface DailyClaim {
 export const useDailyClaim = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
-  const [todayClaim, setTodayClaim] = useState<DailyClaim | null>(null);
+  const [lastClaim, setLastClaim] = useState<DailyClaim | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const [nextClaimAt, setNextClaimAt] = useState<Date | null>(null);
 
-  // Check if user has already claimed today
-  useEffect(() => {
-    const checkTodayClaim = async () => {
-      if (!user) {
-        setTodayClaim(null);
-        setLoading(false);
-        return;
-      }
-
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
-        .from('daily_claims')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('claimed_at', today)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error checking daily claim:', error);
-      } else {
-        setTodayClaim(data as DailyClaim | null);
-      }
+  const checkLastClaim = useCallback(async () => {
+    if (!user) {
+      setLastClaim(null);
       setLoading(false);
-    };
+      return;
+    }
 
-    checkTodayClaim();
+    const { data, error } = await supabase
+      .from('daily_claims')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking last claim:', error);
+    } else if (data) {
+      const claimData = data as DailyClaim;
+      setLastClaim(claimData);
+      
+      // Calculate next claim time (24 hours after last claim)
+      const lastClaimDate = new Date(claimData.created_at);
+      const nextDate = new Date(lastClaimDate.getTime() + 24 * 60 * 60 * 1000);
+      setNextClaimAt(nextDate);
+    } else {
+      setLastClaim(null);
+      setNextClaimAt(null);
+    }
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    checkLastClaim();
+  }, [checkLastClaim]);
 
   const claimDailyReward = async () => {
     if (!user || !profile) {
@@ -69,11 +77,15 @@ export const useDailyClaim = () => {
       return false;
     }
 
-    // Double check locally before proceeding
-    if (todayClaim) {
+    // Check 24h cooldown
+    if (nextClaimAt && new Date() < nextClaimAt) {
+      const diff = nextClaimAt.getTime() - new Date().getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
       toast({
-        title: 'تم الاستلام مسبقاً',
-        description: 'تم استلام المكافأة مسبقاً',
+        title: 'فترة الانتظار',
+        description: `يمكنك استلام المكافأة بعد ${hours} ساعة و ${minutes} دقيقة`,
         variant: 'destructive',
       });
       return false;
@@ -84,68 +96,42 @@ export const useDailyClaim = () => {
     const rewardAmount = vipLevel?.dailyProfit || 0;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const now = new Date().toISOString();
+      const today = now.split('T')[0];
 
-      // 1. Check if already claimed in DB (Atomic check)
-      const { data: existingClaim } = await supabase
-        .from('daily_claims')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('claimed_at', today)
-        .maybeSingle();
-
-      if (existingClaim) {
-        setTodayClaim({
-          id: existingClaim.id,
-          user_id: user.id,
-          vip_level: profile.vip_level,
-          amount: rewardAmount,
-          claimed_at: today,
-          created_at: new Date().toISOString(),
-        });
-        toast({
-          title: 'تم الاستلام مسبقاً',
-          description: 'تم استلام المكافأة مسبقاً',
-          variant: 'destructive',
-        });
-        setClaiming(false);
-        return false;
+      // 1. Atomic check in DB for the 24h window
+      if (lastClaim) {
+        const lastDate = new Date(lastClaim.created_at);
+        if (new Date().getTime() - lastDate.getTime() < 24 * 60 * 60 * 1000) {
+          toast({
+            title: 'فترة الانتظار',
+            description: 'يمكنك استلام المكافأة بعد مرور 24 ساعة من آخر استلام',
+            variant: 'destructive',
+          });
+          setClaiming(false);
+          return false;
+        }
       }
 
       // 2. Insert daily claim record
-      const { error: claimError } = await supabase
+      const { data: newClaimData, error: claimError } = await supabase
         .from('daily_claims')
         .insert({
           user_id: user.id,
           vip_level: profile.vip_level,
           amount: rewardAmount,
-          claimed_at: today,
-        });
+          claimed_at: today, // Keep for legacy but created_at is the source of truth now
+        })
+        .select()
+        .single();
 
       if (claimError) {
-        if (claimError.code === '23505') {
-          toast({
-            title: 'تم الاستلام مسبقاً',
-            description: 'تم استلام المكافأة مسبقاً',
-            variant: 'destructive',
-          });
-          // Update local state to reflect it's claimed
-          setTodayClaim({
-            id: 'already-claimed',
-            user_id: user.id,
-            vip_level: profile.vip_level,
-            amount: rewardAmount,
-            claimed_at: today,
-            created_at: new Date().toISOString(),
-          });
-        } else {
-          console.error('Claim error:', claimError);
-          toast({
-            title: 'خطأ',
-            description: 'حدث خطأ أثناء استلام المكافأة',
-            variant: 'destructive',
-          });
-        }
+        console.error('Claim error:', claimError);
+        toast({
+          title: 'خطأ',
+          description: 'حدث خطأ أثناء استلام المكافأة',
+          variant: 'destructive',
+        });
         setClaiming(false);
         return false;
       }
@@ -169,7 +155,6 @@ export const useDailyClaim = () => {
         .eq('id', user.id);
       
       if (updateError) {
-        console.error('Manual update failed, trying RPC:', updateError);
         const { error: rpcError } = await supabase.rpc('increment_balance', {
           user_id: user.id,
           amount: rewardAmount
@@ -204,14 +189,9 @@ export const useDailyClaim = () => {
       }
 
       // 6. Finalize
-      setTodayClaim({
-        id: 'new-claim',
-        user_id: user.id,
-        vip_level: profile.vip_level,
-        amount: rewardAmount,
-        claimed_at: today,
-        created_at: new Date().toISOString(),
-      });
+      const finalClaim = newClaimData as DailyClaim;
+      setLastClaim(finalClaim);
+      setNextClaimAt(new Date(new Date(finalClaim.created_at).getTime() + 24 * 60 * 60 * 1000));
 
       await refreshProfile();
 
@@ -235,10 +215,12 @@ export const useDailyClaim = () => {
   };
 
   return {
-    todayClaim,
+    lastClaim,
     loading,
     claiming,
-    hasClaimed: !!todayClaim,
+    nextClaimAt,
+    hasClaimed: nextClaimAt ? new Date() < nextClaimAt : false,
     claimDailyReward,
+    refreshClaimStatus: checkLastClaim
   };
 };
