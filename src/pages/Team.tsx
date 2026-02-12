@@ -370,7 +370,7 @@ const Team = () => {
               <p className="text-[10px] text-white/30 mb-1 font-bold uppercase">كود الدعوة</p>
               <p className="text-xl font-black text-gold font-mono tracking-widest">{profile.referral_code}</p>
             </div>
-            <GoldButton variant="primary" className="rounded-2xl font-black" onClick={shareLink}>
+            <GoldButton variant="primary" className="rounded-2xl font-black" onClick={copyToClipboard}>
               <Share2 className="w-5 h-5 mr-2" />
               مشاركة
             </GoldButton>
