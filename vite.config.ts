@@ -14,8 +14,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    false // Removed lovable-tagger
-  ].filter(Boolean),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
