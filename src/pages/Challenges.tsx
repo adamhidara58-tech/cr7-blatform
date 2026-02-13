@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Trophy, Calendar, Users, Lock, Crown, Check, Star, Gift, Clock } from 'lucide-react';
+import { Trophy, Calendar, Users, Lock, Crown, Check, Star, Gift, Clock, RotateCw } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useDailyClaim } from '@/hooks/useDailyClaim';
@@ -136,13 +136,22 @@ const ChallengeCard = memo(({
           </div>
 
           <div className="text-right flex-shrink-0">
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 text-primary fill-primary" />
-              <span className="font-bold text-primary text-lg">
-                ${challenge.reward.toFixed(2)}
-              </span>
-            </div>
-            <p className="text-[10px] text-muted-foreground">USDT</p>
+            {challenge.type === 'invite_friend' ? (
+              <div className="flex items-center gap-1">
+                <RotateCw className="w-4 h-4 text-primary" />
+                <span className="font-bold text-primary text-sm">لفة مجانية</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-primary fill-primary" />
+                  <span className="font-bold text-primary text-lg">
+                    ${challenge.reward.toFixed(2)}
+                  </span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">USDT</p>
+              </>
+            )}
           </div>
         </div>
 
@@ -255,9 +264,9 @@ const Challenges = () => {
       id: 'invite-friend',
       type: 'invite_friend',
       vipLevel: 0,
-      reward: 1,
+      reward: 0,
       titleAr: 'دعوة صديق',
-      descriptionAr: 'ادعُ صديقاً واربح 1$ عند ترقيته لـ VIP1',
+      descriptionAr: 'قم بدعوة صديق (مستوى1) وترقية حسابه إلى VIP2 للحصول على لفة حقيقية في عجلة الحظ',
       isCompleted: false,
       requiresVipUpgrade: false,
     };

@@ -50,8 +50,32 @@ const Team = () => {
 
   useEffect(() => {
     if (profile?.id) {
-      // Logic to fetch spins would go here
-      setAvailableSpins(0); 
+      const fetchSpins = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('available_spins')
+          .eq('id', profile.id)
+          .single();
+        if (data) setAvailableSpins(data.available_spins ?? 0);
+      };
+      fetchSpins();
+
+      // Listen for realtime updates to spins
+      const channel = supabase
+        .channel('spins-update')
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${profile.id}`,
+        }, (payload: any) => {
+          if (payload.new?.available_spins !== undefined) {
+            setAvailableSpins(payload.new.available_spins);
+          }
+        })
+        .subscribe();
+
+      return () => { supabase.removeChannel(channel); };
     }
   }, [profile?.id]);
 
@@ -123,9 +147,14 @@ const Team = () => {
           .update({ balance: Number(profile.balance) + win })
           .eq('id', profile.id);
           
-        if (!error) {
+      if (!error) {
+          // Decrement available_spins in DB
+          await supabase
+            .from('profiles')
+            .update({ available_spins: Math.max(0, availableSpins - 1) })
+            .eq('id', profile.id);
           toast({ title: 'مبروك! 🎉', description: `تم إضافة $${win} إلى رصيدك.` });
-          setAvailableSpins(prev => prev - 1);
+          setAvailableSpins(prev => Math.max(0, prev - 1));
         }
       }
     }, 5000); // 5 seconds for a dramatic slow down
