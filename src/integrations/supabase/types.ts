@@ -255,6 +255,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          available_spins: number
           avatar_url: string | null
           balance: number
           created_at: string
@@ -272,6 +273,7 @@ export type Database = {
           vip_level: number
         }
         Insert: {
+          available_spins?: number
           avatar_url?: string | null
           balance?: number
           created_at?: string
@@ -289,6 +291,7 @@ export type Database = {
           vip_level?: number
         }
         Update: {
+          available_spins?: number
           avatar_url?: string | null
           balance?: number
           created_at?: string
