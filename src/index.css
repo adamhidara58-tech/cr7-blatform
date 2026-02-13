@@ -170,17 +170,6 @@
   .premium-border {
     border: 1px solid rgba(212, 175, 55, 0.1);
   }
-  
-  @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-  
-  .animate-marquee {
-    display: flex;
-    width: max-content;
-    animation: marquee 20s linear infinite;
-  }
 
   .glow-gold-subtle {
     box-shadow: 0 0 30px -10px hsla(45, 63%, 53%, 0.2);
