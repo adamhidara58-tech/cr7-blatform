@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
 import { ImageCache } from "./components/ui/ImageCache";
 import Index from "./pages/Index";
 import Challenges from "./pages/Challenges";
@@ -93,19 +92,7 @@ const AppRoutes = () => (
 );
 
 const App = () => {
-  useEffect(() => {
-    // Preload critical images
-    const criticalImages = [
-      '/src/assets/logo-new.png',
-      '/src/assets/hero-bg.webp',
-      '/src/assets/vip-final/stadium-bg.jpg'
-    ];
-    
-    criticalImages.forEach(src => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
+  // Critical images are preloaded via index.html link tags
 
   return (
   <QueryClientProvider client={queryClient}>
