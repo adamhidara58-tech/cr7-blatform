@@ -154,7 +154,13 @@ export const useDailyClaim = () => {
         })
         .eq('id', user.id);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        const { error: rpcError } = await supabase.rpc('increment_balance', {
+          user_id: user.id,
+          amount: rewardAmount
+        });
+        if (rpcError) throw rpcError;
+      }
 
       // 4. Create transaction record
       await supabase
@@ -176,7 +182,7 @@ export const useDailyClaim = () => {
             .update({
               total_paid: (stats.total_paid || 0) + rewardAmount,
             })
-            .eq('id', '1');
+            .eq('id', 1);
         }
       } catch (e) {
         console.error('Error updating platform stats:', e);
