@@ -66,6 +66,22 @@ const Team = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const shareLink = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'CR7 ELITE',
+          text: 'انضم إلي في منصة النخبة وابدأ الربح اليوم!',
+          url: referralLink,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      copyToClipboard();
+    }
+  };
+
   const handleSpin = async (demo = false) => {
     if (isSpinning) return;
     
