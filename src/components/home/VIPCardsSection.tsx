@@ -75,7 +75,7 @@ const VIPCard = memo(({ level, currentLevel, index, navigate }: any) => {
       {/* Particles for High Levels */}
       {level.level >= 3 && (
         <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-          {[...Array(6)].map((_, i) => <Particle key={i} color={colors.particle} />)}
+          {[...Array(3)].map((_, i) => <Particle key={i} color={colors.particle} />)}
         </div>
       )}
 
@@ -84,8 +84,7 @@ const VIPCard = memo(({ level, currentLevel, index, navigate }: any) => {
         <img 
           src={ronaldoImages[level.level]} 
           alt={`VIP ${level.level}`}
-          loading="eager"
-          fetchPriority="high"
+          loading="lazy"
           className="h-full w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform duration-700 ease-out origin-bottom"
           style={{ 
             contentVisibility: 'auto',
@@ -133,10 +132,9 @@ const VIPCard = memo(({ level, currentLevel, index, navigate }: any) => {
 
       {/* Glow Effect for High Levels */}
       {level.level >= 3 && (
-        <motion.div 
+        <div 
           className="absolute inset-0 z-[5] pointer-events-none"
-          animate={{ boxShadow: [`inset 0 0 20px ${colors.glow}`, `inset 0 0 40px ${colors.glow}`, `inset 0 0 20px ${colors.glow}`] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          style={{ boxShadow: `inset 0 0 25px ${colors.glow}` }}
         />
       )}
     </motion.div>

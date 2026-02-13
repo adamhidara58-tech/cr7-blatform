@@ -100,87 +100,27 @@ const vipColors: Record<number, {
   },
 };
 
-// تأثير الجسيمات الدائرية الملونة
-const CircleParticle = ({ color, level, particleRGB }: { color: string, level: number, particleRGB: string }) => {
-  const randomX = useMemo(() => Math.random() * 100, []);
-  const randomY = useMemo(() => Math.random() * 100, []);
-  const randomDelay = useMemo(() => Math.random() * 3, []);
-  const randomSize = useMemo(() => 2 + Math.random() * 4, []);
-  
-  // إعدادات التأثيرات المتدرجة
-  const getParticleConfig = (vipLevel: number) => {
-    switch(vipLevel) {
-      case 2: // VIP2 - يشد الانتباه
-        return {
-          duration: 6 + Math.random() * 2,
-          maxOpacity: 0.5,
-          maxScale: 1.2,
-          count: 6
-        };
-      case 3: // VIP3 - يحس بالقوة
-        return {
-          duration: 5 + Math.random() * 2,
-          maxOpacity: 0.65,
-          maxScale: 1.5,
-          count: 10
-        };
-      case 4: // VIP4 - يحس بالهيبة
-        return {
-          duration: 4 + Math.random() * 1.5,
-          maxOpacity: 0.75,
-          maxScale: 1.8,
-          count: 14
-        };
-      case 5: // VIP5 - يحس بالأسطورة
-        return {
-          duration: 3 + Math.random() * 1,
-          maxOpacity: 0.85,
-          maxScale: 2.2,
-          count: 20
-        };
-      default:
-        return {
-          duration: 6 + Math.random() * 2,
-          maxOpacity: 0.6,
-          maxScale: 1.2,
-          count: 0
-        };
-    }
-  };
+// تأثير الجسيمات الدائرية الملونة - محسّن للأداء باستخدام CSS animations
+const CircleParticle = ({ color, particleRGB }: { color: string, particleRGB: string }) => {
+  const style = useMemo(() => {
+    const randomX = Math.random() * 100;
+    const randomY = Math.random() * 100;
+    const randomSize = 2 + Math.random() * 3;
+    const delay = Math.random() * 4;
+    const duration = 4 + Math.random() * 3;
+    return {
+      width: randomSize,
+      height: randomSize,
+      left: `${randomX}%`,
+      top: `${randomY}%`,
+      backgroundColor: color,
+      boxShadow: `0 0 ${randomSize * 2}px rgba(${particleRGB}, 0.5)`,
+      animation: `float ${duration}s ease-out ${delay}s infinite`,
+      opacity: 0.5,
+    };
+  }, [color, particleRGB]);
 
-  const config = getParticleConfig(level);
-
-  return (
-    <motion.div
-      className="absolute rounded-full"
-      style={{
-        width: randomSize,
-        height: randomSize,
-        left: `${randomX}%`,
-        top: `${randomY}%`,
-        backgroundColor: color,
-        boxShadow: `0 0 ${randomSize * 2}px ${color}, 0 0 ${randomSize * 4}px rgba(${particleRGB}, 0.6)`,
-      }}
-      initial={{ 
-        opacity: 0, 
-        scale: 0,
-        y: 0,
-        x: 0
-      }}
-      animate={{ 
-        opacity: [0, config.maxOpacity, config.maxOpacity, 0],
-        scale: [0, config.maxScale, config.maxScale, 0],
-        y: [-20 - Math.random() * 30, -80 - Math.random() * 40],
-        x: (Math.random() - 0.5) * 40
-      }}
-      transition={{ 
-        duration: config.duration, 
-        repeat: Infinity, 
-        delay: randomDelay, 
-        ease: "easeOut"
-      }}
-    />
-  );
+  return <div className="absolute rounded-full" style={style} />;
 };
 
 const LightSweep = () => (
@@ -212,13 +152,13 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  // تحديد عدد الجسيمات حسب المستوى
+  // تحديد عدد الجسيمات حسب المستوى - مخفض للأداء
   const getParticleCount = (level: number) => {
     switch(level) {
-      case 2: return 6;
-      case 3: return 10;
-      case 4: return 14;
-      case 5: return 20;
+      case 2: return 3;
+      case 3: return 5;
+      case 4: return 6;
+      case 5: return 8;
       default: return 0;
     }
   };
@@ -256,7 +196,6 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
             <CircleParticle 
               key={i} 
               color={colors.particleColor} 
-              level={vipLevel.level}
               particleRGB={colors.particleRGB}
             />
           ))}
@@ -310,8 +249,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
           <img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
-            loading="eager"
-            fetchPriority="high"
+            loading="lazy"
             className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-transform duration-700 group-hover:scale-105 origin-bottom will-change-transform"
             style={{ 
               contentVisibility: 'auto',
@@ -361,17 +299,10 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         </div>
       </div>
 
-      {/* Animated Glow Border */}
-      <motion.div 
+      {/* Static Glow Border - optimized from animated to CSS for performance */}
+      <div 
         className="absolute inset-0 z-[5] pointer-events-none rounded-[2rem]"
-        animate={{ 
-          boxShadow: [
-            `inset 0 0 15px ${colors.glow}`, 
-            `inset 0 0 30px ${colors.glow}`, 
-            `inset 0 0 15px ${colors.glow}`
-          ] 
-        }}
-        transition={{ duration: vipLevel.level === 5 ? 2 : 4, repeat: Infinity, ease: "easeInOut" }}
+        style={{ boxShadow: `inset 0 0 20px ${colors.glow}` }}
       />
     </motion.div>
   );

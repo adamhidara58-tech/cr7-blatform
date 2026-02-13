@@ -110,14 +110,14 @@ export const Header = memo(() => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="w-9 h-9 rounded-full bg-[#141419] border border-gold/20 flex items-center justify-center shadow-gold overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-[#141419] border border-gold/20 flex items-center justify-center shadow-gold overflow-hidden">
                 <img 
                   src={logoNewWebp} 
                   alt="CR7 Logo" 
                   loading="eager"
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-cover scale-110" 
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain" 
                 />
               </div>
               <div className="hidden xs:block">
