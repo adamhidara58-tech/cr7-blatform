@@ -54,16 +54,16 @@
 @layer base {
   * {
     @apply border-border;
-    /* Optimize for touch devices */
     -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
   }
 
   html {
-    /* Improve scroll performance */
     scroll-behavior: smooth;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     height: 100%;
+    max-width: 100vw;
   }
 
   body {
