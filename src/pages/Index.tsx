@@ -143,7 +143,7 @@ const Index = () => {
                 </span>
               </div>
               <p className="text-[11px] font-medium text-white/40">
-                احصل على <span className="text-gold font-bold">10% عمولة</span> من كل إيداع يقوم به صديقك!
+                احصل على <span className="text-gold font-bold">8% عمولة</span> من كل إيداع يقوم به صديقك!
               </p>
             </div>
           </motion.div>
