@@ -73,8 +73,8 @@ export const BottomNavigation = memo(() => {
       }}
     >
       <div className="px-4 pb-4 pt-2">
-        <nav 
-          className="max-w-lg mx-auto pointer-events-auto glass-navbar rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.6),0_8px_32px_rgba(0,0,0,0.5)]"
+          <nav 
+            className="max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto pointer-events-auto glass-navbar rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.6),0_8px_32px_rgba(0,0,0,0.5)]"
           style={{ 
             transform: 'translateZ(0)',
             willChange: 'transform',

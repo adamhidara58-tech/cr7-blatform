@@ -78,7 +78,7 @@ const VIP = () => {
         </motion.div>
 
         {/* Benefits Grid */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-8">
           <div className="bg-zinc-900/50 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 transition-colors hover:border-[#D4AF37]/30">
             <Shield className="w-6 h-6 text-zinc-400 mb-2" />
             <span className="text-xs text-zinc-400 font-bold">دعم أولوي</span>

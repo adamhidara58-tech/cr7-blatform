@@ -132,7 +132,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col selection:bg-gold/30">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center selection:bg-gold/30 overflow-x-hidden">
       {/* Header */}
       <div className="pt-12 pb-8 px-4 text-center">
         <motion.div

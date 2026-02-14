@@ -234,7 +234,7 @@ const Team = () => {
           </div>
 
           {/* The Wheel Visual */}
-          <div className="relative w-72 h-72 mx-auto mb-10">
+          <div className="relative w-56 h-56 sm:w-72 sm:h-72 mx-auto mb-10">
             {/* Outer Glow */}
             <div className="absolute inset-0 rounded-full shadow-[0_0_60px_-10px_rgba(212,175,55,0.4)] animate-pulse" />
             
