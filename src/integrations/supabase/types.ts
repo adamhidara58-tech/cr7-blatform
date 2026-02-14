@@ -318,6 +318,54 @@ export type Database = {
           },
         ]
       }
+      referral_commissions: {
+        Row: {
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          deposit_id: string
+          deposit_user_id: string
+          id: string
+          level: number
+          referrer_id: string
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate: number
+          created_at?: string
+          deposit_id: string
+          deposit_user_id: string
+          id?: string
+          level: number
+          referrer_id: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          deposit_id?: string
+          deposit_user_id?: string
+          id?: string
+          level?: number
+          referrer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commissions_deposit_user_id_fkey"
+            columns: ["deposit_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           commission_rate: number

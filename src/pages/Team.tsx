@@ -32,7 +32,7 @@ const WINNERS_MOCK = [
 
 const Team = () => {
   const { profile } = useAuth();
-  const { referrals, totalCommission, loading } = useReferrals();
+  const { referrals, totalCommission, levelStats, loading } = useReferrals();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   
@@ -428,7 +428,7 @@ const Team = () => {
 
       {/* Stats Grid */}
       <section className="px-4 mb-10">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <StatCard
             icon={UserPlus}
             label="إجمالي الإحالات"
@@ -442,6 +442,27 @@ const Team = () => {
             index={1}
             variant="gold"
           />
+        </div>
+        
+        {/* Level Breakdown */}
+        <div className="bg-[#141419] border border-white/5 rounded-2xl p-5 space-y-3">
+          <p className="text-xs font-black text-white/40 uppercase tracking-wider mb-2">تفاصيل العمولات حسب المستوى</p>
+          {[
+            { level: 1, rate: '8%', label: 'مباشر', color: 'text-gold' },
+            { level: 2, rate: '3%', label: 'فريق', color: 'text-gray-300' },
+            { level: 3, rate: '1%', label: 'شبكة', color: 'text-orange-400' },
+          ].map(item => (
+            <div key={item.level} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+              <div className="flex items-center gap-3">
+                <span className={`text-lg font-black ${item.color}`}>{item.rate}</span>
+                <div>
+                  <p className="text-xs font-bold text-white">مستوى {item.level} ({item.label})</p>
+                  <p className="text-[10px] text-white/30">{levelStats[item.level]?.count || 0} عمولة</p>
+                </div>
+              </div>
+              <span className="text-sm font-black text-gold">${(levelStats[item.level]?.totalCommission || 0).toFixed(2)}</span>
+            </div>
+          ))}
         </div>
       </section>
 
