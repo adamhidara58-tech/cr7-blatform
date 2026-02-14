@@ -141,8 +141,10 @@ const Auth = () => {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="flex flex-col items-center gap-4"
         >
-          <div className="w-24 h-24 rounded-full bg-[#141419] border border-gold/20 flex items-center justify-center shadow-[0_0_30px_-5px_hsla(45,63%,53%,0.3)] overflow-hidden">
-            <img src={logoNew} alt="CR7 Logo" className="w-full h-full object-cover scale-110" />
+          <div className="w-24 h-24 rounded-full bg-[#000000] border border-gold/20 flex items-center justify-center shadow-[0_0_30px_-5px_hsla(45,63%,53%,0.3)]">
+            <span className="text-white font-black text-[32px] leading-none tracking-[1px] transform -translate-y-[1px] select-none">
+              CR7
+            </span>
           </div>
           <div>
             <h1 className="font-bold text-4xl text-gradient-gold tracking-tight">CR7 ELITE</h1>
