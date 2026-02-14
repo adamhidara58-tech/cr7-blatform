@@ -224,7 +224,7 @@ serve(async (req) => {
         const newBalance = Number(profile.balance) + Number(creditAmount);
         console.log(`Current balance: ${profile.balance}, New balance: ${newBalance}`);
 
-        // VIP levels with prices (matching mockData.ts) - sorted by price ascending
+        // VIP levels with prices
         const vipLevels = [
           { level: 1, price: 30 },
           { level: 2, price: 58 },
@@ -233,42 +233,34 @@ serve(async (req) => {
           { level: 5, price: 555 },
         ];
 
-        // Check if deposit amount qualifies for a VIP upgrade
         const depositAmount = Number(creditAmount);
         const currentVipLevel = Number(profile.vip_level) || 0;
         const referralDiscount = Number(profile.referral_discount) || 0;
 
-        // Find the highest VIP level the user qualifies for with this deposit
         let upgradedToLevel: number | null = null;
         for (const vip of vipLevels) {
           if (vip.level > currentVipLevel) {
-            // Price after referral discount
             const discountedPrice = Math.max(0, vip.price - referralDiscount);
-            // Check if deposit is enough for this level
-            if (depositAmount >= discountedPrice - 0.50) { // 50 cents tolerance
+            if (depositAmount >= discountedPrice - 0.50) {
               upgradedToLevel = vip.level;
-              console.log(`VIP upgrade: User qualifies for VIP ${vip.level} (price: ${discountedPrice}, deposit: ${depositAmount})`);
-              // Continue checking for higher levels
             }
           }
         }
 
-        // Update profile with new balance and potentially new VIP level
-        const updateData: Record<string, unknown> = { 
+        const profileUpdate: Record<string, unknown> = { 
           balance: newBalance, 
           updated_at: new Date().toISOString() 
         };
 
         if (upgradedToLevel !== null) {
-          updateData.vip_level = upgradedToLevel;
-          // Clear referral discount after first purchase
-          updateData.referral_discount = 0;
+          profileUpdate.vip_level = upgradedToLevel;
+          profileUpdate.referral_discount = 0;
           console.log(`Upgrading user to VIP ${upgradedToLevel}`);
         }
 
         const { error: balanceError } = await supabase
           .from('profiles')
-          .update(updateData)
+          .update(profileUpdate)
           .eq('id', deposit.user_id);
 
         if (balanceError) {
@@ -278,7 +270,8 @@ serve(async (req) => {
         }
       }
 
-      // Create transaction record
+      // Create transaction record - this triggers the calculate_referral_commission function
+      // which automatically handles 3-level commissions (8%, 3%, 1%)
       const { error: txError } = await supabase
         .from('transactions')
         .insert({
@@ -292,7 +285,7 @@ serve(async (req) => {
       if (txError) {
         console.error('Error creating transaction:', txError);
       } else {
-        console.log('Transaction record created');
+        console.log('Transaction record created - referral commissions will be processed by trigger');
       }
 
       console.log(`Successfully credited $${creditAmount} to user ${deposit.user_id}`);

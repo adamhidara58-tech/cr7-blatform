@@ -14,11 +14,21 @@ interface Referral {
   };
 }
 
+interface LevelStats {
+  count: number;
+  totalCommission: number;
+}
+
 export const useReferrals = () => {
   const { user } = useAuth();
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCommission, setTotalCommission] = useState(0);
+  const [levelStats, setLevelStats] = useState<Record<number, LevelStats>>({
+    1: { count: 0, totalCommission: 0 },
+    2: { count: 0, totalCommission: 0 },
+    3: { count: 0, totalCommission: 0 },
+  });
 
   useEffect(() => {
     const fetchReferrals = async () => {
@@ -28,29 +38,52 @@ export const useReferrals = () => {
         return;
       }
 
+      // Fetch direct referrals
       const { data, error } = await supabase
         .from('referrals')
-        .select(`
-          id,
-          referred_id,
-          commission_rate,
-          total_commission,
-          created_at
-        `)
+        .select('id, referred_id, commission_rate, total_commission, created_at')
         .eq('referrer_id', user.id);
 
       if (error) {
         console.error('Error fetching referrals:', error);
       } else if (data) {
         setReferrals(data);
-        const total = data.reduce((sum, ref) => sum + Number(ref.total_commission), 0);
+      }
+
+      // Fetch commission stats by level from referral_commissions
+      const { data: commissions, error: commError } = await supabase
+        .from('referral_commissions')
+        .select('level, commission_amount')
+        .eq('referrer_id', user.id);
+
+      if (commError) {
+        console.error('Error fetching commission stats:', commError);
+      } else if (commissions) {
+        const stats: Record<number, LevelStats> = {
+          1: { count: 0, totalCommission: 0 },
+          2: { count: 0, totalCommission: 0 },
+          3: { count: 0, totalCommission: 0 },
+        };
+        let total = 0;
+
+        // Count unique deposits per level
+        commissions.forEach((c: any) => {
+          if (stats[c.level]) {
+            stats[c.level].count += 1;
+            stats[c.level].totalCommission += Number(c.commission_amount);
+            total += Number(c.commission_amount);
+          }
+        });
+
+        setLevelStats(stats);
         setTotalCommission(total);
       }
+
       setLoading(false);
     };
 
     fetchReferrals();
   }, [user]);
 
-  return { referrals, totalCommission, loading, count: referrals.length };
+  return { referrals, totalCommission, levelStats, loading, count: referrals.length };
 };
