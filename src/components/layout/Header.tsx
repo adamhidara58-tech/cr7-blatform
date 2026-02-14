@@ -6,7 +6,6 @@ import { NotificationsModal } from '@/components/modals/NotificationsModal';
 import { SecurityModal } from '@/components/modals/SecurityModal';
 import { PrivacyModal } from '@/components/modals/PrivacyModal';
 import { supabase } from '@/integrations/supabase/client';
-import logoNewWebp from '@/assets/logo-new.webp';
 
 // Updated at: 2026-02-11 11:15:00 - Floating Header with Glass Effect
 export const Header = memo(() => {
@@ -110,15 +109,10 @@ export const Header = memo(() => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="w-10 h-10 rounded-full bg-[#141419] border border-gold/20 flex items-center justify-center shadow-gold overflow-hidden">
-                <img 
-                  src={logoNewWebp} 
-                  alt="CR7 Logo" 
-                  loading="eager"
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-contain" 
-                />
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#B8962E] flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.4)] border border-gold/30 transition-all duration-300 hover:scale-105 active:scale-95 shrink-0">
+                <span className="text-black font-black text-[13px] leading-none tracking-[0.5px] transform -translate-y-[0.5px] select-none">
+                  CR7
+                </span>
               </div>
               <div className="hidden xs:block">
                 <h1 className="font-bold text-sm text-gradient-gold leading-none tracking-tight">CR7 ELITE</h1>
