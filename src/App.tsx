@@ -60,8 +60,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Show loading for profile, but don't block forever (max 8 seconds)
-  if (isProfileLoading && !profile && waitTime < 8) {
+  // Show loading for profile, but don't block forever (max 3 seconds)
+  if (isProfileLoading && !profile && waitTime < 3) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
