@@ -68,7 +68,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 1,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(500 * (attemptIndex + 1), 3000),
   });
 
   useEffect(() => {

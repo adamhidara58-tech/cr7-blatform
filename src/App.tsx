@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -37,8 +38,16 @@ const queryClient = new QueryClient({
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, isProfileLoading, profile } = useAuth();
+  const [waitTime, setWaitTime] = useState(0);
   
-  // Only show loading if we are checking auth session
+  useEffect(() => {
+    if (user && !profile && isProfileLoading) {
+      const interval = setInterval(() => setWaitTime(prev => prev + 1), 1000);
+      return () => clearInterval(interval);
+    }
+    setWaitTime(0);
+  }, [user, profile, isProfileLoading]);
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
@@ -51,10 +60,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // If we have a user but profile is still loading, we can either show a loader 
-  // or let the page handle it with skeletons. For better UX, we'll show a loader
-  // only if the profile is absolutely required and not yet available.
-  if (isProfileLoading && !profile) {
+  // Show loading for profile, but don't block forever (max 5 seconds)
+  if (isProfileLoading && !profile && waitTime < 5) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
