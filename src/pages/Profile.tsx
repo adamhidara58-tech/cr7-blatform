@@ -111,7 +111,13 @@ const Profile = () => {
     );
   }
 
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <PageLayout>
+        <ProfileSkeleton />
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
