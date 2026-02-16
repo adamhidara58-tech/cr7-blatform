@@ -17,7 +17,17 @@ interface AvatarSelectionModalProps {
   onClose: () => void;
 }
 
-const AVATARS = Array.from({ length: 10 }, (_, i) => `/avatars/avatar${i + 1}.webp`);
+const AVATARS = [
+  '/avatars/cr7_ceo.webp',
+  '/avatars/cr7_investor.webp',
+  '/avatars/cr7_wealth.webp',
+  '/avatars/cr7_trader.webp',
+  '/avatars/cr7_leader.webp',
+  '/avatars/cr7_crypto.webp',
+  '/avatars/cr7_money.webp',
+  '/avatars/cr7_corporate.webp',
+  ...Array.from({ length: 10 }, (_, i) => `/avatars/avatar${i + 1}.webp`)
+];
 
 export const AvatarSelectionModal = ({ isOpen, onClose }: AvatarSelectionModalProps) => {
   const { profile, refreshProfile } = useAuth();
