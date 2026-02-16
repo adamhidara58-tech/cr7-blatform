@@ -70,7 +70,13 @@ const Index = () => {
     );
   }
 
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <PageLayout>
+        <IndexSkeleton />
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
