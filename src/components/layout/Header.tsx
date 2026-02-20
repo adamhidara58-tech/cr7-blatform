@@ -99,7 +99,7 @@ export const Header = memo(() => {
       {/* Floating Header Container */}
       <div className="fixed top-0 left-0 right-0 z-[100] pointer-events-none px-4 pt-4">
         <header 
-          className="max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto pointer-events-auto glass-header rounded-[28px] shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden will-change-transform"
+          className="max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto pointer-events-auto glass-header rounded-[28px] shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden will-change-transform"
           style={{ transform: 'translateZ(0)' }}
         >
           <div className="flex items-center justify-between px-4 py-2.5 gap-2">
