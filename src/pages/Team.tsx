@@ -46,32 +46,50 @@ const Team = () => {
   const [demoSpins, setDemoSpins] = useState(3);
   const [showInfo, setShowInfo] = useState(false);
   
-  const wheelRef = useRef<HTMLDivElement>(null);
   const spinAudioRef = useRef<HTMLAudioElement | null>(null);
   const winAudioRef = useRef<HTMLAudioElement | null>(null);
   const segmentAngle = 360 / REWARDS.length;
 
-  // Initialize Audio
+  // Initialize Audio & Demo Spins
   useEffect(() => {
-    spinAudioRef.current = new Audio('/sounds/wheel-spin.mp3');
-    winAudioRef.current = new Audio('/sounds/wheel-win.mp3');
-    
-    if (spinAudioRef.current) {
-      spinAudioRef.current.loop = true;
+    try {
+      spinAudioRef.current = new Audio('/sounds/wheel-spin.mp3');
+      winAudioRef.current = new Audio('/sounds/wheel-win.mp3');
+      
+      if (spinAudioRef.current) {
+        spinAudioRef.current.loop = true;
+      }
+    } catch (e) {
+      console.error("Audio initialization failed:", e);
     }
 
     // Initialize Demo Spins from LocalStorage
-    const lastReset = localStorage.getItem('demo_spins_reset');
-    const today = new Date().toDateString();
-    
-    if (lastReset !== today) {
-      localStorage.setItem('demo_spins_reset', today);
-      localStorage.setItem('demo_spins_count', '3');
-      setDemoSpins(3);
-    } else {
-      const savedCount = localStorage.getItem('demo_spins_count');
-      setDemoSpins(savedCount ? parseInt(savedCount) : 3);
+    try {
+      const lastReset = localStorage.getItem('demo_spins_reset');
+      const today = new Date().toDateString();
+      
+      if (lastReset !== today) {
+        localStorage.setItem('demo_spins_reset', today);
+        localStorage.setItem('demo_spins_count', '3');
+        setDemoSpins(3);
+      } else {
+        const savedCount = localStorage.getItem('demo_spins_count');
+        setDemoSpins(savedCount ? parseInt(savedCount) : 3);
+      }
+    } catch (e) {
+      console.error("LocalStorage access failed:", e);
     }
+
+    return () => {
+      if (spinAudioRef.current) {
+        spinAudioRef.current.pause();
+        spinAudioRef.current = null;
+      }
+      if (winAudioRef.current) {
+        winAudioRef.current.pause();
+        winAudioRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -115,6 +133,22 @@ const Team = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const shareLink = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'CR7 ELITE',
+          text: 'انضم إلي في منصة النخبة وابدأ الربح اليوم!',
+          url: referralLink,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      copyToClipboard();
+    }
+  };
+
   const handleSpin = async (demo = false) => {
     if (isSpinning) return;
     
@@ -142,9 +176,13 @@ const Team = () => {
 
     // Start Sound
     if (spinAudioRef.current) {
-      spinAudioRef.current.currentTime = 0;
-      spinAudioRef.current.playbackRate = 1.5; // Fast at start
-      spinAudioRef.current.play().catch(e => console.log("Audio play failed:", e));
+      try {
+        spinAudioRef.current.currentTime = 0;
+        spinAudioRef.current.playbackRate = 1.5;
+        spinAudioRef.current.play().catch(e => console.log("Audio play failed:", e));
+      } catch (e) {
+        console.error("Audio play error:", e);
+      }
     }
 
     // Calculate rotation
