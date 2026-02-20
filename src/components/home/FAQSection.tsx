@@ -122,7 +122,7 @@ export const FAQSection = memo(() => {
   ];
 
   return (
-    <section className="px-4 lg:px-8 mb-20 relative">
+    <section className="px-4 mb-20 relative">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-full h-40 bg-gold/5 blur-[100px] pointer-events-none" />
       
       <motion.div
@@ -135,13 +135,13 @@ export const FAQSection = memo(() => {
           <HelpCircle className="w-4 h-4 text-gold" />
           <span className="text-[10px] font-black text-gold uppercase tracking-widest">الأسئلة الشائعة</span>
         </div>
-        <h2 className="text-2xl lg:text-3xl font-black text-white mb-3">لديك استفسار؟</h2>
-        <p className="text-white/40 text-sm lg:text-base max-w-[280px] lg:max-w-md mx-auto leading-relaxed">
+        <h2 className="text-2xl font-black text-white mb-3">لديك استفسار؟</h2>
+        <p className="text-white/40 text-sm max-w-[280px] mx-auto leading-relaxed">
           كل ما تحتاج معرفته عن المنصة وكيفية تحقيق أقصى استفادة منها
         </p>
       </motion.div>
 
-      <div className="max-w-2xl lg:max-w-3xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         {faqs.map((faq, index) => (
           <FAQItem
             key={index}

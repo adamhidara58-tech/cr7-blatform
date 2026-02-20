@@ -111,13 +111,13 @@ export const PlatformStatsCard = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg lg:text-xl font-bold text-white/80 px-1 text-left">إحصائيات المنصة</h3>
+      <h3 className="text-lg font-bold text-white/80 px-1 text-left">إحصائيات المنصة</h3>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
+        className="grid grid-cols-2 gap-4"
       >
         {statItems.map((item, index) => {
           const Icon = item.icon;

@@ -88,14 +88,14 @@ const Index = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
         
-        <div className="relative px-5 lg:px-8 pt-8 pb-10">
+        <div className="relative px-5 pt-8 pb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center mb-8"
           >
-            <h2 className="text-3xl lg:text-4xl font-black text-gradient-gold mb-2 tracking-tight">
+            <h2 className="text-3xl font-black text-gradient-gold mb-2 tracking-tight">
               مرحباً، {profile.username}
             </h2>
             <p className="text-white/40 text-sm font-medium">
@@ -180,8 +180,8 @@ const Index = () => {
       </section>
 
       {/* Stats Grid */}
-      <section className="px-4 lg:px-8 mb-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+      <section className="px-4 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
             icon={Wallet}
             label="رصيدك الحالي"
@@ -213,14 +213,14 @@ const Index = () => {
       </section>
 
       {/* Platform Stats */}
-      <section className="px-4 lg:px-8 mb-10">
+      <section className="px-4 mb-10">
         <Suspense fallback={<LoadingSpinner />}>
           <PlatformStatsCard />
         </Suspense>
       </section>
 
       {/* Live Withdrawals */}
-      <section className="px-4 lg:px-8 mb-10">
+      <section className="px-4 mb-10">
         <Suspense fallback={<LoadingSpinner />}>
           <FakeWithdrawals />
         </Suspense>

@@ -63,7 +63,7 @@ const VIPCard = memo(({ level, currentLevel, index, navigate }: any) => {
       viewport={{ once: true, margin: "50px" }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
       onClick={() => navigate('/vip')}
-      className={`relative h-48 lg:h-56 rounded-3xl overflow-hidden border border-white/5 cursor-pointer group transition-all duration-500 shadow-2xl bg-[#0A0A0C] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.15)] hover:scale-[1.02] hover:border-white/10`}
+      className={`relative h-48 rounded-3xl overflow-hidden border border-white/5 cursor-pointer group transition-all duration-500 shadow-2xl bg-[#0A0A0C]`}
     >
       {/* Background Layer */}
       <div 
@@ -148,19 +148,19 @@ export const VIPCardsSection = () => {
   const mainVipLevels = useMemo(() => vipLevels.filter(v => v.level >= 0 && v.level <= 5), []);
 
   return (
-    <section className="px-4 lg:px-8 mb-8">
+    <section className="px-4 mb-8">
       <div className="flex items-center justify-between mb-6">
         <button onClick={() => navigate('/vip')} className="flex items-center gap-1.5 text-xs text-white/40 font-bold hover:text-gold transition-all">
           <ChevronLeft className="w-4 h-4" />
           عرض الكل
         </button>
-        <h3 className="text-xl lg:text-2xl font-bold text-white flex items-center gap-2">
+        <h3 className="text-xl font-bold text-white flex items-center gap-2">
           <Crown className="w-5 h-5 text-gold" />
           مستويات VIP
         </h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 gap-5">
         {mainVipLevels.map((level, index) => (
           <VIPCard 
             key={level.level} 

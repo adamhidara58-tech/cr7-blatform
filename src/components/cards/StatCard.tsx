@@ -29,7 +29,7 @@ export const StatCard = ({ icon: Icon, label, value, subValue, index, variant = 
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
-      className={`${variants[variant]} rounded-3xl p-5 lg:p-6 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300`}
+      className={`${variants[variant]} rounded-3xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-all`}
     >
       {/* Glow Effect */}
       <div className={`absolute -bottom-12 -left-12 w-24 h-24 blur-3xl rounded-full opacity-20 transition-opacity group-hover:opacity-40 ${variant === 'gold' ? 'bg-gold' : 'bg-white'}`} />
@@ -40,8 +40,8 @@ export const StatCard = ({ icon: Icon, label, value, subValue, index, variant = 
         </div>
         
         <div className="text-left w-full">
-          <p className="text-[11px] lg:text-xs font-bold text-white/30 mb-1 uppercase tracking-wider">{label}</p>
-          <p className={`text-xl lg:text-2xl font-black tracking-tight ${variant === 'gold' ? 'text-gradient-gold' : 'text-white'}`}>
+          <p className="text-[11px] font-bold text-white/30 mb-1 uppercase tracking-wider">{label}</p>
+          <p className={`text-xl font-black tracking-tight ${variant === 'gold' ? 'text-gradient-gold' : 'text-white'}`}>
             {value}
           </p>
           {subValue && (
