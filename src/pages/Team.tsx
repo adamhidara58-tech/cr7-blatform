@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Link, Copy, TrendingUp, UserPlus, Gift, CheckCircle, Share2, MessageCircle, ExternalLink, Trophy, RotateCw, Play, Info, Zap, Timer, Star, Bell } from 'lucide-react';
+import { Users, Link, Copy, TrendingUp, UserPlus, CheckCircle, Share2, MessageCircle, ExternalLink, Trophy, RotateCw, Play, Info, Zap, Star } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { GoldButton } from '@/components/ui/GoldButton';
