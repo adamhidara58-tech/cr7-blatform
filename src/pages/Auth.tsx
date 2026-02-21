@@ -159,7 +159,7 @@ const Auth = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-          className="glass-card border border-white/5 rounded-[2.5rem] p-7 max-w-md mx-auto bg-slate-400">
+          className="glass-card border-white/5 rounded-[2.5rem] p-7 max-w-md mx-auto bg-slate-400 border-2">
 
           {/* Tabs */}
           <div className="flex p-1.5 bg-black/40 rounded-2xl mb-8 border border-white/5">
