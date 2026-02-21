@@ -214,7 +214,7 @@ const Team = () => {
             <Trophy className="w-8 h-8 text-gold animate-pulse" />
           </div>
           <h1 className="font-black text-3xl text-gradient-gold tracking-tight mb-2">نادي النخبة</h1>
-          <p className="text-sm text-white/40 max-w-[250px] mx-auto leading-relaxed">
+          <p className="text-sm text-white/40 max-w-[250px] mx-auto leading-relaxed font-medium">
             استمتع بأفضل نظام مكافآت وعمولات في العالم العربي
           </p>
         </motion.div>
@@ -369,7 +369,7 @@ const Team = () => {
             }
 
             <button
-              className="w-full py-3 text-[10px] font-bold text-white/20 hover:text-primary/60 transition-colors uppercase tracking-widest"
+              className="w-full py-3 font-bold text-white/20 hover:text-primary/60 transition-colors uppercase tracking-widest text-xs"
               onClick={() => handleSpin(true)}
               disabled={isSpinning}>
 
@@ -405,9 +405,9 @@ const Team = () => {
             <div key={item.level} className="relative group">
                 <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity`} />
                 <div className="bg-black/40 border border-white/5 rounded-2xl p-5 text-center relative z-10">
-                  <p className="text-[8px] mb-1 uppercase tracking-tighter text-center font-extrabold text-slate-400">مستوى {item.level}</p>
+                  <p className="mb-1 uppercase tracking-tighter text-center font-extrabold text-xs text-slate-600">مستوى {item.level}</p>
                   <p className="text-3xl font-black text-white mb-1">{item.rate}</p>
-                  <p className="text-[8px] text-gold font-bold">{item.label}</p>
+                  <p className="text-[8px] text-gold font-bold text-center">{item.label}</p>
                 </div>
               </div>
             )}
@@ -464,7 +464,7 @@ const Team = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 py-0 px-px my-0">
+            <div className="bg-white/5 rounded-2xl p-4 text-center py-0 px-px my-0 border-8 border-slate-800">
               <p className="text-[10px] mb-1 uppercase font-extrabold text-slate-500">كود الدعوة</p>
               <p className="text-xl font-black text-gold font-mono tracking-widest">{profile.referral_code}</p>
             </div>
@@ -624,7 +624,7 @@ const Team = () => {
             <MessageCircle className="w-10 h-10 text-gold" />
           </div>
           <h3 className="text-xl font-black text-white mb-3">مركز الدعم</h3>
-          <p className="text-xs text-white/40 mb-8 leading-relaxed">
+          <p className="text-xs text-white/40 mb-8 leading-relaxed font-bold">
             فريقنا متواجد على مدار الساعة لمساعدتك في بناء فريقك وتحقيق أقصى استفادة
           </p>
           
