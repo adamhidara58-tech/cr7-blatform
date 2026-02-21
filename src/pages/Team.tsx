@@ -5,7 +5,7 @@ import { StatCard } from '@/components/cards/StatCard';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useReferrals } from '@/hooks/useReferrals';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,6 +30,9 @@ const WINNERS_MOCK = [
   { name: 'عمر ف.', prize: 10, time: 'منذ ساعة' },
 ];
 
+const SPIN_DURATION = 4500; // ms
+const segmentAngle = 360 / REWARDS.length;
+
 const Team = () => {
   const { profile } = useAuth();
   const { referrals, totalCommission, levelStats, loading } = useReferrals();
@@ -44,9 +47,9 @@ const Team = () => {
   const [isDemo, setIsDemo] = useState(false);
   const [availableSpins, setAvailableSpins] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
+  const [winFlash, setWinFlash] = useState(false);
   
-  const wheelRef = useRef<HTMLDivElement>(null);
-  const segmentAngle = 360 / REWARDS.length;
+  const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (profile?.id) {
@@ -106,7 +109,7 @@ const Team = () => {
     }
   };
 
-  const handleSpin = async (demo = false) => {
+  const handleSpin = useCallback(async (demo = false) => {
     if (isSpinning) return;
     
     if (!demo && availableSpins <= 0) {
@@ -121,25 +124,31 @@ const Team = () => {
     setIsDemo(demo);
     setIsSpinning(true);
     setShowResult(false);
+    setWinFlash(false);
 
-    // Calculate rotation
-    const extraSpins = 8 + Math.floor(Math.random() * 5); // 8-13 full rotations for realism
+    const extraSpins = 8 + Math.floor(Math.random() * 5);
     const randomSegment = Math.floor(Math.random() * REWARDS.length);
-    
-    // The offset ensures the arrow points to the middle of the segment
-    // We subtract from 360 because rotation is clockwise but segments are indexed counter-clockwise in calculation
     const targetRotation = rotation + (extraSpins * 360) + (360 - (randomSegment * segmentAngle));
     
-    setRotation(targetRotation);
-
     // Vibration for mobile
     if ('vibrate' in navigator) navigator.vibrate(50);
 
-    setTimeout(async () => {
+    // Use requestAnimationFrame to ensure the browser applies the new rotation
+    requestAnimationFrame(() => {
+      setRotation(targetRotation);
+    });
+
+    spinTimeoutRef.current = setTimeout(async () => {
       setIsSpinning(false);
       const win = REWARDS[randomSegment].value;
       setWonAmount(win);
-      setShowResult(true);
+      setWinFlash(true);
+
+      // Brief flash then show result
+      setTimeout(() => {
+        setWinFlash(false);
+        setShowResult(true);
+      }, 600);
 
       if (!demo && profile?.id) {
         const { error } = await supabase
@@ -147,18 +156,23 @@ const Team = () => {
           .update({ balance: Number(profile.balance) + win })
           .eq('id', profile.id);
           
-      if (!error) {
-          // Decrement available_spins in DB
+        if (!error) {
           await supabase
             .from('profiles')
             .update({ available_spins: Math.max(0, availableSpins - 1) })
             .eq('id', profile.id);
-          toast({ title: 'مبروك! 🎉', description: `تم إضافة $${win} إلى رصيدك.` });
           setAvailableSpins(prev => Math.max(0, prev - 1));
         }
       }
-    }, 5000); // 5 seconds for a dramatic slow down
-  };
+    }, SPIN_DURATION);
+  }, [isSpinning, availableSpins, rotation, profile, toast]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
+    };
+  }, []);
 
   if (!profile) {
     return (
@@ -208,14 +222,9 @@ const Team = () => {
 
       {/* Main Wheel Card */}
       <section className="px-4 mb-10">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative bg-[#141419] border border-white/5 rounded-[3rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
-        >
-          {/* Decorative Elements */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-gold/10 rounded-full blur-[80px]" />
-          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-gold/5 rounded-full blur-[80px]" />
+        <div className="relative bg-[#141419] border border-white/5 rounded-[3rem] p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+          {/* Subtle background glow */}
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/8 rounded-full blur-[80px] pointer-events-none" />
           
           {/* Info Button */}
           <button 
@@ -226,57 +235,82 @@ const Team = () => {
           </button>
 
           {/* Wheel Header */}
-          <div className="text-center mb-10">
-            <div className="inline-block px-4 py-1 bg-gradient-to-r from-gold/20 to-transparent rounded-full border-l-2 border-gold mb-3">
-              <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">الفرصة الذهبية</span>
+          <div className="text-center mb-8">
+            <div className="inline-block px-4 py-1 bg-gradient-to-r from-primary/20 to-transparent rounded-full border-l-2 border-primary mb-3">
+              <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">الفرصة الذهبية</span>
             </div>
             <h2 className="text-2xl font-black text-white">عجلة الحظ الكبرى</h2>
           </div>
 
-          {/* The Wheel Visual */}
-          <div className="relative w-56 h-56 sm:w-72 sm:h-72 mx-auto mb-10">
-            {/* Outer Glow */}
-            <div className="absolute inset-0 rounded-full shadow-[0_0_60px_-10px_rgba(212,175,55,0.4)] animate-pulse" />
+          {/* The Wheel */}
+          <div className="relative w-60 h-60 sm:w-72 sm:h-72 mx-auto mb-8">
+            {/* Outer ring glow - subtle */}
+            <div 
+              className="absolute -inset-1 rounded-full opacity-40 pointer-events-none"
+              style={{ 
+                boxShadow: winFlash 
+                  ? '0 0 40px 8px hsla(45, 63%, 53%, 0.6)' 
+                  : '0 0 20px 2px hsla(45, 63%, 53%, 0.15)',
+                transition: 'box-shadow 0.3s ease'
+              }} 
+            />
             
-            {/* Pointer */}
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30 drop-shadow-2xl">
-              <div 
-                className="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[24px] border-t-gold relative"
-              >
-                <div className="absolute -top-[26px] left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full" />
-              </div>
+            {/* Pointer - minimal gold triangle */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
+              <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-primary drop-shadow-lg" />
             </div>
             
-            {/* SVG Wheel */}
-            <motion.div
-              className="w-full h-full rounded-full border-[12px] border-[#1a1a20] relative z-10 shadow-2xl"
-              animate={{ rotate: rotation }}
-              transition={{ duration: 5, ease: [0.12, 0, 0.39, 0] }} // Custom easing for realistic stop
+            {/* Wheel disc - CSS transform rotation */}
+            <div
+              className="w-full h-full rounded-full border-4 border-primary/30 relative z-10 overflow-hidden"
+              style={{ 
+                transform: `rotate(${rotation}deg)`,
+                transition: isSpinning 
+                  ? `transform ${SPIN_DURATION}ms cubic-bezier(0.15, 0, 0.05, 1)` 
+                  : 'none',
+                willChange: isSpinning ? 'transform' : 'auto',
+              }}
             >
-              <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+              <svg viewBox="0 0 100 100" className="w-full h-full" style={{ transform: 'rotate(-90deg)' }}>
+                <defs>
+                  <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#D4AF37" />
+                    <stop offset="100%" stopColor="#F5E0A3" />
+                  </linearGradient>
+                  <linearGradient id="darkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#1a1a20" />
+                    <stop offset="100%" stopColor="#222228" />
+                  </linearGradient>
+                  <linearGradient id="specialGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFD700" />
+                    <stop offset="100%" stopColor="#FFF8DC" />
+                  </linearGradient>
+                </defs>
                 {REWARDS.map((reward, i) => {
                   const startAngle = i * segmentAngle;
                   const endAngle = (i + 1) * segmentAngle;
-                  const x1 = 50 + 50 * Math.cos((Math.PI * startAngle) / 180);
-                  const y1 = 50 + 50 * Math.sin((Math.PI * startAngle) / 180);
-                  const x2 = 50 + 50 * Math.cos((Math.PI * endAngle) / 180);
-                  const y2 = 50 + 50 * Math.sin((Math.PI * endAngle) / 180);
+                  const x1 = 50 + 49 * Math.cos((Math.PI * startAngle) / 180);
+                  const y1 = 50 + 49 * Math.sin((Math.PI * startAngle) / 180);
+                  const x2 = 50 + 49 * Math.cos((Math.PI * endAngle) / 180);
+                  const y2 = 50 + 49 * Math.sin((Math.PI * endAngle) / 180);
+                  const fillId = reward.special ? 'url(#specialGrad)' : reward.color === '#D4AF37' ? 'url(#goldGrad)' : 'url(#darkGrad)';
                   
                   return (
                     <g key={i}>
                       <path
-                        d={`M 50 50 L ${x1} ${y1} A 50 50 0 0 1 ${x2} ${y2} Z`}
-                        fill={reward.color}
-                        stroke="#000"
-                        strokeWidth="0.2"
+                        d={`M 50 50 L ${x1} ${y1} A 49 49 0 0 1 ${x2} ${y2} Z`}
+                        fill={fillId}
+                        stroke="hsla(45, 63%, 53%, 0.3)"
+                        strokeWidth="0.3"
                       />
                       <text
-                        x="75"
+                        x="74"
                         y="50"
-                        fill={reward.color === '#1a1a20' ? '#D4AF37' : '#000'}
-                        fontSize="5"
-                        fontWeight="bold"
+                        fill={reward.color === '#1a1a20' ? '#D4AF37' : '#111'}
+                        fontSize="5.5"
+                        fontWeight="900"
                         textAnchor="middle"
+                        dominantBaseline="central"
                         transform={`rotate(${startAngle + segmentAngle / 2}, 50, 50)`}
                       >
                         {reward.label}
@@ -287,46 +321,62 @@ const Team = () => {
               </svg>
               
               {/* Center Cap */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-[#141419] rounded-full z-20 flex items-center justify-center border-4 border-gold/30 shadow-inner">
-                <div className="w-10 h-10 bg-gradient-gold rounded-full flex items-center justify-center shadow-lg">
-                  <RotateCw className={`w-6 h-6 text-black ${isSpinning ? 'animate-spin' : ''}`} />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 sm:w-16 sm:h-16 bg-[#141419] rounded-full z-20 flex items-center justify-center border-2 border-primary/40">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-gold rounded-full flex items-center justify-center">
+                  <RotateCw className={`w-5 h-5 text-black/80 ${isSpinning ? 'animate-spin' : ''}`} />
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Controls & Stats */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-6 py-3 bg-white/5 rounded-2xl border border-white/5">
+          {/* Controls */}
+          <div className="space-y-3">
+            {/* Spins counter */}
+            <div className="flex items-center justify-between px-5 py-3 bg-white/5 rounded-2xl border border-white/5">
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-gold" />
+                <Zap className="w-4 h-4 text-primary" />
                 <span className="text-xs text-white/60 font-bold">الدورات المتاحة</span>
               </div>
-              <span className="text-lg font-black text-gold">{availableSpins}</span>
+              <span className="text-lg font-black text-primary">{availableSpins}</span>
             </div>
             
-            <GoldButton 
-              variant="primary" 
-              className="w-full h-16 rounded-[1.5rem] shadow-[0_10px_30px_-5px_rgba(212,175,55,0.4)] group relative overflow-hidden"
-              onClick={() => handleSpin(false)}
-              disabled={isSpinning}
-            >
-              <span className="flex items-center justify-center gap-3 text-lg font-black relative z-10">
-                <Play className="w-6 h-6 fill-current" />
-                جرب حظك الآن
-              </span>
-              {isSpinning && <div className="absolute inset-0 bg-black/20 animate-pulse" />}
-            </GoldButton>
+            {/* Main spin button */}
+            {availableSpins > 0 ? (
+              <GoldButton 
+                variant="primary" 
+                className="w-full h-14 rounded-2xl shadow-[0_8px_24px_-4px_hsla(45,63%,53%,0.35)] group"
+                onClick={() => handleSpin(false)}
+                disabled={isSpinning}
+              >
+                <span className="flex items-center justify-center gap-3 text-base font-black relative z-10">
+                  {isSpinning ? (
+                    <>
+                      <RotateCw className="w-5 h-5 animate-spin" />
+                      جاري الدوران...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5 fill-current" />
+                      جرب حظك الآن
+                    </>
+                  )}
+                </span>
+              </GoldButton>
+            ) : (
+              <div className="w-full py-4 px-5 rounded-2xl bg-white/5 border border-white/10 text-center">
+                <p className="text-xs text-white/40 font-bold">اشحن أو ادعُ أصدقاء للحصول على دورات إضافية</p>
+              </div>
+            )}
 
             <button 
-              className="w-full py-4 text-xs font-black text-white/20 hover:text-gold transition-all uppercase tracking-widest"
+              className="w-full py-3 text-[10px] font-bold text-white/20 hover:text-primary/60 transition-colors uppercase tracking-widest"
               onClick={() => handleSpin(true)}
               disabled={isSpinning}
             >
               وضع التجربة (Demo)
             </button>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Referral Structure Section */}
@@ -466,49 +516,56 @@ const Team = () => {
         </div>
       </section>
 
-      {/* Result Modal */}
+      {/* Result Modal - Clean & Premium */}
       <AnimatePresence>
         {showResult && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl p-6"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-sm p-6"
+            onClick={() => setShowResult(false)}
           >
-            {/* Confetti Effect (Simplified) */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {[...Array(20)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ y: -20, x: Math.random() * 400 - 200, rotate: 0 }}
-                  animate={{ y: 600, rotate: 360 }}
-                  transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-0 left-1/2 w-2 h-4 bg-gold rounded-full opacity-60"
-                />
-              ))}
-            </div>
-
             <motion.div 
-              initial={{ scale: 0.5, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              className="bg-[#1a1a20] border border-gold/30 p-10 rounded-[3rem] max-w-sm w-full text-center shadow-[0_0_100px_rgba(212,175,55,0.2)] relative"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              className="bg-[#1a1a20] border border-primary/30 p-8 rounded-3xl max-w-xs w-full text-center shadow-[0_0_60px_-10px_hsla(45,63%,53%,0.25)] relative"
+              onClick={e => e.stopPropagation()}
             >
-              <div className="w-24 h-24 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-gold/30">
-                <Trophy className="w-12 h-12 text-gold animate-bounce" />
+              {/* Trophy icon */}
+              <div className="w-20 h-20 bg-primary/15 rounded-full flex items-center justify-center mx-auto mb-5 border border-primary/20">
+                <Trophy className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="text-3xl font-black text-white mb-2">
-                {isDemo ? 'نتيجة تجريبية' : 'فوز مذهل!'}
+              
+              <h3 className="text-xl font-black text-white mb-1">
+                {isDemo ? 'نتيجة تجريبية' : '🔥 مبروك!'}
               </h3>
-              <p className="text-sm text-white/40 mb-8">لقد ربحت جائزة نقدية بقيمة</p>
-              <div className="text-6xl font-black text-gradient-gold mb-10 tracking-tighter">${wonAmount}</div>
+              <p className="text-xs text-white/40 mb-6">{isDemo ? 'هذه نتيجة تجريبية فقط' : 'لقد ربحت جائزة نقدية'}</p>
+              
+              {/* Prize amount with scale animation */}
+              <motion.div 
+                initial={{ scale: 1 }}
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 0.6, ease: 'easeInOut' }}
+                className="text-5xl font-black text-gradient-gold mb-8 tracking-tight"
+              >
+                ${wonAmount}
+              </motion.div>
               
               <GoldButton 
                 variant="primary" 
                 size="lg" 
-                className="w-full h-16 rounded-2xl font-black text-lg"
-                onClick={() => setShowResult(false)}
+                className="w-full h-14 rounded-2xl font-black text-base"
+                onClick={() => {
+                  setShowResult(false);
+                  if (!isDemo) {
+                    toast({ title: 'مبروك! 🎉', description: `تم إضافة $${wonAmount} إلى رصيدك.` });
+                  }
+                }}
               >
-                استلام الجائزة
+                {isDemo ? 'حسناً' : 'استلام الجائزة'}
               </GoldButton>
             </motion.div>
           </motion.div>
