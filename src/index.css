@@ -49,6 +49,68 @@
     --shadow-card: 0 10px 40px -10px rgba(0, 0, 0, 0.8);
     --shadow-glow: 0 0 50px -15px hsla(45, 63%, 53%, 0.15);
   }
+
+  /* Light Mode */
+  .light {
+    --background: 0 0% 96%;
+    --foreground: 0 0% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 11%;
+
+    --primary: 45 63% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 11%;
+
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 45 63% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 45 63% 48%;
+
+    --gold: 45 63% 48%;
+    --gold-light: 45 63% 58%;
+    --gold-dark: 45 63% 35%;
+    --silver: 0 0% 65%;
+    --cr7-red: 354 82% 50%;
+    --cr7-black: 0 0% 11%;
+
+    --shadow-gold: 0 0 20px -5px hsla(45, 63%, 48%, 0.25);
+    --shadow-card: 0 4px 20px -5px rgba(0, 0, 0, 0.08);
+    --shadow-glow: 0 0 40px -15px hsla(45, 63%, 48%, 0.1);
+  }
+
+  .light body {
+    background-image: none;
+  }
+
+  .light .glass-card {
+    background: hsl(0 0% 100%);
+    border: 1px solid hsl(0 0% 90%);
+    box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.06);
+  }
+
+  .light .glass-header {
+    background: rgba(245, 245, 247, 0.85) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  }
+
+  .light .glass-navbar {
+    background: rgba(245, 245, 247, 0.85) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  }
 }
 
 @layer base {

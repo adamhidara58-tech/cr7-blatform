@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback, memo } from 'react';
-import { Bell, Wallet, LogOut, MessageCircle, Eye, EyeOff } from 'lucide-react';
+import { Bell, Wallet, LogOut, MessageCircle, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationsModal } from '@/components/modals/NotificationsModal';
 import { SecurityModal } from '@/components/modals/SecurityModal';
 import { PrivacyModal } from '@/components/modals/PrivacyModal';
 import { supabase } from '@/integrations/supabase/client';
-import logoOriginal from '@/assets/logo-original.png';
+import { useTheme } from '@/hooks/useTheme';
 
 // Updated at: 2026-02-11 11:15:00 - Floating Header with Glass Effect
 export const Header = memo(() => {
   const { profile, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [securityOpen, setSecurityOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -150,6 +151,24 @@ export const Header = memo(() => {
               </motion.div>
 
               <div className="flex items-center gap-1">
+                {/* Theme Toggle */}
+                <motion.button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-full bg-white/5 border border-white/5 hover:border-gold/30 hover:bg-white/10 transition-all shrink-0 active:scale-90"
+                  whileTap={{ scale: 0.9 }}
+                  aria-label="Toggle theme">
+                  <motion.div
+                    key={theme}
+                    initial={{ rotate: -90, scale: 0.5, opacity: 0 }}
+                    animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}>
+                    {theme === 'dark' ? (
+                      <Sun className="w-3.5 h-3.5 text-gold" />
+                    ) : (
+                      <Moon className="w-3.5 h-3.5 text-gold" />
+                    )}
+                  </motion.div>
+                </motion.button>
                 {/* Support */}
                 <motion.a
                   href="https://t.me/c7r_support"
