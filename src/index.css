@@ -153,14 +153,44 @@
   .light .bg-zinc-900\/50,
   .light .bg-zinc-950\/50,
   .light .bg-zinc-950\/40 { background-color: rgba(0, 0, 0, 0.04) !important; }
-  .light .text-zinc-400 { color: hsl(0 0% 45%) !important; }
-  .light .text-zinc-500 { color: hsl(0 0% 50%) !important; }
-  .light .text-zinc-300 { color: hsl(0 0% 35%) !important; }
+  .light .text-zinc-400 { color: hsl(0 0% 40%) !important; }
+  .light .text-zinc-500 { color: hsl(0 0% 45%) !important; }
+  .light .text-zinc-300 { color: hsl(0 0% 30%) !important; }
+  .light .text-slate-400 { color: hsl(0 0% 45%) !important; }
+  .light .text-slate-600 { color: hsl(0 0% 40%) !important; }
 
   /* Light mode VIP page */
   .light .from-zinc-900 { --tw-gradient-from: hsl(0 0% 97%) !important; }
   .light .via-zinc-800 { --tw-gradient-via: hsl(0 0% 95%) !important; }
   .light .to-zinc-900 { --tw-gradient-to: hsl(0 0% 97%) !important; }
+
+  /* Light mode hardcoded dark backgrounds */
+  .light .bg-\[\#141419\] { background-color: hsl(0 0% 100%) !important; border: 1px solid hsl(0 0% 88%) !important; }
+  .light .bg-\[\#0A0A0C\] { background-color: hsl(0 0% 98%) !important; }
+  .light .bg-zinc-950 { background-color: hsl(0 0% 98%) !important; }
+  .light .bg-\[\#000000\],
+  .light .bg-cr7-black { background-color: hsl(0 0% 8%) !important; }
+  
+  /* Light mode hardcoded text inside dark containers that should stay white */
+  .light .bg-\[\#141419\] .text-white,
+  .light .bg-\[\#0A0A0C\] .text-white { color: hsl(0 0% 11%) !important; }
+  .light .bg-\[\#141419\] .text-white\/60 { color: hsl(0 0% 35%) !important; }
+  .light .bg-\[\#141419\] .text-white\/40 { color: hsl(0 0% 45%) !important; }
+  .light .bg-\[\#141419\] .text-white\/20 { color: hsl(0 0% 55%) !important; }
+  .light .bg-\[\#141419\] .bg-white\/5 { background-color: rgba(0, 0, 0, 0.05) !important; }
+  .light .bg-\[\#141419\] .border-white\/5 { border-color: rgba(0, 0, 0, 0.08) !important; }
+  .light .bg-\[\#141419\] .border-white\/10 { border-color: rgba(0, 0, 0, 0.1) !important; }
+  
+  /* Light mode gold ticker */
+  .light .bg-gold\/10 { background-color: hsla(45, 63%, 48%, 0.1) !important; }
+  .light .border-gold\/20 { border-color: hsla(45, 63%, 48%, 0.2) !important; }
+  .light .text-gold\/80 { color: hsla(45, 63%, 45%, 0.9) !important; }
+
+  /* Light mode secondary/muted backgrounds */
+  .light .bg-secondary\/10 { background-color: rgba(0, 0, 0, 0.03) !important; }
+  .light .bg-secondary\/20 { background-color: rgba(0, 0, 0, 0.05) !important; }
+  .light .bg-secondary\/30 { background-color: rgba(0, 0, 0, 0.06) !important; }
+  .light .bg-secondary\/50 { background-color: rgba(0, 0, 0, 0.08) !important; }
 }
 
 @layer base {
