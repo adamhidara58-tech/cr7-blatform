@@ -9,8 +9,8 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle } from
-"@/components/ui/dialog";
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -45,7 +45,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
       toast({
         title: 'خطأ',
         description: `الحد الأدنى للإيداع هو $${minimumDepositUsd}`,
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -62,7 +62,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
         payCurrency: result.payCurrency,
         qrCode: result.qrCode,
         invoiceUrl: result.invoiceUrl,
-        expiresAt: result.expiresAt
+        expiresAt: result.expiresAt,
       });
       setStep('payment');
     }
@@ -88,12 +88,12 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
 
           <div className="p-6 pt-2 overflow-y-auto custom-scrollbar max-h-[70vh]">
             {/* Step 1: Amount */}
-            {step === 'amount' &&
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6">
-
+            {step === 'amount' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
                 <div className="text-center">
                   <div className="w-16 h-16 mx-auto bg-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-gold/20 shadow-gold">
                     <Wallet className="w-8 h-8 text-gold" />
@@ -106,28 +106,28 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
 
                 <div className="relative group">
                   <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="text-center text-3xl font-black h-20 bg-white/5 border-white/10 rounded-2xl focus:border-gold/50 focus:ring-gold/20 transition-all"
-                  min={minimumDepositUsd} />
-
+                    type="number"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="text-center text-3xl font-black h-20 bg-white/5 border-white/10 rounded-2xl focus:border-gold/50 focus:ring-gold/20 transition-all"
+                    min={minimumDepositUsd}
+                  />
                   <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 font-bold text-lg">
                     USD
                   </span>
                 </div>
 
                 <div className="grid grid-cols-4 gap-2">
-                  {[10, 50, 100, 500].map((preset) =>
-                <button
-                  key={preset}
-                  onClick={() => setAmount(preset.toFixed(2))}
-                  className="py-3 rounded-xl bg-white/5 border border-white/5 hover:border-gold/30 hover:bg-gold/5 transition-all text-sm font-bold text-white/70 hover:text-gold">
-
+                  {[10, 50, 100, 500].map((preset) => (
+                    <button
+                      key={preset}
+                      onClick={() => setAmount(preset.toFixed(2))}
+                      className="py-3 rounded-xl bg-white/5 border border-white/5 hover:border-gold/30 hover:bg-gold/5 transition-all text-sm font-bold text-white/70 hover:text-gold"
+                    >
                       ${preset}
                     </button>
-                )}
+                  ))}
                 </div>
 
                 <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 flex gap-3">
@@ -138,40 +138,40 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                 </div>
 
                 <GoldButton
-                onClick={handleSubmitAmount}
-                className="w-full py-7 rounded-2xl text-lg font-black shadow-gold hover:scale-[1.02] active:scale-[0.98] transition-all"
-                disabled={!amount || parseFloat(amount) < minimumDepositUsd}>
-
+                  onClick={handleSubmitAmount}
+                  className="w-full py-7 rounded-2xl text-lg font-black shadow-gold hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  disabled={!amount || parseFloat(amount) < minimumDepositUsd}
+                >
                   متابعة للدفع
                 </GoldButton>
               </motion.div>
-            }
+            )}
 
             {/* Step 2: Select Currency */}
-            {step === 'currency' &&
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-4">
-
+            {step === 'currency' && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-4"
+              >
                 <div className="text-center mb-4">
                   <h3 className="text-lg font-bold text-white">اختر العملة</h3>
                   <p className="text-sm text-white/40">المبلغ المطلوب: <span className="text-gold font-bold">${parseFloat(amount).toFixed(2)}</span></p>
                 </div>
 
-                {loading ?
-              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-4">
                     <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin" />
                     <p className="text-sm text-white/40 font-medium">جاري تجهيز بوابة الدفع...</p>
-                  </div> :
-
-              <div className="grid grid-cols-2 gap-3">
-                    {popularCurrencies.map((currency) =>
-                <button
-                  key={currency.currency}
-                  onClick={() => handleSelectCurrency(currency.currency)}
-                  className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-gold/50 hover:bg-gold/5 transition-all flex flex-col items-center gap-2 group">
-
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {popularCurrencies.map((currency) => (
+                      <button
+                        key={currency.currency}
+                        onClick={() => handleSelectCurrency(currency.currency)}
+                        className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-gold/50 hover:bg-gold/5 transition-all flex flex-col items-center gap-2 group"
+                      >
                         <p className="font-black text-xl text-white group-hover:text-gold transition-colors">
                           {currency.currency.toUpperCase().replace('TRC20', '').replace('BSC', '')}
                         </p>
@@ -180,26 +180,26 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                           {currency.network}
                         </p>
                       </button>
-                )}
+                    ))}
                   </div>
-              }
+                )}
 
                 <button
-                onClick={() => setStep('amount')}
-                className="w-full py-4 text-sm font-bold text-white/30 hover:text-white transition-colors">
-
+                  onClick={() => setStep('amount')}
+                  className="w-full py-4 text-sm font-bold text-white/30 hover:text-white transition-colors"
+                >
                   ← رجوع لتعديل المبلغ
                 </button>
               </motion.div>
-            }
+            )}
 
             {/* Step 3: Payment Details */}
-            {step === 'payment' && depositInfo &&
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="space-y-6">
-
+            {step === 'payment' && depositInfo && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="space-y-6"
+              >
                 <div className="text-center">
                   <h3 className="text-lg font-bold text-white">إرسال الدفعة</h3>
                   <p className="text-sm text-white/40">
@@ -208,29 +208,29 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                 </div>
 
                 <div className="bg-white/5 border border-white/10 rounded-[24px] p-6 space-y-6">
-                  {depositInfo.qrCode &&
-                <div className="flex flex-col items-center gap-3">
+                  {depositInfo.qrCode && (
+                    <div className="flex flex-col items-center gap-3">
                       <div className="bg-white p-3 rounded-2xl">
                         <img
-                      src={depositInfo.qrCode}
-                      alt="QR Code"
-                      className="w-40 h-40" />
-
+                          src={depositInfo.qrCode}
+                          alt="QR Code"
+                          className="w-40 h-40"
+                        />
                       </div>
                       <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">امسح الكود للدفع الفوري</span>
                     </div>
-                }
+                  )}
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between px-1">
                       <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">عنوان المحفظة</label>
                       {copied === 'address' && <span className="text-[10px] font-bold text-gold animate-pulse">تم النسخ!</span>}
                     </div>
-                    <div
-                    onClick={() => handleCopy(depositInfo.payAddress, 'address')}
-                    className="group flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer">
-
-                      <div className="flex-1 font-mono text-[10px] break-all leading-relaxed text-slate-950 shadow-2xl border-4">
+                    <div 
+                      onClick={() => handleCopy(depositInfo.payAddress, 'address')}
+                      className="group flex items-center gap-3 bg-black/40 border border-white/5 hover:border-gold/30 rounded-xl p-4 transition-all cursor-pointer"
+                    >
+                      <div className="flex-1 font-mono text-[10px] break-all text-white/60 leading-relaxed">
                         {depositInfo.payAddress}
                       </div>
                       <div className="p-2 rounded-lg bg-gold/10 text-gold group-hover:bg-gold group-hover:text-black transition-all">
@@ -240,23 +240,23 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
                   </div>
                 </div>
 
-                <div className="text-center p-4 border rounded-3xl border-yellow-500 bg-yellow-100">
-                   <p className="text-[10px] font-bold leading-relaxed text-yellow-600">
+                <div className="text-center p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-2xl">
+                   <p className="text-[10px] text-yellow-500/70 font-bold leading-relaxed">
                     سيتم تحديث رصيدك تلقائياً فور تأكيد الشبكة للمعاملة. قد يستغرق ذلك من 5 إلى 15 دقيقة.
                    </p>
                 </div>
 
                 <GoldButton
-                onClick={handleClose}
-                className="w-full py-5 rounded-2xl font-bold">
-
+                  onClick={handleClose}
+                  className="w-full py-5 rounded-2xl font-bold"
+                >
                   تم الإرسال، أغلق النافذة
                 </GoldButton>
               </motion.div>
-            }
+            )}
           </div>
         </div>
       </DialogContent>
-    </Dialog>);
-
+    </Dialog>
+  );
 };
