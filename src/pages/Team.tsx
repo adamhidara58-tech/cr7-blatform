@@ -465,8 +465,8 @@ const Team = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/5 rounded-2xl p-4 text-center py-0 px-px my-0 border-8 border-[#17171c]">
-              <p className="text-[10px] mb-1 uppercase font-extrabold text-slate-500">كود الدعوة</p>
-              <p className="text-xl font-black text-gold font-mono tracking-widest">{profile.referral_code}</p>
+              <p className="mb-1 uppercase font-extrabold text-slate-500 text-sm">كود الدعوة</p>
+              <p className="font-black text-gold font-mono tracking-widest text-3xl">{profile.referral_code}</p>
             </div>
             <GoldButton variant="primary" className="rounded-2xl font-black" onClick={copyToClipboard}>
               <Share2 className="w-5 h-5 mr-2" />
