@@ -111,8 +111,8 @@ export const Header = memo(() => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}>
 
-              <div className="w-10 h-10 rounded-full bg-[#000000] flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-gold/20 transition-all duration-300 hover:scale-105 active:scale-95 shrink-0">
-                <span className="text-white font-black text-[13px] leading-none tracking-[0.5px] transform -translate-y-[0.5px] select-none text-center">
+              <div className="w-10 h-10 rounded-full bg-cr7-black flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-gold/20 transition-all duration-300 hover:scale-105 active:scale-95 shrink-0">
+                <span className="!text-white font-black text-[13px] leading-none tracking-[0.5px] transform -translate-y-[0.5px] select-none text-center">
                   CR7
                 </span>
               </div>

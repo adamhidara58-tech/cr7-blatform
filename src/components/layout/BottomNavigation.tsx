@@ -25,7 +25,7 @@ const NavButton = memo(({ item, isActive, onClick }: {item: NavItem;isActive: bo
     <button
       onClick={() => onClick(item.path)}
       className={`relative flex flex-col items-center justify-center flex-1 outline-none tap-highlight-transparent py-1 transition-all duration-300 active:scale-95 ${
-      isActive ? 'text-gold' : 'text-white/30 hover:text-white/50'}`
+      isActive ? 'text-gold' : 'text-muted-foreground hover:text-foreground/70'}`
       }
       style={{
         WebkitTapHighlightColor: 'transparent',
