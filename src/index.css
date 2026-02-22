@@ -103,14 +103,64 @@
   }
 
   .light .glass-header {
-    background: rgba(245, 245, 247, 0.85) !important;
-    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    background: rgba(245, 245, 247, 0.92) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 2px 20px -4px rgba(0, 0, 0, 0.1) !important;
   }
 
   .light .glass-navbar {
-    background: rgba(245, 245, 247, 0.85) !important;
-    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    background: rgba(245, 245, 247, 0.92) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 -2px 20px -4px rgba(0, 0, 0, 0.08) !important;
   }
+
+  /* Light mode text color overrides */
+  .light .text-white { color: hsl(0 0% 11%) !important; }
+  .light .text-white\/90 { color: hsl(0 0% 15%) !important; }
+  .light .text-white\/80 { color: hsl(0 0% 20%) !important; }
+  .light .text-white\/70 { color: hsl(0 0% 30%) !important; }
+  .light .text-white\/50 { color: hsl(0 0% 40%) !important; }
+  .light .text-white\/40 { color: hsl(0 0% 45%) !important; }
+  .light .text-white\/30 { color: hsl(0 0% 50%) !important; }
+  .light .text-white\/20 { color: hsl(0 0% 60%) !important; }
+
+  /* Light mode background overrides */
+  .light .bg-white\/5,
+  .light .bg-white\/\[0\.02\],
+  .light .bg-white\/\[0\.03\],
+  .light .bg-white\/\[0\.05\] { background-color: rgba(0, 0, 0, 0.04) !important; }
+  .light .bg-white\/10 { background-color: rgba(0, 0, 0, 0.06) !important; }
+  .light .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.06) !important; }
+  .light .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.08) !important; }
+  .light .bg-black\/20 { background-color: rgba(0, 0, 0, 0.05) !important; }
+  .light .bg-black\/40 { background-color: rgba(0, 0, 0, 0.06) !important; }
+
+  /* Light mode border overrides */
+  .light .border-white\/5,
+  .light .border-white\/\[0\.03\],
+  .light .border-white\/10 { border-color: rgba(0, 0, 0, 0.08) !important; }
+  .light .hover\:border-white\/10:hover { border-color: rgba(0, 0, 0, 0.12) !important; }
+
+  /* Light mode specific component fixes */
+  .light .bg-gradient-card {
+    background: hsl(0 0% 100%);
+  }
+
+  .light .shadow-gold {
+    box-shadow: 0 10px 30px -10px hsla(45, 63%, 48%, 0.25);
+  }
+
+  .light .bg-zinc-900\/50,
+  .light .bg-zinc-950\/50,
+  .light .bg-zinc-950\/40 { background-color: rgba(0, 0, 0, 0.04) !important; }
+  .light .text-zinc-400 { color: hsl(0 0% 45%) !important; }
+  .light .text-zinc-500 { color: hsl(0 0% 50%) !important; }
+  .light .text-zinc-300 { color: hsl(0 0% 35%) !important; }
+
+  /* Light mode VIP page */
+  .light .from-zinc-900 { --tw-gradient-from: hsl(0 0% 97%) !important; }
+  .light .via-zinc-800 { --tw-gradient-via: hsl(0 0% 95%) !important; }
+  .light .to-zinc-900 { --tw-gradient-to: hsl(0 0% 97%) !important; }
 }
 
 @layer base {
