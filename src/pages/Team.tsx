@@ -464,7 +464,7 @@ const Team = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/5 rounded-2xl p-4 text-center py-0 px-px my-0 border-8 border-[#17171c]">
+            <div className="bg-white/5 rounded-2xl p-4 text-center py-0 px-px my-0 border-8 border-[#232329]">
               <p className="mb-1 uppercase font-extrabold text-slate-500 text-sm">كود الدعوة</p>
               <p className="font-black text-gold font-mono tracking-widest text-3xl">{profile.referral_code}</p>
             </div>
