@@ -14,8 +14,8 @@ interface FAQItemProps {
 const FAQItem = memo(({ question, answer, icon, isOpen, onClick }: FAQItemProps) => {
   return (
     <div 
-      className={`glass-card rounded-2xl border transition-colors duration-300 overflow-hidden mb-4 ${
-        isOpen ? 'border-gold/40 bg-white/5' : 'border-white/5 hover:border-white/10'
+      className={`glass-card rounded-2xl border transition-all duration-300 overflow-hidden mb-4 gold-glow ${
+        isOpen ? 'border-gold/40 bg-white/8 shadow-[0_0_30px_rgba(212,175,55,0.2)]' : 'border-white/5 hover:border-white/10 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)]'
       }`}
       style={{ transform: 'translateZ(0)' }} // GPU Acceleration
     >

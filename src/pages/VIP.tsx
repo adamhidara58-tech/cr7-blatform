@@ -27,7 +27,7 @@ const VIP = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 rounded-[2rem] p-5 border border-[#D4AF37]/30 shadow-xl relative overflow-hidden group"
+          className="glass-card gold-glow rounded-[2rem] p-5 border border-[#D4AF37]/30 shadow-xl relative overflow-hidden group"
         >
           {/* Decorative Glow */}
           <div className="absolute -right-10 -top-10 w-32 h-32 bg-[#D4AF37]/10 blur-3xl rounded-full" />
@@ -79,15 +79,15 @@ const VIP = () => {
 
         {/* Benefits Grid */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-8">
-          <div className="bg-zinc-900/50 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 transition-colors hover:border-[#D4AF37]/30">
+          <div className="glass-card gold-glow rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 transition-all hover:border-[#D4AF37]/40">
             <Shield className="w-6 h-6 text-zinc-400 mb-2" />
             <span className="text-xs text-zinc-400 font-bold">دعم أولوي</span>
           </div>
-          <div className="bg-zinc-900/50 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 transition-colors hover:border-[#D4AF37]/30">
+          <div className="glass-card gold-glow rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 transition-all hover:border-[#D4AF37]/40">
             <Star className="w-6 h-6 text-zinc-400 mb-2" />
             <span className="text-xs text-zinc-400 font-bold">تحديات حصرية</span>
           </div>
-          <div className="bg-zinc-900/50 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 transition-colors hover:border-[#D4AF37]/30">
+          <div className="glass-card gold-glow rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 transition-all hover:border-[#D4AF37]/40">
             <Zap className="w-6 h-6 text-zinc-400 mb-2" />
             <span className="text-xs text-zinc-400 font-bold">مكافآت أكثر</span>
           </div>

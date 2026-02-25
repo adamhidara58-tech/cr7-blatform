@@ -201,7 +201,7 @@ const Auth = () => {
         {/* Card glow */}
         <div className="absolute -inset-1 rounded-[32px] bg-primary/5 blur-2xl pointer-events-none" />
 
-        <div className="relative glass-card border border-border/20 rounded-[28px] p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
+        <div className="relative glass-card border border-border/20 rounded-[28px] p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] gold-glow">
           {/* Gold top line */}
           <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 

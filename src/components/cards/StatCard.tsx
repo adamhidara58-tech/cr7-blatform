@@ -12,9 +12,9 @@ interface StatCardProps {
 
 export const StatCard = ({ icon: Icon, label, value, subValue, index, variant = 'default' }: StatCardProps) => {
   const variants = {
-    default: 'glass-card border-white/5',
-    gold: 'glass-card border-gold/20 shadow-[0_10px_30px_-10px_rgba(212,175,55,0.2)]',
-    accent: 'glass-card border-accent/20',
+    default: 'glass-card border-white/5 gold-glow',
+    gold: 'glass-card border-gold/20 gold-glow-hover',
+    accent: 'glass-card border-accent/20 gold-glow',
   };
 
   const iconVariants = {

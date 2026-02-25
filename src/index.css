@@ -69,12 +69,61 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Cairo', 'Tajawal', sans-serif;
-    background-image: radial-gradient(circle at top center, hsla(45, 63%, 53%, 0.03) 0%, transparent 70%);
+    background-image: 
+      radial-gradient(circle at 20% 30%, hsla(45, 63%, 53%, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, hsla(45, 63%, 53%, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at top center, hsla(45, 63%, 53%, 0.03) 0%, transparent 70%);
+    background-attachment: fixed;
     overflow-x: hidden;
     text-rendering: optimizeSpeed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100%;
+    position: relative;
+  }
+
+  /* Particles Background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0)),
+      radial-gradient(2px 2px at 60px 70px, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0)),
+      radial-gradient(1px 1px at 50px 50px, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0)),
+      radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0)),
+      radial-gradient(2px 2px at 90px 10px, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0));
+    background-repeat: repeat;
+    background-size: 200px 200px, 300px 300px, 150px 150px, 250px 250px, 350px 350px;
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 0 0;
+    animation: particles-float 20s linear infinite, particles-float-alt 30s linear infinite reverse;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  @keyframes particles-float {
+    0% {
+      background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 0 0;
+    }
+    100% {
+      background-position: 200px 200px, 240px 260px, 330px 470px, 270px 300px, 200px 200px;
+    }
+  }
+
+  @keyframes particles-float-alt {
+    0% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 0.6;
+    }
   }
 
   /* Performance optimizations */
@@ -102,6 +151,12 @@
   html, body {
     direction: ltr !important;
     text-align: left !important;
+    position: relative;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
   }
 
   /* Fix common RTL-biased elements */
@@ -132,13 +187,21 @@
   }
 
   .glass-card {
-    background: #141419;
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    box-shadow: var(--shadow-card);
+    background: rgba(255, 255, 255, 0.03); /* Extremely transparent white */
+    -webkit-backdrop-filter: blur(25px) saturate(200%); /* Massive blur for true glass effect */
+    backdrop-filter: blur(25px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.12); /* Brighter glass edge */
+    box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.7); /* Deep shadow for depth */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(212, 175, 55, 0.4); /* Strong gold border on hover */
+    box-shadow: 0 0 40px 0 rgba(212, 175, 55, 0.15); /* Luxury gold glow */
+    transform: translateY(-4px); /* Noticeable lift on hover */
   }
 
   .glass-header {
@@ -167,8 +230,18 @@
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .premium-border {
-    border: 1px solid rgba(212, 175, 55, 0.1);
+    .premium-border {
+    border: 1px solid rgba(212, 175, 55, 0.15);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+  }
+
+  .gold-glow-hover:hover {
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
   }
 
   .glow-gold-subtle {

@@ -64,7 +64,7 @@ export const FakeWithdrawals = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="glass-card border border-white/5 rounded-3xl p-5 overflow-hidden"
+        className="glass-card border border-white/5 rounded-3xl p-5 overflow-hidden gold-glow"
       >
         <div className="space-y-3">
           <AnimatePresence mode="popLayout">

@@ -128,7 +128,7 @@ export const PlatformStatsCard = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
-              className="glass-card border border-white/5 rounded-2xl p-4 relative overflow-hidden group"
+              className="glass-card border border-white/5 rounded-2xl p-4 relative overflow-hidden group gold-glow"
             >
               <div className={`absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br ${item.color} blur-3xl group-hover:opacity-100 transition-opacity opacity-50`} />
               

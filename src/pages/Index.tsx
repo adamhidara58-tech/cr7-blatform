@@ -83,10 +83,10 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-[0.15] will-change-transform"
+          className="absolute inset-0 bg-cover bg-center opacity-[0.25] scale-110 will-change-transform"
           style={{ backgroundImage: `url(${heroBgWebp})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
         
         <div className="relative px-5 pt-8 pb-10">
           <motion.div
@@ -123,7 +123,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="glass-card rounded-3xl p-6 mb-5 border border-white/5 shadow-2xl"
+            className="glass-card rounded-3xl p-6 mb-5 border border-white/5 shadow-2xl gold-glow"
           >
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-bold text-white/30">رمز الإحالة الخاص بك</span>
@@ -159,7 +159,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="glass-card rounded-2xl p-5 mb-4 border border-white/5"
+            className="glass-card rounded-2xl p-5 mb-4 border border-white/5 gold-glow"
           >
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold text-white/30">التحديات اليومية</span>

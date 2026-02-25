@@ -63,7 +63,7 @@ const VIPCard = memo(({ level, currentLevel, index, navigate }: any) => {
       viewport={{ once: true, margin: "50px" }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
       onClick={() => navigate('/vip')}
-      className={`relative h-48 rounded-3xl overflow-hidden border border-white/5 cursor-pointer group transition-all duration-500 shadow-2xl bg-[#0A0A0C]`}
+      className={`relative h-48 rounded-3xl overflow-hidden border border-white/5 cursor-pointer group transition-all duration-500 shadow-2xl bg-[#0A0A0C] glass-card gold-glow`}
     >
       {/* Background Layer */}
       <div 
