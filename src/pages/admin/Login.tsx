@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ShieldCheck, Lock, Mail, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,79 +14,52 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkExistingSession = async () => {
+    const check = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
         if (session?.user) {
-          // Check if user has admin role
-          const { data: roleData } = await supabase
+          const { data } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', session.user.id)
-            .eq('role', 'admin')
+            .in('role', ['super_admin', 'admin', 'staff'])
             .maybeSingle();
-          
-          if (roleData || session.user.email === 'fhncis12@gmail.com') {
+          if (data) {
             navigate('/admin');
             return;
           }
         }
-      } catch (error) {
-        console.error('Session check error:', error);
-      } finally {
+      } catch {} finally {
         setCheckingAuth(false);
       }
     };
-
-    checkExistingSession();
+    check();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      // Sign in with Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      if (!data.user) throw new Error('فشل تسجيل الدخول');
 
-      if (error) {
-        throw error;
-      }
-
-      if (!data.user) {
-        throw new Error('فشل تسجيل الدخول');
-      }
-
-      // Check if user has admin role
-      const { data: roleData, error: roleError } = await supabase
+      const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', data.user.id)
-        .eq('role', 'admin')
+        .in('role', ['super_admin', 'admin', 'staff'])
         .maybeSingle();
 
-      if (roleError) {
-        console.error('Role check error:', roleError);
-        // Sign out since they're not admin
+      if (!roleData) {
         await supabase.auth.signOut();
-        throw new Error('خطأ في التحقق من الصلاحيات');
-      }
-
-      if (!roleData && data.user.email !== 'fhncis12@gmail.com') {
-        // User exists but is not admin
-        await supabase.auth.signOut();
-        throw new Error('ليس لديك صلاحيات الوصول إلى لوحة التحكم');
+        throw new Error('ليس لديك صلاحيات الوصول');
       }
 
       toast.success('تم تسجيل الدخول بنجاح');
       navigate('/admin');
     } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.message || 'حدث خطأ أثناء تسجيل الدخول');
+      toast.error(error.message || 'حدث خطأ');
     } finally {
       setLoading(false);
     }
@@ -95,80 +67,59 @@ const AdminLogin = () => {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#060608] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.05),transparent_70%)] pointer-events-none" />
+    <div className="min-h-screen bg-[#060608] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(212,175,55,0.04),transparent_60%)] pointer-events-none" />
       
-      <Card className="w-full max-w-md bg-card/50 backdrop-blur-xl border-border/50 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-gold" />
-        
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 rounded-full bg-gradient-gold flex items-center justify-center shadow-gold mb-2">
-            <ShieldCheck className="w-8 h-8 text-primary-foreground" />
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 mb-4">
+            <ShieldCheck className="w-7 h-7 text-black" />
           </div>
-          <CardTitle className="text-2xl font-display text-gradient-gold">دخول المسؤول</CardTitle>
-          <CardDescription>يرجى إدخال بيانات الاعتماد للوصول إلى لوحة التحكم</CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="email"
-                  placeholder="البريد الإلكتروني"
-                  className="pl-10 bg-white/5 border-border/50"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  dir="ltr"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="password"
-                  placeholder="كلمة المرور"
-                  className="pl-10 bg-white/5 border-border/50"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  dir="ltr"
-                />
-              </div>
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90 transition-opacity font-bold py-6"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  جاري التحقق...
-                </>
-              ) : (
-                'تسجيل الدخول'
-              )}
-            </Button>
-          </form>
-          
-          <p className="text-xs text-muted-foreground text-center mt-4">
-            يجب أن يكون لديك صلاحيات المسؤول للوصول
-          </p>
-        </CardContent>
-      </Card>
+          <h1 className="text-xl font-bold text-white">لوحة التحكم</h1>
+          <p className="text-sm text-zinc-500 mt-1">أدخل بياناتك للوصول</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
+            <Input
+              type="email"
+              placeholder="البريد الإلكتروني"
+              className="pl-10 bg-white/[0.04] border-white/[0.08] h-11 text-sm"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              dir="ltr"
+            />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
+            <Input
+              type="password"
+              placeholder="كلمة المرور"
+              className="pl-10 bg-white/[0.04] border-white/[0.08] h-11 text-sm"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              dir="ltr"
+            />
+          </div>
+          <Button 
+            type="submit"
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-black font-semibold h-11 hover:opacity-90"
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'دخول'}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 };

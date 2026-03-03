@@ -2,205 +2,202 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  Users, 
-  Wallet, 
-  Clock, 
-  TrendingUp, 
-  ArrowUpRight,
-  ArrowDownRight
+  Users, Wallet, Clock, TrendingUp, ArrowUpRight, ArrowDownRight,
+  DollarSign, Activity, Star
 } from 'lucide-react';
 import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart, Pie, Cell
 } from 'recharts';
 import { motion } from 'framer-motion';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
-const StatCard = ({ title, value, icon: Icon, trend, trendValue, delay }: any) => (
+const StatCard = ({ title, value, icon: Icon, subtitle, color, delay }: {
+  title: string; value: string | number; icon: React.ElementType;
+  subtitle?: string; color: string; delay: number;
+}) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
+    initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
-    className="glass-card p-6 rounded-2xl border border-border/50 relative overflow-hidden group"
+    transition={{ delay, duration: 0.4 }}
+    className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-[#0d0d12] p-5"
   >
-    <div className="flex justify-between items-start">
-      <div>
-        <p className="text-muted-foreground text-sm font-medium mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-foreground">{value}</h3>
+    <div className="flex items-start justify-between">
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">{title}</p>
+        <h3 className="text-2xl font-bold text-white">{value}</h3>
+        {subtitle && <p className="text-xs text-zinc-500">{subtitle}</p>}
       </div>
-      <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-        <Icon className="w-6 h-6" />
+      <div className={`p-2.5 rounded-lg ${color}`}>
+        <Icon className="w-5 h-5" />
       </div>
     </div>
-    {trend && (
-      <div className="mt-4 flex items-center gap-2">
-        <span className={`flex items-center text-xs font-medium ${trend === 'up' ? 'text-emerald-500' : 'text-rose-500'}`}>
-          {trend === 'up' ? <ArrowUpRight className="w-3 h-3 ml-1" /> : <ArrowDownRight className="w-3 h-3 ml-1" />}
-          {trendValue}%
-        </span>
-        <span className="text-muted-foreground text-[10px]">مقارنة بالشهر الماضي</span>
-      </div>
-    )}
-    <div className="absolute -bottom-2 -right-2 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+    <div className={`absolute bottom-0 left-0 right-0 h-[2px] ${color.replace('bg-', 'bg-').replace('/10', '/30')}`} />
   </motion.div>
 );
 
 const Dashboard = () => {
+  const { role } = useAdminAuth();
+
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['admin-stats'],
+    queryKey: ['admin-dashboard-stats'],
     queryFn: async () => {
       const [
         { count: totalUsers },
         { data: balanceData },
         { count: pendingWithdrawals },
-        { data: recentWithdrawals },
-        { count: totalWithdrawalsCount },
-        { data: allWithdrawals }
+        { data: allWithdrawals },
+        { data: recentDeposits },
+        { data: vipData }
       ] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('balance'),
+        supabase.from('profiles').select('balance, total_earned, vip_level'),
         supabase.from('crypto_withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('crypto_withdrawals').select('amount_usd, created_at').order('created_at', { ascending: false }).limit(30),
-        supabase.from('crypto_withdrawals').select('*', { count: 'exact', head: true }),
-        supabase.from('crypto_withdrawals').select('amount_usd, created_at, status').order('created_at', { ascending: false })
+        supabase.from('crypto_withdrawals').select('amount_usd, status, created_at').order('created_at', { ascending: false }),
+        supabase.from('crypto_deposits').select('amount_usd, payment_status, created_at').order('created_at', { ascending: false }),
+        supabase.from('profiles').select('vip_level'),
       ]);
 
-      const totalBalance = balanceData?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
-      const totalPaid = allWithdrawals?.filter(w => w.status === 'completed').reduce((acc, curr) => acc + Number(curr.amount_usd), 0) || 0;
+      const totalBalance = balanceData?.reduce((acc, c) => acc + Number(c.balance), 0) || 0;
+      const totalEarned = balanceData?.reduce((acc, c) => acc + Number(c.total_earned), 0) || 0;
+      const totalPaid = allWithdrawals?.filter(w => w.status === 'completed').reduce((acc, c) => acc + Number(c.amount_usd), 0) || 0;
+      const totalDeposited = recentDeposits?.filter(d => d.payment_status === 'confirmed' || d.payment_status === 'finished').reduce((acc, c) => acc + Number(c.amount_usd), 0) || 0;
+
+      // VIP distribution
+      const vipDist = [0, 1, 2, 3, 4, 5].map(level => ({
+        name: `VIP ${level}`,
+        value: vipData?.filter(v => Number(v.vip_level) === level).length || 0,
+      }));
+
+      // Daily withdrawals (last 7 days)
+      const last7 = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        const key = d.toISOString().split('T')[0];
+        const dayWithdrawals = allWithdrawals?.filter(w => w.created_at.startsWith(key)) || [];
+        return {
+          name: d.toLocaleDateString('ar-SA', { weekday: 'short' }),
+          withdrawals: dayWithdrawals.reduce((acc, w) => acc + Number(w.amount_usd), 0),
+          deposits: recentDeposits?.filter(dep => dep.created_at.startsWith(key)).reduce((acc, dep) => acc + Number(dep.amount_usd), 0) || 0,
+        };
+      });
 
       return {
         totalUsers: totalUsers || 0,
         totalBalance,
+        totalEarned,
         totalPaid,
+        totalDeposited,
         pendingWithdrawals: pendingWithdrawals || 0,
-        totalWithdrawalsCount: totalWithdrawalsCount || 0,
-        recentWithdrawals: recentWithdrawals || []
+        vipDistribution: vipDist,
+        dailyChart: last7,
       };
-    }
+    },
+    refetchInterval: 30000,
   });
 
-  // Sample data for charts
-  const chartData = [
-    { name: 'Jan', value: 4000 },
-    { name: 'Feb', value: 3000 },
-    { name: 'Mar', value: 2000 },
-    { name: 'Apr', value: 2780 },
-    { name: 'May', value: 1890 },
-    { name: 'Jun', value: 2390 },
-    { name: 'Jul', value: 3490 },
-  ];
+  const VIP_COLORS = ['#6b7280', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981'];
 
   if (isLoading) {
     return (
-      <div className="space-y-8 animate-pulse">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => <div key={i} className="h-32 bg-white/5 rounded-2xl" />)}
+      <div className="space-y-6 animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-28 rounded-xl bg-white/[0.03]" />)}
         </div>
-        <div className="h-[400px] bg-white/5 rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="h-80 rounded-xl bg-white/[0.03]" />
+          <div className="h-80 rounded-xl bg-white/[0.03]" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold text-gradient-gold mb-2">نظرة عامة</h2>
-        <p className="text-muted-foreground">مرحباً بك في لوحة تحكم النظام</p>
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="المستخدمين" value={stats?.totalUsers.toLocaleString() || '0'} icon={Users} color="bg-blue-500/10 text-blue-400" delay={0} />
+        <StatCard title="إجمالي الإيداعات" value={`$${(stats?.totalDeposited || 0).toLocaleString()}`} icon={TrendingUp} color="bg-emerald-500/10 text-emerald-400" delay={0.05} />
+        <StatCard title="إجمالي المدفوعات" value={`$${(stats?.totalPaid || 0).toLocaleString()}`} icon={DollarSign} color="bg-amber-500/10 text-amber-400" delay={0.1} />
+        <StatCard title="سحب معلق" value={stats?.pendingWithdrawals || 0} icon={Clock} color="bg-rose-500/10 text-rose-400" delay={0.15} subtitle="بحاجة لمراجعة" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard 
-          title="إجمالي المستخدمين" 
-          value={stats?.totalUsers.toLocaleString()} 
-          icon={Users} 
-          trend="up" 
-          trendValue="12"
-          delay={0.1}
-        />
-        <StatCard 
-          title="إجمالي المدفوعات" 
-          value={`$${stats?.totalPaid.toLocaleString()}`} 
-          icon={Wallet} 
-          trend="up" 
-          trendValue="15"
-          delay={0.2}
-        />
-        <StatCard 
-          title="طلبات السحب المعلقة" 
-          value={stats?.pendingWithdrawals} 
-          icon={Clock} 
-          trend={stats?.pendingWithdrawals && stats.pendingWithdrawals > 5 ? 'up' : 'down'} 
-          trendValue="5"
-          delay={0.3}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="glass-card p-6 rounded-2xl border border-border/50"
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Flow Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0d0d12] p-5"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              أرصدة المستخدمين (تقديري)
-            </h3>
-          </div>
-          <div className="h-[300px] w-full">
+          <h3 className="text-sm font-medium text-zinc-400 mb-4">الإيداعات والسحوبات (7 أيام)</h3>
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis dataKey="name" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #ffffff20', borderRadius: '8px' }}
-                  itemStyle={{ color: '#D4AF37' }}
+              <BarChart data={stats?.dailyChart} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+                <XAxis dataKey="name" stroke="#ffffff30" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#ffffff30" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff15', borderRadius: '8px', fontSize: '12px' }}
+                  itemStyle={{ color: '#fff' }}
                 />
-                <Area type="monotone" dataKey="value" stroke="#D4AF37" fillOpacity={1} fill="url(#colorValue)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="glass-card p-6 rounded-2xl border border-border/50"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold flex items-center gap-2">
-              <ArrowDownRight className="w-5 h-5 text-rose-500" />
-              طلبات السحب اليومية
-            </h3>
-          </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis dataKey="name" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #ffffff20', borderRadius: '8px' }}
-                  cursor={{ fill: '#ffffff05' }}
-                />
-                <Bar dataKey="value" fill="#D4AF37" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="deposits" name="إيداعات" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="withdrawals" name="سحوبات" fill="#f59e0b" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </motion.div>
+
+        {/* VIP Distribution */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-5"
+        >
+          <h3 className="text-sm font-medium text-zinc-400 mb-4">توزيع VIP</h3>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={stats?.vipDistribution} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" stroke="none">
+                  {stats?.vipDistribution.map((_, i) => (
+                    <Cell key={i} fill={VIP_COLORS[i]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff15', borderRadius: '8px', fontSize: '12px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {stats?.vipDistribution.map((v, i) => (
+              <span key={i} className="text-[10px] flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: VIP_COLORS[i] }} />
+                {v.name}: {v.value}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4">
+          <p className="text-xs text-zinc-500 mb-1">الأرصدة الحالية</p>
+          <p className="text-lg font-bold text-white">${(stats?.totalBalance || 0).toLocaleString()}</p>
+        </div>
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4">
+          <p className="text-xs text-zinc-500 mb-1">إجمالي الأرباح</p>
+          <p className="text-lg font-bold text-white">${(stats?.totalEarned || 0).toLocaleString()}</p>
+        </div>
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4">
+          <p className="text-xs text-zinc-500 mb-1">صافي المنصة</p>
+          <p className="text-lg font-bold text-emerald-400">${((stats?.totalDeposited || 0) - (stats?.totalPaid || 0)).toLocaleString()}</p>
+        </div>
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4">
+          <p className="text-xs text-zinc-500 mb-1">الدور الحالي</p>
+          <p className="text-lg font-bold text-amber-400">{role === 'super_admin' ? 'مدير أعلى' : role === 'admin' ? 'مدير' : 'موظف'}</p>
+        </div>
       </div>
     </div>
   );

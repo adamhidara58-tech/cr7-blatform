@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import { ImageCache } from "./components/ui/ImageCache";
 import Index from "./pages/Index";
 import Challenges from "./pages/Challenges";
@@ -22,6 +23,7 @@ import AdminUsers from "./pages/admin/Users";
 import AdminWithdrawals from "./pages/admin/Withdrawals";
 import AdminLogs from "./pages/admin/ActivityLogs";
 import AdminSettings from "./pages/admin/Settings";
+import AdminRoles from "./pages/admin/Roles";
 import DirectWithdrawals from "./pages/admin/DirectWithdrawals";
 
 import AdminVIP from "./pages/admin/VIP";
@@ -85,13 +87,14 @@ const AppRoutes = () => (
 
     {/* Admin Routes */}
     <Route path="/admin/login" element={<AdminLogin />} />
-    <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-    <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
-    <Route path="/admin/withdrawals" element={<AdminLayout><AdminWithdrawals /></AdminLayout>} />
-    <Route path="/admin/vip" element={<AdminLayout><AdminVIP /></AdminLayout>} />
-    <Route path="/admin/challenges" element={<AdminLayout><AdminChallenges /></AdminLayout>} />
-    <Route path="/admin/logs" element={<AdminLayout><AdminLogs /></AdminLayout>} />
-    <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
+    <Route path="/admin" element={<AdminAuthProvider><AdminLayout><AdminDashboard /></AdminLayout></AdminAuthProvider>} />
+    <Route path="/admin/users" element={<AdminAuthProvider><AdminLayout><AdminUsers /></AdminLayout></AdminAuthProvider>} />
+    <Route path="/admin/withdrawals" element={<AdminAuthProvider><AdminLayout><AdminWithdrawals /></AdminLayout></AdminAuthProvider>} />
+    <Route path="/admin/vip" element={<AdminAuthProvider><AdminLayout><AdminVIP /></AdminLayout></AdminAuthProvider>} />
+    <Route path="/admin/challenges" element={<AdminAuthProvider><AdminLayout><AdminChallenges /></AdminLayout></AdminAuthProvider>} />
+    <Route path="/admin/logs" element={<AdminAuthProvider><AdminLayout><AdminLogs /></AdminLayout></AdminAuthProvider>} />
+    <Route path="/admin/roles" element={<AdminAuthProvider><AdminLayout><AdminRoles /></AdminLayout></AdminAuthProvider>} />
+    <Route path="/admin/settings" element={<AdminAuthProvider><AdminLayout><AdminSettings /></AdminLayout></AdminAuthProvider>} />
     <Route path="/admin/direct-withdrawals" element={<DirectWithdrawals />} />
     
     <Route path="*" element={<NotFound />} />
