@@ -148,7 +148,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Desktop Sidebar */}
       <aside 
         className={cn(
-          "hidden md:flex flex-col border-r border-white/[0.06] bg-[#0a0a0e] transition-all duration-300 shrink-0",
+          "hidden md:flex flex-col border-r border-white/[0.06] bg-[#0a0a0e] transition-all duration-300 shrink-0 relative",
           collapsed ? "w-[68px]" : "w-60"
         )}
         dir="ltr"
@@ -156,8 +156,8 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         <SidebarContent />
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute bottom-20 -right-3 w-6 h-6 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors z-10 hidden md:flex"
-          style={{ left: collapsed ? '53px' : '227px' }}
+          className="absolute bottom-20 w-6 h-6 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300 z-10 hidden md:flex"
+          style={{ right: '-12px' }}
         >
           {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
         </button>

@@ -20,13 +20,13 @@ const StatCard = ({ title, value, icon: Icon, subtitle, color, delay }: {
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.4 }}
-    className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-[#0d0d12] p-5"
+    className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-[#0d0d12] p-3 sm:p-5"
   >
     <div className="flex items-start justify-between">
       <div className="space-y-2">
-        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">{title}</p>
-        <h3 className="text-2xl font-bold text-white">{value}</h3>
-        {subtitle && <p className="text-xs text-zinc-500">{subtitle}</p>}
+        <p className="text-[10px] sm:text-xs font-medium text-zinc-500 uppercase tracking-wider">{title}</p>
+        <h3 className="text-lg sm:text-2xl font-bold text-white">{value}</h3>
+        {subtitle && <p className="text-[10px] text-zinc-500 hidden sm:block">{subtitle}</p>}
       </div>
       <div className={`p-2.5 rounded-lg ${color}`}>
         <Icon className="w-5 h-5" />
@@ -113,35 +113,26 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard title="المستخدمين" value={stats?.totalUsers.toLocaleString() || '0'} icon={Users} color="bg-blue-500/10 text-blue-400" delay={0} />
-        <StatCard title="إجمالي الإيداعات" value={`$${(stats?.totalDeposited || 0).toLocaleString()}`} icon={TrendingUp} color="bg-emerald-500/10 text-emerald-400" delay={0.05} />
-        <StatCard title="إجمالي المدفوعات" value={`$${(stats?.totalPaid || 0).toLocaleString()}`} icon={DollarSign} color="bg-amber-500/10 text-amber-400" delay={0.1} />
+        <StatCard title="الإيداعات" value={`$${(stats?.totalDeposited || 0).toLocaleString()}`} icon={TrendingUp} color="bg-emerald-500/10 text-emerald-400" delay={0.05} />
+        <StatCard title="المدفوعات" value={`$${(stats?.totalPaid || 0).toLocaleString()}`} icon={DollarSign} color="bg-amber-500/10 text-amber-400" delay={0.1} />
         <StatCard title="سحب معلق" value={stats?.pendingWithdrawals || 0} icon={Clock} color="bg-rose-500/10 text-rose-400" delay={0.15} subtitle="بحاجة لمراجعة" />
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Flow Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0d0d12] p-5"
-        >
-          <h3 className="text-sm font-medium text-zinc-400 mb-4">الإيداعات والسحوبات (7 أيام)</h3>
-          <div className="h-64">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4 sm:p-5">
+          <h3 className="text-xs sm:text-sm font-medium text-zinc-400 mb-3 sm:mb-4">الإيداعات والسحوبات (7 أيام)</h3>
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats?.dailyChart} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-                <XAxis dataKey="name" stroke="#ffffff30" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#ffffff30" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff15', borderRadius: '8px', fontSize: '12px' }}
-                  itemStyle={{ color: '#fff' }}
-                />
+                <XAxis dataKey="name" stroke="#ffffff30" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#ffffff30" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff15', borderRadius: '8px', fontSize: '11px' }} itemStyle={{ color: '#fff' }} />
                 <Bar dataKey="deposits" name="إيداعات" fill="#10b981" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="withdrawals" name="سحوبات" fill="#f59e0b" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -149,23 +140,15 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* VIP Distribution */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-5"
-        >
-          <h3 className="text-sm font-medium text-zinc-400 mb-4">توزيع VIP</h3>
-          <div className="h-48">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4 sm:p-5">
+          <h3 className="text-xs sm:text-sm font-medium text-zinc-400 mb-3 sm:mb-4">توزيع VIP</h3>
+          <div className="h-40 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={stats?.vipDistribution} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" stroke="none">
-                  {stats?.vipDistribution.map((_, i) => (
-                    <Cell key={i} fill={VIP_COLORS[i]} />
-                  ))}
+                <Pie data={stats?.vipDistribution} cx="50%" cy="50%" innerRadius={35} outerRadius={55} dataKey="value" stroke="none">
+                  {stats?.vipDistribution.map((_, i) => (<Cell key={i} fill={VIP_COLORS[i]} />))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff15', borderRadius: '8px', fontSize: '12px' }} />
+                <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff15', borderRadius: '8px', fontSize: '11px' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -180,23 +163,23 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Quick Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4">
-          <p className="text-xs text-zinc-500 mb-1">الأرصدة الحالية</p>
-          <p className="text-lg font-bold text-white">${(stats?.totalBalance || 0).toLocaleString()}</p>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-3 sm:p-4">
+          <p className="text-[10px] sm:text-xs text-zinc-500 mb-1">الأرصدة</p>
+          <p className="text-sm sm:text-lg font-bold text-white">${(stats?.totalBalance || 0).toLocaleString()}</p>
         </div>
-        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4">
-          <p className="text-xs text-zinc-500 mb-1">إجمالي الأرباح</p>
-          <p className="text-lg font-bold text-white">${(stats?.totalEarned || 0).toLocaleString()}</p>
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-3 sm:p-4">
+          <p className="text-[10px] sm:text-xs text-zinc-500 mb-1">الأرباح</p>
+          <p className="text-sm sm:text-lg font-bold text-white">${(stats?.totalEarned || 0).toLocaleString()}</p>
         </div>
-        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4">
-          <p className="text-xs text-zinc-500 mb-1">صافي المنصة</p>
-          <p className="text-lg font-bold text-emerald-400">${((stats?.totalDeposited || 0) - (stats?.totalPaid || 0)).toLocaleString()}</p>
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-3 sm:p-4">
+          <p className="text-[10px] sm:text-xs text-zinc-500 mb-1">صافي المنصة</p>
+          <p className="text-sm sm:text-lg font-bold text-emerald-400">${((stats?.totalDeposited || 0) - (stats?.totalPaid || 0)).toLocaleString()}</p>
         </div>
-        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-4">
-          <p className="text-xs text-zinc-500 mb-1">الدور الحالي</p>
-          <p className="text-lg font-bold text-amber-400">{role === 'super_admin' ? 'مدير أعلى' : role === 'admin' ? 'مدير' : 'موظف'}</p>
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d0d12] p-3 sm:p-4">
+          <p className="text-[10px] sm:text-xs text-zinc-500 mb-1">الدور</p>
+          <p className="text-sm sm:text-lg font-bold text-amber-400">{role === 'super_admin' ? 'مدير أعلى' : role === 'admin' ? 'مدير' : 'موظف'}</p>
         </div>
       </div>
     </div>
