@@ -25,6 +25,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DepositModal } from '@/components/wallet/DepositModal';
 import { WithdrawalModal } from '@/components/wallet/WithdrawalModal';
+import { WithdrawalHistory } from '@/components/wallet/WithdrawalHistory';
 import { useQuery } from '@tanstack/react-query';
 
 interface Transaction {
@@ -210,6 +211,23 @@ const Profile = () => {
       </section>
 
 
+
+      {/* Withdrawal History */}
+      <section className="px-4 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <History className="w-5 h-5 text-primary" />
+              سجل عمليات السحب
+            </h3>
+          </div>
+          <WithdrawalHistory />
+        </motion.div>
+      </section>
 
       {/* Menu Items */}
       <section className="px-4 mb-20">
