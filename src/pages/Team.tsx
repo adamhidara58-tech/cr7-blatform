@@ -11,26 +11,51 @@ import { supabase } from '@/integrations/supabase/client';
 
 // --- Constants & Types ---
 const REWARDS = [
-{ value: 10, color: '#D4AF37', label: '$10' },
-{ value: 20, color: '#1a1a20', label: '$20' },
-{ value: 0.5, color: '#D4AF37', label: '$0.5' },
-{ value: 1, color: '#1a1a20', label: '$1' },
-{ value: 100, color: '#D4AF37', label: '$100' },
-{ value: 500, color: '#1a1a20', label: '$500' },
-{ value: 1000, color: '#FFD700', label: '$1000', special: true },
-{ value: 0.2, color: '#1a1a20', label: '$0.2' },
-{ value: 0.9, color: '#D4AF37', label: '$0.9' }];
+  { value: 0.2, color: '#1a1a20', label: '$0.2' },
+  { value: 10, color: '#D4AF37', label: '$10' },
+  { value: 0.9, color: '#1a1a20', label: '$0.9' },
+  { value: 100, color: '#D4AF37', label: '$100' },
+  { value: 0.5, color: '#1a1a20', label: '$0.5' },
+  { value: 500, color: '#D4AF37', label: '$500' },
+  { value: 1, color: '#1a1a20', label: '$1' },
+  { value: 1000, color: '#FFD700', label: '$1000', special: true },
+  { value: 0.2, color: '#D4AF37', label: '$0.2' },
+  { value: 20, color: '#1a1a20', label: '$20' },
+  { value: 0.5, color: '#D4AF37', label: '$0.5' },
+  { value: 0.9, color: '#1a1a20', label: '$0.9' },
+];
 
+// Allowed real spin outcomes (indices in REWARDS that correspond to $0.2, $0.5, $0.9, $1.0)
+const REAL_SPIN_INDICES = [0, 2, 4, 6, 8, 10, 11]; // $0.2, $0.9, $0.5, $1, $0.2, $0.5, $0.9
+
+// Demo mode: biased toward small amounts
+const DEMO_WEIGHTS = REWARDS.map((r) => {
+  if (r.value <= 0.5) return 40;
+  if (r.value <= 1) return 25;
+  if (r.value <= 10) return 5;
+  if (r.value <= 100) return 2;
+  return 1;
+});
+
+const pickWeightedIndex = (weights: number[]) => {
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < weights.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return i;
+  }
+  return weights.length - 1;
+};
 
 const WINNERS_MOCK = [
-{ name: 'أحمد س.', prize: 100, time: 'منذ دقيقتين' },
-{ name: 'ياسين م.', prize: 20, time: 'منذ 5 دقائق' },
-{ name: 'سارة ك.', prize: 500, time: 'منذ 12 دقيقة' },
-{ name: 'محمد ع.', prize: 1000, time: 'منذ ساعة' },
-{ name: 'عمر ف.', prize: 10, time: 'منذ ساعة' }];
+  { name: 'أحمد س.', prize: 0.9, time: 'منذ دقيقتين' },
+  { name: 'ياسين م.', prize: 0.5, time: 'منذ 5 دقائق' },
+  { name: 'سارة ك.', prize: 1, time: 'منذ 12 دقيقة' },
+  { name: 'محمد ع.', prize: 0.2, time: 'منذ ساعة' },
+  { name: 'عمر ف.', prize: 0.5, time: 'منذ ساعة' },
+];
 
-
-const SPIN_DURATION = 4500; // ms
+const SPIN_DURATION = 6000; // ms - longer for dramatic slowdown
 const segmentAngle = 360 / REWARDS.length;
 
 const Team = () => {
