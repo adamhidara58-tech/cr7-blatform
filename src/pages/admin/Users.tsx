@@ -19,6 +19,7 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [balanceChange, setBalanceChange] = useState('');
+  const [spinsChange, setSpinsChange] = useState('');
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -83,6 +84,19 @@ const Users = () => {
       description: `تعديل رصيد من قبل الإدارة: ${type === 'add' ? 'إضافة' : 'خصم'}`,
       status: 'completed'
     }).then();
+  };
+
+  const handleUpdateSpins = (type: 'add' | 'subtract') => {
+    if (!spinsChange || isNaN(Number(spinsChange))) {
+      toast.error('يرجى إدخال عدد صحيح');
+      return;
+    }
+    const amount = Number(spinsChange);
+    const finalAmount = type === 'add' ? amount : -amount;
+    const newSpins = Math.max(0, Number(selectedUser.available_spins) + finalAmount);
+    updateProfileMutation.mutate({ id: selectedUser.id, updates: { available_spins: newSpins } });
+    setSelectedUser({ ...selectedUser, available_spins: newSpins });
+    setSpinsChange('');
   };
 
   return (
@@ -215,10 +229,21 @@ const Users = () => {
                 <div className="grid grid-cols-4 gap-2">
                   {[0,1,2,3,4,5,6,7].map((level) => (
                     <Button key={level} variant={selectedUser.vip_level === level ? 'default' : 'outline'} size="sm"
-                      onClick={() => updateProfileMutation.mutate({ id: selectedUser.id, updates: { vip_level: level } })}
+                      onClick={() => {
+                        updateProfileMutation.mutate({ id: selectedUser.id, updates: { vip_level: level } });
+                        setSelectedUser({ ...selectedUser, vip_level: level });
+                      }}
                       className={selectedUser.vip_level === level ? 'bg-amber-500 text-black' : 'border-white/[0.08]'}
                     >{level}</Button>
                   ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs text-zinc-500">لفات عجلة الحظ (الحالي: {selectedUser.available_spins})</label>
+                <div className="flex gap-2">
+                  <Input type="number" placeholder="عدد اللفات..." value={spinsChange} onChange={(e) => setSpinsChange(e.target.value)} className="bg-white/[0.04] border-white/[0.08]" />
+                  <Button variant="outline" className="border-emerald-500/30 text-emerald-400 shrink-0" onClick={() => handleUpdateSpins('add')}><Plus className="w-4 h-4" /></Button>
+                  <Button variant="outline" className="border-rose-500/30 text-rose-400 shrink-0" onClick={() => handleUpdateSpins('subtract')}><Minus className="w-4 h-4" /></Button>
                 </div>
               </div>
             </div>
