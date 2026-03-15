@@ -288,16 +288,30 @@ const Team = () => {
               className="absolute -inset-1 rounded-full opacity-40 pointer-events-none"
               style={{
                 boxShadow: winFlash ?
-                '0 0 40px 8px hsla(45, 63%, 53%, 0.6)' :
+                '0 0 60px 15px hsla(45, 63%, 53%, 0.7)' :
                 '0 0 20px 2px hsla(45, 63%, 53%, 0.15)',
-                transition: 'box-shadow 0.3s ease'
+                transition: 'box-shadow 0.5s ease'
               }} />
 
             
-            {/* Pointer - minimal gold triangle */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
-              <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-primary drop-shadow-lg" />
+            {/* Pointer - premium gold triangle with glow */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30">
+              <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-primary drop-shadow-[0_0_10px_hsla(45,63%,53%,0.6)]" />
             </div>
+
+            {/* Won amount display near pointer */}
+            <AnimatePresence>
+              {winFlash && wonAmount !== null && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.5 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="absolute -top-14 left-1/2 -translate-x-1/2 z-40 bg-primary text-black font-black text-xl px-5 py-2 rounded-2xl shadow-[0_0_30px_hsla(45,63%,53%,0.5)]"
+                >
+                  ${wonAmount}
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             {/* Wheel disc - CSS transform rotation */}
             <div
