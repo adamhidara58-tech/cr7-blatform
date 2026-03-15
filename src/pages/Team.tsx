@@ -151,41 +151,55 @@ const Team = () => {
     setShowResult(false);
     setWinFlash(false);
 
-    const extraSpins = 8 + Math.floor(Math.random() * 5);
-    const randomSegment = Math.floor(Math.random() * REWARDS.length);
-    const targetRotation = rotation + extraSpins * 360 + (360 - randomSegment * segmentAngle);
+    // Pick outcome based on mode
+    let targetSegment: number;
+    if (demo) {
+      // Demo: weighted random biased toward small amounts
+      targetSegment = pickWeightedIndex(DEMO_WEIGHTS);
+    } else {
+      // Real spin: only land on allowed segments ($0.2, $0.5, $0.9, $1.0)
+      targetSegment = REAL_SPIN_INDICES[Math.floor(Math.random() * REAL_SPIN_INDICES.length)];
+    }
+
+    // Calculate rotation: many full spins + land on target segment
+    // The pointer is at top (0°). Segment i center is at (i * segmentAngle + segmentAngle/2).
+    // We need the wheel to rotate so that segment center aligns with top pointer.
+    const segmentCenter = targetSegment * segmentAngle + segmentAngle / 2;
+    const extraSpins = 10 + Math.floor(Math.random() * 4); // 10-13 full rotations for drama
+    const targetRotation = rotation + extraSpins * 360 + (360 - segmentCenter);
 
     // Vibration for mobile
     if ('vibrate' in navigator) navigator.vibrate(50);
 
-    // Use requestAnimationFrame to ensure the browser applies the new rotation
     requestAnimationFrame(() => {
       setRotation(targetRotation);
     });
 
     spinTimeoutRef.current = setTimeout(async () => {
       setIsSpinning(false);
-      const win = REWARDS[randomSegment].value;
+      const win = REWARDS[targetSegment].value;
       setWonAmount(win);
       setWinFlash(true);
 
-      // Brief flash then show result
+      // Vibrate on result
+      if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+
       setTimeout(() => {
         setWinFlash(false);
         setShowResult(true);
-      }, 600);
+      }, 800);
 
       if (!demo && profile?.id) {
-        const { error } = await supabase.
-        from('profiles').
-        update({ balance: Number(profile.balance) + win }).
-        eq('id', profile.id);
+        const { error } = await supabase
+          .from('profiles')
+          .update({ balance: Number(profile.balance) + win })
+          .eq('id', profile.id);
 
         if (!error) {
-          await supabase.
-          from('profiles').
-          update({ available_spins: Math.max(0, availableSpins - 1) }).
-          eq('id', profile.id);
+          await supabase
+            .from('profiles')
+            .update({ available_spins: Math.max(0, availableSpins - 1) })
+            .eq('id', profile.id);
           setAvailableSpins((prev) => Math.max(0, prev - 1));
         }
       }
