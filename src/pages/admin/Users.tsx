@@ -86,6 +86,19 @@ const Users = () => {
     }).then();
   };
 
+  const handleUpdateSpins = (type: 'add' | 'subtract') => {
+    if (!spinsChange || isNaN(Number(spinsChange))) {
+      toast.error('يرجى إدخال عدد صحيح');
+      return;
+    }
+    const amount = Number(spinsChange);
+    const finalAmount = type === 'add' ? amount : -amount;
+    const newSpins = Math.max(0, Number(selectedUser.available_spins) + finalAmount);
+    updateProfileMutation.mutate({ id: selectedUser.id, updates: { available_spins: newSpins } });
+    setSelectedUser({ ...selectedUser, available_spins: newSpins });
+    setSpinsChange('');
+  };
+
   return (
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
