@@ -11,26 +11,51 @@ import { supabase } from '@/integrations/supabase/client';
 
 // --- Constants & Types ---
 const REWARDS = [
-{ value: 10, color: '#D4AF37', label: '$10' },
-{ value: 20, color: '#1a1a20', label: '$20' },
-{ value: 0.5, color: '#D4AF37', label: '$0.5' },
-{ value: 1, color: '#1a1a20', label: '$1' },
-{ value: 100, color: '#D4AF37', label: '$100' },
-{ value: 500, color: '#1a1a20', label: '$500' },
-{ value: 1000, color: '#FFD700', label: '$1000', special: true },
-{ value: 0.2, color: '#1a1a20', label: '$0.2' },
-{ value: 0.9, color: '#D4AF37', label: '$0.9' }];
+  { value: 0.2, color: '#1a1a20', label: '$0.2' },
+  { value: 10, color: '#D4AF37', label: '$10' },
+  { value: 0.9, color: '#1a1a20', label: '$0.9' },
+  { value: 100, color: '#D4AF37', label: '$100' },
+  { value: 0.5, color: '#1a1a20', label: '$0.5' },
+  { value: 500, color: '#D4AF37', label: '$500' },
+  { value: 1, color: '#1a1a20', label: '$1' },
+  { value: 1000, color: '#FFD700', label: '$1000', special: true },
+  { value: 0.2, color: '#D4AF37', label: '$0.2' },
+  { value: 20, color: '#1a1a20', label: '$20' },
+  { value: 0.5, color: '#D4AF37', label: '$0.5' },
+  { value: 0.9, color: '#1a1a20', label: '$0.9' },
+];
 
+// Allowed real spin outcomes (indices in REWARDS that correspond to $0.2, $0.5, $0.9, $1.0)
+const REAL_SPIN_INDICES = [0, 2, 4, 6, 8, 10, 11]; // $0.2, $0.9, $0.5, $1, $0.2, $0.5, $0.9
+
+// Demo mode: biased toward small amounts
+const DEMO_WEIGHTS = REWARDS.map((r) => {
+  if (r.value <= 0.5) return 40;
+  if (r.value <= 1) return 25;
+  if (r.value <= 10) return 5;
+  if (r.value <= 100) return 2;
+  return 1;
+});
+
+const pickWeightedIndex = (weights: number[]) => {
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < weights.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return i;
+  }
+  return weights.length - 1;
+};
 
 const WINNERS_MOCK = [
-{ name: 'أحمد س.', prize: 100, time: 'منذ دقيقتين' },
-{ name: 'ياسين م.', prize: 20, time: 'منذ 5 دقائق' },
-{ name: 'سارة ك.', prize: 500, time: 'منذ 12 دقيقة' },
-{ name: 'محمد ع.', prize: 1000, time: 'منذ ساعة' },
-{ name: 'عمر ف.', prize: 10, time: 'منذ ساعة' }];
+  { name: 'أحمد س.', prize: 0.9, time: 'منذ دقيقتين' },
+  { name: 'ياسين م.', prize: 0.5, time: 'منذ 5 دقائق' },
+  { name: 'سارة ك.', prize: 1, time: 'منذ 12 دقيقة' },
+  { name: 'محمد ع.', prize: 0.2, time: 'منذ ساعة' },
+  { name: 'عمر ف.', prize: 0.5, time: 'منذ ساعة' },
+];
 
-
-const SPIN_DURATION = 4500; // ms
+const SPIN_DURATION = 6000; // ms - longer for dramatic slowdown
 const segmentAngle = 360 / REWARDS.length;
 
 const Team = () => {
@@ -126,41 +151,55 @@ const Team = () => {
     setShowResult(false);
     setWinFlash(false);
 
-    const extraSpins = 8 + Math.floor(Math.random() * 5);
-    const randomSegment = Math.floor(Math.random() * REWARDS.length);
-    const targetRotation = rotation + extraSpins * 360 + (360 - randomSegment * segmentAngle);
+    // Pick outcome based on mode
+    let targetSegment: number;
+    if (demo) {
+      // Demo: weighted random biased toward small amounts
+      targetSegment = pickWeightedIndex(DEMO_WEIGHTS);
+    } else {
+      // Real spin: only land on allowed segments ($0.2, $0.5, $0.9, $1.0)
+      targetSegment = REAL_SPIN_INDICES[Math.floor(Math.random() * REAL_SPIN_INDICES.length)];
+    }
+
+    // Calculate rotation: many full spins + land on target segment
+    // The pointer is at top (0°). Segment i center is at (i * segmentAngle + segmentAngle/2).
+    // We need the wheel to rotate so that segment center aligns with top pointer.
+    const segmentCenter = targetSegment * segmentAngle + segmentAngle / 2;
+    const extraSpins = 10 + Math.floor(Math.random() * 4); // 10-13 full rotations for drama
+    const targetRotation = rotation + extraSpins * 360 + (360 - segmentCenter);
 
     // Vibration for mobile
     if ('vibrate' in navigator) navigator.vibrate(50);
 
-    // Use requestAnimationFrame to ensure the browser applies the new rotation
     requestAnimationFrame(() => {
       setRotation(targetRotation);
     });
 
     spinTimeoutRef.current = setTimeout(async () => {
       setIsSpinning(false);
-      const win = REWARDS[randomSegment].value;
+      const win = REWARDS[targetSegment].value;
       setWonAmount(win);
       setWinFlash(true);
 
-      // Brief flash then show result
+      // Vibrate on result
+      if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+
       setTimeout(() => {
         setWinFlash(false);
         setShowResult(true);
-      }, 600);
+      }, 800);
 
       if (!demo && profile?.id) {
-        const { error } = await supabase.
-        from('profiles').
-        update({ balance: Number(profile.balance) + win }).
-        eq('id', profile.id);
+        const { error } = await supabase
+          .from('profiles')
+          .update({ balance: Number(profile.balance) + win })
+          .eq('id', profile.id);
 
         if (!error) {
-          await supabase.
-          from('profiles').
-          update({ available_spins: Math.max(0, availableSpins - 1) }).
-          eq('id', profile.id);
+          await supabase
+            .from('profiles')
+            .update({ available_spins: Math.max(0, availableSpins - 1) })
+            .eq('id', profile.id);
           setAvailableSpins((prev) => Math.max(0, prev - 1));
         }
       }
@@ -249,16 +288,30 @@ const Team = () => {
               className="absolute -inset-1 rounded-full opacity-40 pointer-events-none"
               style={{
                 boxShadow: winFlash ?
-                '0 0 40px 8px hsla(45, 63%, 53%, 0.6)' :
+                '0 0 60px 15px hsla(45, 63%, 53%, 0.7)' :
                 '0 0 20px 2px hsla(45, 63%, 53%, 0.15)',
-                transition: 'box-shadow 0.3s ease'
+                transition: 'box-shadow 0.5s ease'
               }} />
 
             
-            {/* Pointer - minimal gold triangle */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
-              <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-primary drop-shadow-lg" />
+            {/* Pointer - premium gold triangle with glow */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30">
+              <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-primary drop-shadow-[0_0_10px_hsla(45,63%,53%,0.6)]" />
             </div>
+
+            {/* Won amount display near pointer */}
+            <AnimatePresence>
+              {winFlash && wonAmount !== null && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.5 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="absolute -top-14 left-1/2 -translate-x-1/2 z-40 bg-primary text-black font-black text-xl px-5 py-2 rounded-2xl shadow-[0_0_30px_hsla(45,63%,53%,0.5)]"
+                >
+                  ${wonAmount}
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             {/* Wheel disc - CSS transform rotation */}
             <div
@@ -266,7 +319,7 @@ const Team = () => {
               style={{
                 transform: `rotate(${rotation}deg)`,
                 transition: isSpinning ?
-                `transform ${SPIN_DURATION}ms cubic-bezier(0.15, 0, 0.05, 1)` :
+                `transform ${SPIN_DURATION}ms cubic-bezier(0.12, 0, 0.01, 1)` :
                 'none',
                 willChange: isSpinning ? 'transform' : 'auto'
               }}>
