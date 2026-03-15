@@ -19,6 +19,7 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [balanceChange, setBalanceChange] = useState('');
+  const [spinsChange, setSpinsChange] = useState('');
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
