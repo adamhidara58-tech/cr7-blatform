@@ -319,7 +319,7 @@ const Team = () => {
               style={{
                 transform: `rotate(${rotation}deg)`,
                 transition: isSpinning ?
-                `transform ${SPIN_DURATION}ms cubic-bezier(0.15, 0, 0.05, 1)` :
+                `transform ${SPIN_DURATION}ms cubic-bezier(0.12, 0, 0.01, 1)` :
                 'none',
                 willChange: isSpinning ? 'transform' : 'auto'
               }}>
