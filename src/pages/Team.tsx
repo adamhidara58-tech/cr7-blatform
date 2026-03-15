@@ -177,15 +177,9 @@ const Team = () => {
       targetSegment = REAL_SPIN_INDICES[Math.floor(Math.random() * REAL_SPIN_INDICES.length)];
     }
 
-    // Calculate rotation: many full spins + land on target segment center
-    // The pointer is at top (0°). With SVG rotate(-90deg), segment i center 
-    // is at (i * segmentAngle + segmentAngle/2) clockwise from top.
-    // To land pointer on segment center, total rotation mod 360 must equal segmentCenter.
-    const segmentCenter = targetSegment * segmentAngle + segmentAngle / 2;
+    // Calculate rotation: many full spins + exact stop on selected segment center
     const extraSpins = 10 + Math.floor(Math.random() * 4); // 10-13 full rotations
-    const currentMod = rotation % 360;
-    const needed = ((segmentCenter - currentMod) % 360 + 360) % 360;
-    const targetRotation = rotation + extraSpins * 360 + needed;
+    const targetRotation = getTargetRotationForSegment(rotation, targetSegment, extraSpins);
 
     // Vibration for mobile
     if ('vibrate' in navigator) navigator.vibrate(50);
@@ -196,7 +190,10 @@ const Team = () => {
 
     spinTimeoutRef.current = setTimeout(async () => {
       setIsSpinning(false);
-      const win = REWARDS[targetSegment].value;
+
+      // Read result from where the pointer actually lands (guarantees visual/result match)
+      const landedSegment = getLandedSegmentIndex(targetRotation);
+      const win = REWARDS[landedSegment].value;
       setWonAmount(win);
       setWinFlash(true);
 
