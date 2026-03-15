@@ -58,6 +58,22 @@ const WINNERS_MOCK = [
 const SPIN_DURATION = 6000; // ms - longer for dramatic slowdown
 const segmentAngle = 360 / REWARDS.length;
 
+const normalizeRotation = (angle: number) => ((angle % 360) + 360) % 360;
+
+const getTargetRotationForSegment = (currentRotation: number, targetSegment: number, extraSpins: number) => {
+  const segmentCenter = targetSegment * segmentAngle + segmentAngle / 2;
+  const targetMod = normalizeRotation(360 - segmentCenter);
+  const currentMod = normalizeRotation(currentRotation);
+  const needed = normalizeRotation(targetMod - currentMod);
+  return currentRotation + extraSpins * 360 + needed;
+};
+
+const getLandedSegmentIndex = (finalRotation: number) => {
+  const normalized = normalizeRotation(finalRotation);
+  const pointerAngleInWheelSpace = normalizeRotation(360 - normalized);
+  return Math.floor(pointerAngleInWheelSpace / segmentAngle) % REWARDS.length;
+};
+
 const Team = () => {
   const { profile } = useAuth();
   const { referrals, totalCommission, levelStats, loading } = useReferrals();
