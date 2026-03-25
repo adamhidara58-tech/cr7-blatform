@@ -167,18 +167,42 @@ const Team = () => {
     setShowResult(false);
     setWinFlash(false);
 
-    // Pick outcome based on mode
-    let targetSegment: number;
-    if (demo) {
-      // Demo: weighted random biased toward small amounts
-      targetSegment = pickWeightedIndex(DEMO_WEIGHTS);
-    } else {
-      // Real spin: only land on allowed segments ($0.2, $0.5, $0.9, $1.0)
-      targetSegment = REAL_SPIN_INDICES[Math.floor(Math.random() * REAL_SPIN_INDICES.length)];
+    // Call server-side spin function for secure outcome
+    let serverWonAmount: number;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke('spin-wheel', {
+        body: { demo },
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      });
+
+      if (error || !data?.success) {
+        toast({
+          title: 'خطأ',
+          description: data?.error || 'فشل في تشغيل العجلة',
+          variant: 'destructive'
+        });
+        setIsSpinning(false);
+        return;
+      }
+
+      serverWonAmount = data.wonAmount;
+      if (!demo) {
+        setAvailableSpins(data.remainingSpins);
+      }
+    } catch (err) {
+      console.error('Spin API error:', err);
+      toast({ title: 'خطأ', description: 'فشل في الاتصال بالخادم', variant: 'destructive' });
+      setIsSpinning(false);
+      return;
     }
 
+    // Find the segment index on the wheel that matches the server result
+    const matchingIndices = REWARDS.map((r, i) => r.value === serverWonAmount ? i : -1).filter(i => i >= 0);
+    const targetSegment = matchingIndices[Math.floor(Math.random() * matchingIndices.length)];
+
     // Calculate rotation: many full spins + exact stop on selected segment center
-    const extraSpins = 10 + Math.floor(Math.random() * 4); // 10-13 full rotations
+    const extraSpins = 10 + Math.floor(Math.random() * 4);
     const targetRotation = getTargetRotationForSegment(rotation, targetSegment, extraSpins);
 
     // Vibration for mobile
@@ -188,39 +212,19 @@ const Team = () => {
       setRotation(targetRotation);
     });
 
-    spinTimeoutRef.current = setTimeout(async () => {
+    spinTimeoutRef.current = setTimeout(() => {
       setIsSpinning(false);
-
-      // Read result from where the pointer actually lands (guarantees visual/result match)
-      const landedSegment = getLandedSegmentIndex(targetRotation);
-      const win = REWARDS[landedSegment].value;
-      setWonAmount(win);
+      setWonAmount(serverWonAmount);
       setWinFlash(true);
 
-      // Vibrate on result
       if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
 
       setTimeout(() => {
         setWinFlash(false);
         setShowResult(true);
       }, 800);
-
-      if (!demo && profile?.id) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ balance: Number(profile.balance) + win })
-          .eq('id', profile.id);
-
-        if (!error) {
-          await supabase
-            .from('profiles')
-            .update({ available_spins: Math.max(0, availableSpins - 1) })
-            .eq('id', profile.id);
-          setAvailableSpins((prev) => Math.max(0, prev - 1));
-        }
-      }
     }, SPIN_DURATION);
-  }, [isSpinning, availableSpins, rotation, profile, toast]);
+  }, [isSpinning, availableSpins, rotation, toast]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

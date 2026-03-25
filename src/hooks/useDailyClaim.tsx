@@ -42,7 +42,6 @@ export const useDailyClaim = () => {
       const claimData = data as DailyClaim;
       setLastClaim(claimData);
       
-      // Calculate next claim time (24 hours after last claim)
       const lastClaimDate = new Date(claimData.created_at);
       const nextDate = new Date(lastClaimDate.getTime() + 24 * 60 * 60 * 1000);
       setNextClaimAt(nextDate);
@@ -67,7 +66,6 @@ export const useDailyClaim = () => {
       return false;
     }
 
-    // VIP level 0 has no daily profit
     if (profile.vip_level === 0) {
       toast({
         title: 'ترقية مطلوبة',
@@ -77,7 +75,6 @@ export const useDailyClaim = () => {
       return false;
     }
 
-    // Check 24h cooldown
     if (nextClaimAt && new Date() < nextClaimAt) {
       const diff = nextClaimAt.getTime() - new Date().getTime();
       const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -96,97 +93,44 @@ export const useDailyClaim = () => {
     const rewardAmount = vipLevel?.dailyProfit || 0;
 
     try {
-      const now = new Date().toISOString();
-      const today = now.split('T')[0];
+      // Use the atomic database function instead of client-side updates
+      const { data, error } = await supabase.rpc('claim_daily_reward', {
+        p_user_id: user.id,
+        p_vip_level: Math.floor(profile.vip_level),
+        p_amount: rewardAmount,
+      });
 
-      // 1. Atomic check in DB for the 24h window
-      if (lastClaim) {
-        const lastDate = new Date(lastClaim.created_at);
-        if (new Date().getTime() - lastDate.getTime() < 24 * 60 * 60 * 1000) {
-          toast({
-            title: 'فترة الانتظار',
-            description: 'يمكنك استلام المكافأة بعد مرور 24 ساعة من آخر استلام',
-            variant: 'destructive',
-          });
-          setClaiming(false);
-          return false;
-        }
-      }
-
-      // 2. Insert daily claim record
-      const { data: newClaimData, error: claimError } = await supabase
-        .from('daily_claims')
-        .insert({
-          user_id: user.id,
-          vip_level: profile.vip_level,
-          amount: rewardAmount,
-          claimed_at: today, // Keep for legacy but created_at is the source of truth now
-        })
-        .select()
-        .single();
-
-      if (claimError) {
-        console.error('Claim error:', claimError);
+      if (error) {
+        console.error('Claim RPC error:', error);
         toast({
           title: 'خطأ',
           description: 'حدث خطأ أثناء استلام المكافأة',
           variant: 'destructive',
         });
-        setClaiming(false);
         return false;
       }
 
-      // 3. Update user's balance
-      const { data: currentProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('balance, total_earned, daily_challenges_completed')
-        .eq('id', user.id)
-        .single();
+      const result = data as { success: boolean; error?: string; claim_id?: string; amount?: number };
 
-      if (fetchError) throw fetchError;
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          balance: (currentProfile?.balance || 0) + rewardAmount,
-          total_earned: (currentProfile?.total_earned || 0) + rewardAmount,
-          daily_challenges_completed: (currentProfile?.daily_challenges_completed || 0) + 1,
-        })
-        .eq('id', user.id);
-      
-      if (updateError) throw updateError;
-
-      // 4. Create transaction record
-      await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          type: 'daily_reward',
-          amount: rewardAmount,
-          description: `مكافأة يومية VIP ${profile.vip_level}`,
-          status: 'completed',
-        });
-
-      // 5. Update platform stats (silent)
-      try {
-        const { data: stats } = await supabase.from('platform_stats').select('total_paid').single();
-        if (stats) {
-          await supabase
-            .from('platform_stats')
-            .update({
-              total_paid: (stats.total_paid || 0) + rewardAmount,
-            })
-            .eq('id', '1');
+      if (!result.success) {
+        if (result.error === 'already_claimed') {
+          toast({
+            title: 'فترة الانتظار',
+            description: 'يمكنك استلام المكافأة بعد مرور 24 ساعة من آخر استلام',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'خطأ',
+            description: result.error || 'حدث خطأ غير متوقع',
+            variant: 'destructive',
+          });
         }
-      } catch (e) {
-        console.error('Error updating platform stats:', e);
+        return false;
       }
 
-      // 6. Finalize
-      const finalClaim = newClaimData as DailyClaim;
-      setLastClaim(finalClaim);
-      setNextClaimAt(new Date(new Date(finalClaim.created_at).getTime() + 24 * 60 * 60 * 1000));
-
+      // Refresh claim status and profile
+      await checkLastClaim();
       await refreshProfile();
 
       toast({
