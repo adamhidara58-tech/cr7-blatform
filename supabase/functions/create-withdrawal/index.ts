@@ -138,8 +138,9 @@ serve(async (req) => {
 
     // 4. Send Telegram Notification
     try {
-      const botToken = "8328507661:AAH7PJMpCDLbf7TsnjkhjU0jCWoE3ksSVwU";
-      const chatId = "8508057441";
+      const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
+      const chatId = Deno.env.get('TELEGRAM_CHAT_ID');
+      if (!botToken || !chatId) throw new Error('Telegram config missing');
       const message = `🔔 *طلب سحب جديد*\n\n` +
         `📧 البريد: ${profile.email}\n` +
         `🪙 العملة: ${currency.toUpperCase()}\n` +
