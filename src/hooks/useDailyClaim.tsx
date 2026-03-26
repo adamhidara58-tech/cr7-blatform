@@ -93,6 +93,15 @@ export const useDailyClaim = () => {
     const rewardAmount = vipLevel?.dailyProfit || 0;
 
     try {
+      if (rewardAmount <= 0) {
+        toast({
+          title: 'خطأ',
+          description: 'لم يتم العثور على مكافأة لمستواك الحالي',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
       // Use the atomic database function instead of client-side updates
       const { data, error } = await supabase.rpc('claim_daily_reward', {
         p_user_id: user.id,
@@ -101,10 +110,10 @@ export const useDailyClaim = () => {
       });
 
       if (error) {
-        console.error('Claim RPC error:', error);
+        console.error('Claim RPC error:', error.message, error.details, error.hint);
         toast({
           title: 'خطأ',
-          description: 'حدث خطأ أثناء استلام المكافأة',
+          description: error.message || 'حدث خطأ أثناء استلام المكافأة',
           variant: 'destructive',
         });
         return false;
