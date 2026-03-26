@@ -66,10 +66,10 @@ export const useDailyClaim = () => {
       return false;
     }
 
-    if (profile.vip_level === 0) {
+    if (profile.vip_level === 0 || profile.vip_level < 1) {
       toast({
         title: 'ترقية مطلوبة',
-        description: 'قم بالترقية للحصول على أرباح يومية',
+        description: 'قم بالترقية إلى VIP1 على الأقل للحصول على أرباح يومية',
         variant: 'destructive',
       });
       return false;
