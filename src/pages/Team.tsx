@@ -138,7 +138,7 @@ const Team = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'CR7 ELITE',
+          title: 'SevenX',
           text: 'انضم إلي في منصة النخبة وابدأ الربح اليوم!',
           url: referralLink
         });

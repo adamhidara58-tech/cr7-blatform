@@ -6,9 +6,9 @@ import { NotificationsModal } from '@/components/modals/NotificationsModal';
 import { SecurityModal } from '@/components/modals/SecurityModal';
 import { PrivacyModal } from '@/components/modals/PrivacyModal';
 import { supabase } from '@/integrations/supabase/client';
-import logoOriginal from '@/assets/logo-original.png';
+import logoSevenX from '@/assets/logo-sevenx.jpeg';
 
-// Updated at: 2026-02-11 11:15:00 - Floating Header with Glass Effect
+// Updated at: 2026-03-28 - SevenX Branding
 export const Header = memo(() => {
   const { profile, signOut } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -110,13 +110,11 @@ export const Header = memo(() => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}>
 
-              <div className="w-10 h-10 rounded-full bg-[#000000] flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-gold/20 transition-all duration-300 hover:scale-105 active:scale-95 shrink-0">
-                <span className="text-white font-black text-[13px] leading-none tracking-[0.5px] transform -translate-y-[0.5px] select-none text-center">
-                  CR7
-                </span>
+              <div className="w-10 h-10 rounded-full overflow-hidden shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-gold/20 transition-all duration-300 hover:scale-105 active:scale-95 shrink-0">
+                <img src={logoSevenX} alt="SevenX" className="w-full h-full object-cover" />
               </div>
               <div className="hidden xs:block">
-                <h1 className="font-bold text-sm text-gradient-gold leading-none tracking-tight">CR7 ELITE</h1>
+                <h1 className="font-bold text-sm text-gradient-gold leading-none tracking-tight">SEVENX</h1>
                 <p className="text-[8px] text-white/40 font-medium">منصة النخبة</p>
               </div>
             </motion.div>

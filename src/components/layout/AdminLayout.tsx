@@ -81,7 +81,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
         {(!collapsed || mobile) && (
           <div className="min-w-0">
-            <h1 className="font-display text-lg font-bold text-white leading-none tracking-tight">CR7 ADMIN</h1>
+            <h1 className="font-display text-lg font-bold text-white leading-none tracking-tight">SEVENX ADMIN</h1>
             <span className={cn("text-[10px] px-1.5 py-0.5 rounded border mt-1 inline-block", roleBadgeColor[role || ''])}>
               {roleLabel[role || '']}
             </span>
