@@ -156,7 +156,7 @@ export const FAQSection = memo(() => {
 
       <div className="mt-10 text-center">
         <p className="text-white/20 text-[11px] font-medium">
-          © 2026 CR7 ELITE PLATFORM • نظام آمن وموثوق
+          © 2026 SEVENX PLATFORM • نظام آمن وموثوق
         </p>
       </div>
     </section>
