@@ -271,6 +271,7 @@ export type Database = {
           updated_at: string
           username: string
           vip_level: number
+          withdrawal_allowance: number
         }
         Insert: {
           available_spins?: number
@@ -289,6 +290,7 @@ export type Database = {
           updated_at?: string
           username: string
           vip_level?: number
+          withdrawal_allowance?: number
         }
         Update: {
           available_spins?: number
@@ -307,6 +309,7 @@ export type Database = {
           updated_at?: string
           username?: string
           vip_level?: number
+          withdrawal_allowance?: number
         }
         Relationships: [
           {

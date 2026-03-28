@@ -90,6 +90,14 @@ const DirectWithdrawals = () => {
         }
       }
 
+      // 3. Decrement withdrawal_allowance when approving
+      if (newStatus === 'completed') {
+        const { data: profile } = await supabase.from('profiles').select('withdrawal_allowance').eq('id', userId).single();
+        if (profile) {
+          await supabase.from('profiles').update({ withdrawal_allowance: Math.max(0, (profile.withdrawal_allowance || 0) - 1) }).eq('id', userId);
+        }
+      }
+
       toast.success(newStatus === 'completed' ? 'تم قبول السحب بنجاح' : 'تم رفض السحب وإعادة المبلغ');
       fetchAllWithdrawals();
     } catch (error: any) {

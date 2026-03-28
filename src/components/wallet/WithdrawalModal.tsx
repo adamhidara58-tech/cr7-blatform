@@ -73,6 +73,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
 
   const balance = Number(profile?.balance || 0);
   const withdrawableBalance = Number(profile?.total_earned || 0);
+  const withdrawalAllowance = Number((profile as any)?.withdrawal_allowance ?? 3);
 
   const handleSubmitAmount = () => {
     if (!isWithinWithdrawalWindow) {
@@ -186,6 +187,24 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     يمكنك السحب مرة واحدة كل 24 ساعة. المتبقي: {getRemainingTime()}
                   </p>
                 </div>
+              </div>
+            )}
+
+            {withdrawalAllowance <= 0 && (
+              <div className="bg-orange-500/5 border border-orange-500/10 rounded-2xl p-4 mb-6 flex items-center gap-4">
+                <AlertCircle className="w-8 h-8 text-orange-500 shrink-0" />
+                <div>
+                  <p className="font-bold text-orange-500 text-sm">استنفدت مرات السحب</p>
+                  <p className="text-[10px] text-white/40 leading-tight">
+                    قم بدعوة شخص جديد ليقوم بالإيداع للحصول على 3 سحوبات إضافية
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {withdrawalAllowance > 0 && (
+              <div className="text-center mb-4">
+                <span className="text-[10px] font-bold text-white/30">سحوبات متبقية: <span className="text-primary">{withdrawalAllowance}</span></span>
               </div>
             )}
 

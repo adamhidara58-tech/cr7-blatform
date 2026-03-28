@@ -90,6 +90,29 @@ const SimpleWithdrawals = () => {
         }
       }
 
+      // 2.5 Decrement withdrawal_allowance when approving
+      if (status === 'completed') {
+        const { data: withdrawal } = await supabase
+          .from('crypto_withdrawals')
+          .select('user_id')
+          .eq('id', id)
+          .single();
+
+        if (withdrawal) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('withdrawal_allowance')
+            .eq('id', withdrawal.user_id)
+            .single();
+
+          if (profile) {
+            await supabase.from('profiles').update({ 
+              withdrawal_allowance: Math.max(0, (profile.withdrawal_allowance || 0) - 1) 
+            }).eq('id', withdrawal.user_id);
+          }
+        }
+      }
+
       // 3. تسجيل النشاط
       await supabase.from('activity_logs').insert({
         admin_id: session.user.id,
