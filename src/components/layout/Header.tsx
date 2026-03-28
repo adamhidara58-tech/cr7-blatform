@@ -6,9 +6,9 @@ import { NotificationsModal } from '@/components/modals/NotificationsModal';
 import { SecurityModal } from '@/components/modals/SecurityModal';
 import { PrivacyModal } from '@/components/modals/PrivacyModal';
 import { supabase } from '@/integrations/supabase/client';
-import logoOriginal from '@/assets/logo-original.png';
+import logoSevenX from '@/assets/logo-sevenx.jpeg';
 
-// Updated at: 2026-02-11 11:15:00 - Floating Header with Glass Effect
+// Updated at: 2026-03-28 - SevenX Branding
 export const Header = memo(() => {
   const { profile, signOut } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
