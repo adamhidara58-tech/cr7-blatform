@@ -120,7 +120,7 @@ const Auth = () => {
           else if (error.message?.includes('Password')) msg = 'كلمة السر ضعيفة جداً';
           toast({ title: 'خطأ', description: msg, variant: 'destructive' });
         } else {
-          toast({ title: 'تم إنشاء الحساب بنجاح! 🎉', description: 'مرحباً بك في منصة CR7 ELITE!' });
+          toast({ title: 'تم إنشاء الحساب بنجاح! 🎉', description: 'مرحباً بك في منصة SevenX!' });
         }
       } else {
         const v = signInSchema.safeParse({ email, password });
