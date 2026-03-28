@@ -67,12 +67,20 @@ serve(async (req) => {
     // Get user profile
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('balance, total_earned, last_withdrawal_at, username, email')
+      .select('balance, total_earned, last_withdrawal_at, username, email, withdrawal_allowance')
       .eq('id', user.id)
       .single();
 
     if (profileError || !profile) {
       return new Response(JSON.stringify({ success: false, error: 'لم يتم العثور على الملف الشخصي' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Check withdrawal allowance
+    if (profile.withdrawal_allowance <= 0) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "لقد استنفدت عدد مرات السحب المتاحة. قم بدعوة شخص جديد ليقوم بالإيداع للحصول على 3 سحوبات إضافية." 
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Business Logic: Cooldown check (24h)
@@ -93,6 +101,13 @@ serve(async (req) => {
     if (profile.balance < amountNum) {
       return new Response(JSON.stringify({ success: false, error: 'رصيد إجمالي غير كافٍ' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+
+    // Count completed withdrawals for this user
+    const { count: completedWithdrawals } = await supabaseAdmin
+      .from('crypto_withdrawals')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'completed');
 
     // 1. Deduct balance first
     const { error: updateError } = await supabaseAdmin
@@ -136,16 +151,24 @@ serve(async (req) => {
       status: 'pending'
     });
 
-    // 4. Send Telegram Notification
+    // 4. Send Telegram Notification with withdrawal count
     try {
       const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
       const chatId = Deno.env.get('TELEGRAM_CHAT_ID');
       if (!botToken || !chatId) throw new Error('Telegram config missing');
+
+      const totalCompleted = completedWithdrawals || 0;
+      const remainingAllowance = profile.withdrawal_allowance;
+
       const message = `🔔 *طلب سحب جديد*\n\n` +
         `📧 البريد: ${profile.email}\n` +
+        `👤 المستخدم: ${profile.username}\n` +
         `🪙 العملة: ${currency.toUpperCase()}\n` +
         `🌐 الشبكة: ${network || 'TRC20'}\n` +
         `💰 المبلغ: $${amountNum}\n\n` +
+        `📊 *إحصائيات السحب:*\n` +
+        `✅ سحوبات مكتملة: ${totalCompleted}\n` +
+        `🔢 سحوبات متبقية: ${remainingAllowance}\n\n` +
         `🏦 المحفظة:\n\`${walletAddress}\``;
 
       await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
