@@ -57,6 +57,14 @@ const Withdrawals = () => {
         await supabase.from('profiles').update({ balance: (profile?.balance || 0) + withdrawal.amount_usd }).eq('id', withdrawal.user_id);
       }
 
+      // Decrement withdrawal_allowance when approving
+      if (newStatus === 'completed' && withdrawal.status === 'pending') {
+        const { data: profile } = await supabase.from('profiles').select('withdrawal_allowance').eq('id', withdrawal.user_id).single();
+        if (profile) {
+          await supabase.from('profiles').update({ withdrawal_allowance: Math.max(0, (profile.withdrawal_allowance || 0) - 1) }).eq('id', withdrawal.user_id);
+        }
+      }
+
       const { error } = await supabase
         .from('crypto_withdrawals')
         .update({ status: newStatus, processed_at: newStatus !== 'pending' ? new Date().toISOString() : null })
