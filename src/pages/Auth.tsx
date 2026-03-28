@@ -169,16 +169,14 @@ const Auth = () => {
         {/* Logo Circle with Halo */}
         <div className="relative">
           <div className="absolute inset-[-12px] rounded-full bg-primary/10 blur-xl animate-pulse" />
-          <div className="relative w-28 h-28 rounded-full bg-background border-2 border-primary/20 flex items-center justify-center shadow-[0_0_40px_-10px_hsl(var(--gold)/0.3)]">
-            <span className="text-foreground font-black text-[38px] leading-none tracking-[2px] select-none">
-              CR7
-            </span>
+          <div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-primary/20 shadow-[0_0_40px_-10px_hsl(var(--gold)/0.3)]">
+            <img src="/favicon.jpeg" alt="SevenX" className="w-full h-full object-cover" />
           </div>
         </div>
 
         <div className="text-center">
           <h1 className="font-bold text-4xl sm:text-5xl text-gradient-gold tracking-tight">
-            CR7 ELITE
+            SEVENX
           </h1>
           <motion.p
             initial={{ opacity: 0 }}
