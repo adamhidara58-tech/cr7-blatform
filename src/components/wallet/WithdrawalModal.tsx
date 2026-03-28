@@ -73,6 +73,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
 
   const balance = Number(profile?.balance || 0);
   const withdrawableBalance = Number(profile?.total_earned || 0);
+  const withdrawalAllowance = Number((profile as any)?.withdrawal_allowance ?? 3);
 
   const handleSubmitAmount = () => {
     if (!isWithinWithdrawalWindow) {
