@@ -83,7 +83,12 @@ const Users = () => {
       amount: finalAmount,
       description: `تعديل رصيد من قبل الإدارة: ${type === 'add' ? 'إضافة' : 'خصم'}`,
       status: 'completed'
-    }).then();
+    }).then(({ error: txError }) => {
+      if (txError) {
+        console.error('Failed to create transaction record:', txError);
+        toast.warning('تم تحديث الرصيد لكن فشل تسجيل المعاملة');
+      }
+    });
   };
 
   const handleUpdateSpins = (type: 'add' | 'subtract') => {

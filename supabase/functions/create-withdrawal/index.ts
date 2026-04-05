@@ -24,14 +24,14 @@ serve(async (req) => {
     // Verify user JWT
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ success: false, error: 'Authorization required' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ success: false, error: 'Authorization required' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // --- TIME RESTRICTION: 12:00 - 13:00 UTC ONLY ---
@@ -197,6 +197,7 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Edge Function Error:', error);
-    return new Response(JSON.stringify({ success: false, error: error.message || 'حدث خطأ غير متوقع' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    console.error('Full error:', error.message);
+    return new Response(JSON.stringify({ success: false, error: 'فشل معالجة طلب السحب. يرجى المحاولة لاحقاً.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });

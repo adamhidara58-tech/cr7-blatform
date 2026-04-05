@@ -36,8 +36,8 @@ serve(async (req) => {
       console.error('Missing or invalid Authorization header:', authHeader);
       return new Response(JSON.stringify({
         success: false,
-        error: 'Authorization header is missing or invalid. Please login again.'
-      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        error: 'Authorization required'
+      }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -49,10 +49,10 @@ serve(async (req) => {
       console.error('Auth error:', authError?.message);
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Invalid Token: ' + (authError?.message || 'Auth session missing!') 
+        error: 'Invalid token' 
       }), { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -75,13 +75,13 @@ serve(async (req) => {
       });
     }
 
-    if (!roleData && user.email !== 'fhncis12@gmail.com') {
+    if (!roleData) {
       console.error('User is not admin:', user.id);
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Access denied. Admin role required.' 
+        error: 'Access denied' 
       }), { 
-        status: 200, 
+        status: 403, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       });
     }
@@ -437,11 +437,12 @@ serve(async (req) => {
   } catch (error: unknown) {
     console.error('Unexpected error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Full error:', errorMessage);
     return new Response(JSON.stringify({ 
       success: false, 
-      error: errorMessage 
+      error: 'فشل معالجة العملية. يرجى المحاولة لاحقاً.' 
     }), { 
-      status: 200, 
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     });
   }
