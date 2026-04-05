@@ -49,10 +49,10 @@ serve(async (req) => {
       console.error('Auth error:', authError?.message);
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Invalid Token: ' + (authError?.message || 'Auth session missing!') 
+        error: 'Invalid token' 
       }), { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
