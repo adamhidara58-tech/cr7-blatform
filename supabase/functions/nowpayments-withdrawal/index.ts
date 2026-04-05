@@ -79,9 +79,9 @@ serve(async (req) => {
       console.error('User is not admin:', user.id);
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Access denied. Admin role required.' 
+        error: 'Access denied' 
       }), { 
-        status: 200, 
+        status: 403, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       });
     }
