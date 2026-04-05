@@ -79,7 +79,7 @@ serve(async (req) => {
     if (profile.withdrawal_allowance <= 0) {
       return new Response(JSON.stringify({ 
         success: false, 
-        error: "لقد استنفدت عدد مرات السحب المتاحة. قم بدعوة شخص جديد ليقوم بالإيداع للحصول على 3 سحوبات إضافية." 
+        error: "يجب إحالة شخص جديد ليقوم بالإيداع للحصول على 4 سحوبات إضافية." 
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
