@@ -102,22 +102,40 @@ const AppRoutes = () => (
   </Routes>
 );
 
+const isStandalone = () => {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true
+  );
+};
+
 const App = () => {
-  // Critical images are preloaded via index.html link tags
+  const [showSplash, setShowSplash] = useState(() => {
+    if (!isStandalone()) return false;
+    if (sessionStorage.getItem("splashShown")) return false;
+    return true;
+  });
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem("splashShown", "1");
+    setShowSplash(false);
+  };
 
   return (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <ImageCache />
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        {showSplash && <SplashVideo onComplete={handleSplashComplete} />}
+        <BrowserRouter>
+          <AuthProvider>
+            <ImageCache />
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 
