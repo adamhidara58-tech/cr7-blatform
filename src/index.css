@@ -267,30 +267,6 @@
   background: rgba(212, 175, 55, 0.4);
 }
 
-/* Splash Screen Animations */
-@keyframes splashLogoIn {
-  from { opacity: 0; transform: scale(0.7); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes splashFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes splashShine {
-  from { left: -30%; }
-  to { left: 130%; }
-}
-@keyframes splashRing {
-  0% { opacity: 0; transform: scale(0.5); }
-  40% { opacity: 0.3; }
-  100% { opacity: 0; transform: scale(1.4); }
-}
-@keyframes splashParticle {
-  0% { opacity: 0; transform: translateY(0); }
-  20% { opacity: var(--particle-opacity, 0.2); }
-  100% { opacity: 0; transform: translateY(-120px); }
-}
-
 /* Disable animations if user prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * {
