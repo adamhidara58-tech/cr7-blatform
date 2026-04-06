@@ -103,13 +103,22 @@ const AppRoutes = () => (
 );
 
 const App = () => {
-  // Critical images are preloaded via index.html link tags
+  const [showSplash, setShowSplash] = useState(() => {
+    const shown = sessionStorage.getItem('splashShown');
+    return !shown;
+  });
+
+  const handleSplashFinish = useCallback(() => {
+    setShowSplash(false);
+    sessionStorage.setItem('splashShown', 'true');
+  }, []);
 
   return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       <BrowserRouter>
         <AuthProvider>
           <ImageCache />
