@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import { ImageCache } from "./components/ui/ImageCache";
+import { SplashScreen } from "./components/SplashScreen";
 import Index from "./pages/Index";
 import Challenges from "./pages/Challenges";
 import Team from "./pages/Team";
@@ -102,13 +103,22 @@ const AppRoutes = () => (
 );
 
 const App = () => {
-  // Critical images are preloaded via index.html link tags
+  const [showSplash, setShowSplash] = useState(() => {
+    const shown = sessionStorage.getItem('splashShown');
+    return !shown;
+  });
+
+  const handleSplashFinish = useCallback(() => {
+    setShowSplash(false);
+    sessionStorage.setItem('splashShown', 'true');
+  }, []);
 
   return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       <BrowserRouter>
         <AuthProvider>
           <ImageCache />
