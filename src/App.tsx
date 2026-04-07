@@ -122,12 +122,16 @@ const App = () => {
     setShowSplash(false);
   };
 
+  // While splash is showing, render ONLY the splash — no auth, no routes
+  if (showSplash) {
+    return <SplashVideo onComplete={handleSplashComplete} />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        {showSplash && <SplashVideo onComplete={handleSplashComplete} />}
         <BrowserRouter>
           <AuthProvider>
             <ImageCache />
