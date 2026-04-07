@@ -1,11 +1,11 @@
-const CACHE_NAME = 'sevenx-v2';
+const CACHE_NAME = 'cr7-app-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/splash.mp4',
-  '/icons/icon-192x192.png?v=2',
-  '/icons/icon-512x512.png?v=2'
+  '/icons/icon-192x192.png?v=5',
+  '/icons/icon-512x512.png?v=5'
 ];
 
 self.addEventListener('install', (event) => {
