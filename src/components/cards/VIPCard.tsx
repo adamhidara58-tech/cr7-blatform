@@ -249,12 +249,8 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
           <img 
             src={players[vipLevel.level]} 
             alt={vipLevel.name}
-            loading="lazy"
+            decoding="async"
             className="w-full h-full object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] transition-transform duration-700 group-hover:scale-105 origin-bottom will-change-transform"
-            style={{ 
-              contentVisibility: 'auto',
-              imageRendering: 'auto'
-            }}
           />
         </div>
 

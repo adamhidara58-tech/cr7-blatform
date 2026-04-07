@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import { ImageCache } from "./components/ui/ImageCache";
+import ScrollToTop from "./components/ScrollToTop";
 import Index from "./pages/Index";
 import Challenges from "./pages/Challenges";
 import Team from "./pages/Team";
@@ -134,6 +135,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <ScrollToTop />
             <ImageCache />
             <AppRoutes />
           </AuthProvider>
