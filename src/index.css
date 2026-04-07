@@ -136,8 +136,6 @@
   }
 
   img {
-    content-visibility: auto;
-    /* Prevent layout shift */
     height: auto;
     max-width: 100%;
   }
