@@ -84,6 +84,7 @@ const Team = () => {
   // Wheel State
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
+  const [spinPhase, setSpinPhase] = useState<'idle' | 'warmup' | 'decelerate'>('idle');
   const [showResult, setShowResult] = useState(false);
   const [wonAmount, setWonAmount] = useState<number | null>(null);
   const [isDemo, setIsDemo] = useState(false);
@@ -93,6 +94,9 @@ const Team = () => {
   const [winFlash, setWinFlash] = useState(false);
 
   const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warmupRafRef = useRef<number | null>(null);
+  const warmupStartRef = useRef<number>(0);
+  const warmupBaseRotationRef = useRef<number>(0);
 
   useEffect(() => {
     if (profile?.id) {
