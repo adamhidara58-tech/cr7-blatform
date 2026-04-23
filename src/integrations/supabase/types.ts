@@ -229,6 +229,30 @@ export type Database = {
           },
         ]
       }
+      demo_spins: {
+        Row: {
+          created_at: string
+          id: string
+          spun_at: string
+          user_id: string
+          won_amount: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          spun_at?: string
+          user_id: string
+          won_amount?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          spun_at?: string
+          user_id?: string
+          won_amount?: number
+        }
+        Relationships: []
+      }
       platform_stats: {
         Row: {
           active_challenges: number
