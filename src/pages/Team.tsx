@@ -87,6 +87,7 @@ const Team = () => {
   const [wonAmount, setWonAmount] = useState<number | null>(null);
   const [isDemo, setIsDemo] = useState(false);
   const [availableSpins, setAvailableSpins] = useState(0);
+  const [demoRemaining, setDemoRemaining] = useState<number>(3);
   const [showInfo, setShowInfo] = useState(false);
   const [winFlash, setWinFlash] = useState(false);
 
