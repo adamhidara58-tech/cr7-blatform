@@ -6,14 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Allowed real spin outcomes: $0.2, $0.5, $0.9, $1.0
+// Real spin outcomes — STRICTLY small amounts only. Never $10 or above.
 const REAL_OUTCOMES = [0.2, 0.5, 0.9, 1.0];
-const REAL_WEIGHTS = [35, 30, 20, 15];
+const REAL_WEIGHTS  = [ 35,  30,  20,   15];
 
-// Demo outcomes — biased to natural/small amounts, with rare chance for big wins
+// Demo outcomes — fully random (equal weights across all slots)
 const DEMO_OUTCOMES = [0.2, 10, 0.9, 100, 0.5, 500, 1, 1000, 0.2, 20, 0.5, 0.9];
-//                    [0.2, 10, 0.9, 100, 0.5, 500, 1, 1000, 0.2, 20, 0.5, 0.9]
-const DEMO_WEIGHTS  = [ 90,  3,  85,   1, 90,    1, 70,   1,  90,  4, 90,  85];
+const DEMO_WEIGHTS  = [  1,  1,   1,   1,   1,   1, 1,    1,   1,  1,   1,   1];
 
 const DEMO_DAILY_LIMIT = 3;
 
