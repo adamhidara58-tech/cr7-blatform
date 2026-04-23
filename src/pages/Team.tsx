@@ -103,7 +103,17 @@ const Team = () => {
         single();
         if (data) setAvailableSpins(data.available_spins ?? 0);
       };
+      const fetchDemoCount = async () => {
+        const today = new Date().toISOString().slice(0, 10);
+        const { count } = await supabase
+          .from('demo_spins')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', profile.id)
+          .eq('spun_at', today);
+        setDemoRemaining(Math.max(0, 3 - (count ?? 0)));
+      };
       fetchSpins();
+      fetchDemoCount();
 
       // Listen for realtime updates to spins
       const channel = supabase.
