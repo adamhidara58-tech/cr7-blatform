@@ -55,7 +55,8 @@ const WINNERS_MOCK = [
   { name: 'عمر ف.', prize: 0.5, time: 'منذ ساعة' },
 ];
 
-const SPIN_DURATION = 6000; // ms - longer for dramatic slowdown
+const SPIN_DURATION = 5500; // ms - final deceleration phase
+const WARMUP_SPIN_SPEED = 600; // ms per full rotation during warmup loop
 const segmentAngle = 360 / REWARDS.length;
 
 const normalizeRotation = (angle: number) => ((angle % 360) + 360) % 360;
@@ -83,6 +84,7 @@ const Team = () => {
   // Wheel State
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
+  const [spinPhase, setSpinPhase] = useState<'idle' | 'warmup' | 'decelerate'>('idle');
   const [showResult, setShowResult] = useState(false);
   const [wonAmount, setWonAmount] = useState<number | null>(null);
   const [isDemo, setIsDemo] = useState(false);
@@ -92,6 +94,9 @@ const Team = () => {
   const [winFlash, setWinFlash] = useState(false);
 
   const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warmupRafRef = useRef<number | null>(null);
+  const warmupStartRef = useRef<number>(0);
+  const warmupBaseRotationRef = useRef<number>(0);
 
   useEffect(() => {
     if (profile?.id) {
@@ -187,18 +192,22 @@ const Team = () => {
     setShowResult(false);
     setWinFlash(false);
 
-    // Start spinning IMMEDIATELY for instant feedback (visual only)
-    // We'll lock onto the real result once the server responds.
+    // PHASE 1: Warmup — instant linear spin loop using rAF (no transition gap)
     if ('vibrate' in navigator) navigator.vibrate(50);
-    const initialExtraSpins = 6;
-    const provisionalRotation = rotation + initialExtraSpins * 360;
-    requestAnimationFrame(() => {
-      setRotation(provisionalRotation);
-    });
+    setSpinPhase('warmup');
+    warmupBaseRotationRef.current = rotation;
+    warmupStartRef.current = performance.now();
 
-    const spinStart = performance.now();
+    const warmupTick = (now: number) => {
+      const elapsed = now - warmupStartRef.current;
+      // 360deg per WARMUP_SPIN_SPEED ms = constant linear velocity
+      const next = warmupBaseRotationRef.current + (elapsed / WARMUP_SPIN_SPEED) * 360;
+      setRotation(next);
+      warmupRafRef.current = requestAnimationFrame(warmupTick);
+    };
+    warmupRafRef.current = requestAnimationFrame(warmupTick);
 
-    // Call server-side spin function for secure outcome (in parallel with animation)
+    // Call server-side spin function for secure outcome (parallel with animation)
     let serverWonAmount: number;
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -208,7 +217,10 @@ const Team = () => {
       });
 
       if (error || !data?.success) {
-        // Reset wheel state
+        // Stop warmup and reset
+        if (warmupRafRef.current) cancelAnimationFrame(warmupRafRef.current);
+        warmupRafRef.current = null;
+        setSpinPhase('idle');
         setIsSpinning(false);
         toast({
           title: data?.error === 'demo_limit_reached' ? 'انتهت محاولات التجربة' : 'خطأ',
@@ -227,28 +239,41 @@ const Team = () => {
       }
     } catch (err) {
       console.error('Spin API error:', err);
+      if (warmupRafRef.current) cancelAnimationFrame(warmupRafRef.current);
+      warmupRafRef.current = null;
+      setSpinPhase('idle');
       setIsSpinning(false);
       toast({ title: 'خطأ', description: 'فشل في الاتصال بالخادم', variant: 'destructive' });
       return;
     }
 
-    // Find the segment index on the wheel that matches the server result
+    // PHASE 2: Stop warmup loop, capture current rotation, then animate to target with deceleration
+    if (warmupRafRef.current) cancelAnimationFrame(warmupRafRef.current);
+    warmupRafRef.current = null;
+
+    const currentRotation =
+      warmupBaseRotationRef.current +
+      ((performance.now() - warmupStartRef.current) / WARMUP_SPIN_SPEED) * 360;
+
+    // Find target segment matching server result
     const matchingIndices = REWARDS.map((r, i) => r.value === serverWonAmount ? i : -1).filter(i => i >= 0);
     const targetSegment = matchingIndices[Math.floor(Math.random() * matchingIndices.length)];
 
-    // Calculate final rotation: continue from provisional, add more spins, land on target
-    const extraSpins = 6 + Math.floor(Math.random() * 3);
-    const targetRotation = getTargetRotationForSegment(provisionalRotation, targetSegment, extraSpins);
+    // Final rotation: continue forward, several full spins, land precisely on target center
+    const extraSpins = 5 + Math.floor(Math.random() * 2);
+    const targetRotation = getTargetRotationForSegment(currentRotation, targetSegment, extraSpins);
 
+    // Lock rotation to current (no transition) for one frame, then trigger eased transition
+    setRotation(currentRotation);
     requestAnimationFrame(() => {
-      setRotation(targetRotation);
+      requestAnimationFrame(() => {
+        setSpinPhase('decelerate');
+        setRotation(targetRotation);
+      });
     });
 
-    // Adjust remaining time so total feels like SPIN_DURATION
-    const elapsed = performance.now() - spinStart;
-    const remaining = Math.max(SPIN_DURATION - elapsed, 3500);
-
     spinTimeoutRef.current = setTimeout(() => {
+      setSpinPhase('idle');
       setIsSpinning(false);
       setWonAmount(serverWonAmount);
       setWinFlash(true);
@@ -259,13 +284,14 @@ const Team = () => {
         setWinFlash(false);
         setShowResult(true);
       }, 800);
-    }, remaining);
+    }, SPIN_DURATION);
   }, [isSpinning, availableSpins, demoRemaining, rotation, toast]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
+      if (warmupRafRef.current) cancelAnimationFrame(warmupRafRef.current);
     };
   }, []);
 
@@ -374,9 +400,10 @@ const Team = () => {
               className="w-full h-full rounded-full border-4 border-primary/30 relative z-10 overflow-hidden"
               style={{
                 transform: `rotate(${rotation}deg)`,
-                transition: isSpinning ?
-                `transform ${SPIN_DURATION}ms cubic-bezier(0.12, 0, 0.01, 1)` :
-                'none',
+                transition:
+                  spinPhase === 'decelerate'
+                    ? `transform ${SPIN_DURATION}ms cubic-bezier(0.17, 0.67, 0.16, 1)`
+                    : 'none',
                 willChange: isSpinning ? 'transform' : 'auto'
               }}>
 
