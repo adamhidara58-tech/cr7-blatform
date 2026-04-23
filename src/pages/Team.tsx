@@ -173,12 +173,32 @@ const Team = () => {
       return;
     }
 
+    if (demo && demoRemaining <= 0) {
+      toast({
+        title: 'انتهت محاولات التجربة',
+        description: 'لقد استخدمت 3 محاولات تجربة اليوم. عد غداً!',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsDemo(demo);
     setIsSpinning(true);
     setShowResult(false);
     setWinFlash(false);
 
-    // Call server-side spin function for secure outcome
+    // Start spinning IMMEDIATELY for instant feedback (visual only)
+    // We'll lock onto the real result once the server responds.
+    if ('vibrate' in navigator) navigator.vibrate(50);
+    const initialExtraSpins = 6;
+    const provisionalRotation = rotation + initialExtraSpins * 360;
+    requestAnimationFrame(() => {
+      setRotation(provisionalRotation);
+    });
+
+    const spinStart = performance.now();
+
+    // Call server-side spin function for secure outcome (in parallel with animation)
     let serverWonAmount: number;
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -188,23 +208,27 @@ const Team = () => {
       });
 
       if (error || !data?.success) {
+        // Reset wheel state
+        setIsSpinning(false);
         toast({
-          title: 'خطأ',
-          description: data?.error || 'فشل في تشغيل العجلة',
+          title: data?.error === 'demo_limit_reached' ? 'انتهت محاولات التجربة' : 'خطأ',
+          description: data?.message || data?.error || 'فشل في تشغيل العجلة',
           variant: 'destructive'
         });
-        setIsSpinning(false);
+        if (data?.error === 'demo_limit_reached') setDemoRemaining(0);
         return;
       }
 
       serverWonAmount = data.wonAmount;
       if (!demo) {
         setAvailableSpins(data.remainingSpins);
+      } else if (typeof data.demoRemaining === 'number') {
+        setDemoRemaining(data.demoRemaining);
       }
     } catch (err) {
       console.error('Spin API error:', err);
-      toast({ title: 'خطأ', description: 'فشل في الاتصال بالخادم', variant: 'destructive' });
       setIsSpinning(false);
+      toast({ title: 'خطأ', description: 'فشل في الاتصال بالخادم', variant: 'destructive' });
       return;
     }
 
@@ -212,16 +236,17 @@ const Team = () => {
     const matchingIndices = REWARDS.map((r, i) => r.value === serverWonAmount ? i : -1).filter(i => i >= 0);
     const targetSegment = matchingIndices[Math.floor(Math.random() * matchingIndices.length)];
 
-    // Calculate rotation: many full spins + exact stop on selected segment center
-    const extraSpins = 10 + Math.floor(Math.random() * 4);
-    const targetRotation = getTargetRotationForSegment(rotation, targetSegment, extraSpins);
-
-    // Vibration for mobile
-    if ('vibrate' in navigator) navigator.vibrate(50);
+    // Calculate final rotation: continue from provisional, add more spins, land on target
+    const extraSpins = 6 + Math.floor(Math.random() * 3);
+    const targetRotation = getTargetRotationForSegment(provisionalRotation, targetSegment, extraSpins);
 
     requestAnimationFrame(() => {
       setRotation(targetRotation);
     });
+
+    // Adjust remaining time so total feels like SPIN_DURATION
+    const elapsed = performance.now() - spinStart;
+    const remaining = Math.max(SPIN_DURATION - elapsed, 3500);
 
     spinTimeoutRef.current = setTimeout(() => {
       setIsSpinning(false);
@@ -234,8 +259,8 @@ const Team = () => {
         setWinFlash(false);
         setShowResult(true);
       }, 800);
-    }, SPIN_DURATION);
-  }, [isSpinning, availableSpins, rotation, toast]);
+    }, remaining);
+  }, [isSpinning, availableSpins, demoRemaining, rotation, toast]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
