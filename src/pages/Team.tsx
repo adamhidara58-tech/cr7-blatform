@@ -478,11 +478,13 @@ const Team = () => {
             }
 
             <button
-              className="w-full py-3 font-bold text-white/20 hover:text-primary/60 transition-colors uppercase tracking-widest text-xs"
+              className="w-full py-3 font-bold text-white/30 hover:text-primary/60 transition-colors uppercase tracking-widest text-xs disabled:opacity-40 disabled:cursor-not-allowed"
               onClick={() => handleSpin(true)}
-              disabled={isSpinning}>
+              disabled={isSpinning || demoRemaining <= 0}>
 
-              وضع التجربة (Demo)
+              {demoRemaining > 0
+                ? `وضع التجربة (Demo) — ${demoRemaining}/3 متبقية اليوم`
+                : 'انتهت محاولات التجربة اليوم'}
             </button>
           </div>
         </div>
