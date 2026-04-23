@@ -400,9 +400,10 @@ const Team = () => {
               className="w-full h-full rounded-full border-4 border-primary/30 relative z-10 overflow-hidden"
               style={{
                 transform: `rotate(${rotation}deg)`,
-                transition: isSpinning ?
-                `transform ${SPIN_DURATION}ms cubic-bezier(0.12, 0, 0.01, 1)` :
-                'none',
+                transition:
+                  spinPhase === 'decelerate'
+                    ? `transform ${SPIN_DURATION}ms cubic-bezier(0.17, 0.67, 0.16, 1)`
+                    : 'none',
                 willChange: isSpinning ? 'transform' : 'auto'
               }}>
 
