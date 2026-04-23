@@ -55,7 +55,8 @@ const WINNERS_MOCK = [
   { name: 'عمر ف.', prize: 0.5, time: 'منذ ساعة' },
 ];
 
-const SPIN_DURATION = 6000; // ms - longer for dramatic slowdown
+const SPIN_DURATION = 5500; // ms - final deceleration phase
+const WARMUP_SPIN_SPEED = 600; // ms per full rotation during warmup loop
 const segmentAngle = 360 / REWARDS.length;
 
 const normalizeRotation = (angle: number) => ((angle % 360) + 360) % 360;
