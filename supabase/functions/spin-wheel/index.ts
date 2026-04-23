@@ -8,11 +8,14 @@ const corsHeaders = {
 
 // Allowed real spin outcomes: $0.2, $0.5, $0.9, $1.0
 const REAL_OUTCOMES = [0.2, 0.5, 0.9, 1.0];
-const REAL_WEIGHTS = [35, 30, 20, 15]; // Weighted toward smaller amounts
+const REAL_WEIGHTS = [35, 30, 20, 15];
 
-// Demo outcomes (all values on the wheel)
+// Demo outcomes — biased to natural/small amounts, with rare chance for big wins
 const DEMO_OUTCOMES = [0.2, 10, 0.9, 100, 0.5, 500, 1, 1000, 0.2, 20, 0.5, 0.9];
-const DEMO_WEIGHTS = [40, 5, 25, 2, 40, 1, 25, 1, 40, 5, 40, 25];
+//                    [0.2, 10, 0.9, 100, 0.5, 500, 1, 1000, 0.2, 20, 0.5, 0.9]
+const DEMO_WEIGHTS  = [ 90,  3,  85,   1, 90,    1, 70,   1,  90,  4, 90,  85];
+
+const DEMO_DAILY_LIMIT = 3;
 
 function pickWeighted(outcomes: number[], weights: number[]): number {
   const total = weights.reduce((a, b) => a + b, 0);
@@ -39,7 +42,6 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify user JWT
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ success: false, error: 'Authorization required' }), {
@@ -59,7 +61,6 @@ serve(async (req) => {
     const body = await req.json();
     const isDemo = body.demo === true;
 
-    // Get user profile
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('balance, available_spins, total_earned')
@@ -72,13 +73,41 @@ serve(async (req) => {
       });
     }
 
-    if (!isDemo && profile.available_spins <= 0) {
-      return new Response(JSON.stringify({ success: false, error: 'No spins available' }), {
-        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    let demoRemaining = DEMO_DAILY_LIMIT;
+
+    if (isDemo) {
+      // Check daily demo limit
+      const today = new Date().toISOString().slice(0, 10);
+      const { count, error: countError } = await supabaseAdmin
+        .from('demo_spins')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('spun_at', today);
+
+      if (countError) {
+        console.error('demo_spins count error:', countError);
+      }
+
+      const usedToday = count ?? 0;
+      if (usedToday >= DEMO_DAILY_LIMIT) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'demo_limit_reached',
+          message: 'لقد استخدمت 3 محاولات تجربة اليوم. عد غداً!',
+          demoRemaining: 0,
+        }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      demoRemaining = DEMO_DAILY_LIMIT - usedToday - 1;
+    } else {
+      if (profile.available_spins <= 0) {
+        return new Response(JSON.stringify({ success: false, error: 'No spins available' }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
     }
 
-    // Pick outcome server-side
     let wonAmount: number;
     if (isDemo) {
       wonAmount = pickWeighted(DEMO_OUTCOMES, DEMO_WEIGHTS);
@@ -86,8 +115,13 @@ serve(async (req) => {
       wonAmount = pickWeighted(REAL_OUTCOMES, REAL_WEIGHTS);
     }
 
-    // For real spins: update balance and deduct spin
-    if (!isDemo) {
+    if (isDemo) {
+      // Record demo spin to enforce daily limit
+      await supabaseAdmin.from('demo_spins').insert({
+        user_id: user.id,
+        won_amount: wonAmount,
+      });
+    } else {
       const { error: updateError } = await supabaseAdmin
         .from('profiles')
         .update({
@@ -104,7 +138,6 @@ serve(async (req) => {
         });
       }
 
-      // Log transaction
       await supabaseAdmin.from('transactions').insert({
         user_id: user.id,
         type: 'challenge',
@@ -119,6 +152,7 @@ serve(async (req) => {
       wonAmount,
       isDemo,
       remainingSpins: isDemo ? profile.available_spins : Math.max(0, profile.available_spins - 1),
+      demoRemaining: isDemo ? demoRemaining : null,
     }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
